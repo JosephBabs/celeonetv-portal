@@ -65,45 +65,151 @@ const Navbar = ({ user, handleLogout }) => (
 );
 
 /* ================= HOME ================= */
+/* ================= HOME (PRODUCT LANDING) ================= */
 const Home = () => (
-  <div className="relative min-h-screen flex items-center justify-center text-center overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-black to-black -z-10" />
+  <div className="bg-black text-white overflow-hidden">
+    {/* HERO */}
+    <section className="relative min-h-screen flex items-center">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-black to-black" />
 
-    <div className="px-6 pt-24 max-w-4xl">
-      <span className="inline-block mb-4 px-4 py-1 rounded-full text-sm bg-blue-500/10 text-blue-400 border border-blue-500/20">
-        Live Streaming Platform
-      </span>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-24 grid lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <span className="inline-block mb-4 px-4 py-1 rounded-full text-sm bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            Celeone Live Platform
+          </span>
 
-      <h1 className="text-5xl md:text-7xl font-extrabold text-white leading-tight">
-        Stream your
-        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-          Channel Live
-        </span>
-      </h1>
+          <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
+            Go Live.
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+              Own Your Channel.
+            </span>
+          </h1>
 
-      <p className="mt-6 text-lg text-gray-400 max-w-2xl mx-auto">
-        Create channels, generate stream keys, and broadcast instantly with
-        professional-grade infrastructure.
+          <p className="mt-6 text-lg text-gray-400 max-w-xl">
+            Celeone lets creators, churches, TV stations and communities stream
+            live with professional infrastructure — no complexity, no limits.
+          </p>
+
+          <div className="mt-10 flex flex-wrap gap-4">
+            <Link
+              to="/request"
+              className="px-8 py-4 rounded-full bg-white text-black font-bold hover:scale-105 transition flex items-center gap-2"
+            >
+              <FaBroadcastTower /> Create a Channel
+            </Link>
+
+            <Link
+              to="/login"
+              className="px-8 py-4 rounded-full bg-white/10 border border-white/10 hover:bg-white/20 transition"
+            >
+              Broadcaster Login
+            </Link>
+          </div>
+        </div>
+
+        {/* MOCK PLAYER */}
+        <div className="relative">
+          <div className="rounded-3xl overflow-hidden border border-white/10 bg-black shadow-2xl">
+            <div className="aspect-video bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
+              <FaPlay className="text-6xl text-white/80" />
+            </div>
+            <div className="p-4 flex justify-between text-sm text-gray-400">
+              <span>Live Channel Preview</span>
+              <span className="text-red-500">● LIVE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* FEATURES */}
+    <section className="py-32 border-t border-white/10">
+      <div className="max-w-7xl mx-auto px-6">
+        <h2 className="text-4xl font-bold text-center">
+          Everything You Need to Go Live
+        </h2>
+        <p className="text-gray-400 text-center mt-4 max-w-2xl mx-auto">
+          Built for reliability, speed and simplicity.
+        </p>
+
+        <div className="mt-20 grid md:grid-cols-3 gap-10">
+          {[
+            {
+              icon: <FaVideo />,
+              title: "Live Broadcasting",
+              desc: "Stream in real time using OBS, mobile or professional encoders.",
+            },
+            {
+              icon: <FaBroadcastTower />,
+              title: "RTMP & HLS",
+              desc: "Industry-standard RTMP ingest with auto-generated HLS playback.",
+            },
+            {
+              icon: <FaUser />,
+              title: "Channel Ownership",
+              desc: "Each broadcaster controls their own channels and stream keys.",
+            },
+          ].map((f, i) => (
+            <div
+              key={i}
+              className="p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
+            >
+              <div className="text-3xl text-blue-400">{f.icon}</div>
+              <h3 className="mt-4 text-xl font-bold">{f.title}</h3>
+              <p className="mt-2 text-gray-400">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* HOW IT WORKS */}
+    <section className="py-32 bg-gradient-to-b from-black to-blue-950/20 border-t border-white/10">
+      <div className="max-w-6xl mx-auto px-6">
+        <h2 className="text-4xl font-bold text-center">How Celeone Works</h2>
+
+        <div className="mt-20 grid md:grid-cols-4 gap-8 text-center">
+          {[
+            "Create an account",
+            "Generate a channel",
+            "Copy your stream key",
+            "Go live instantly",
+          ].map((step, i) => (
+            <div key={i} className="p-6 rounded-xl bg-white/5 border border-white/10">
+              <div className="text-4xl font-extrabold text-blue-400 mb-3">
+                {i + 1}
+              </div>
+              <p className="text-gray-300">{step}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* CTA */}
+    <section className="py-32 text-center border-t border-white/10">
+      <h2 className="text-5xl font-extrabold">
+        Start Broadcasting on
+        <span className="block text-blue-500">Celeone Today</span>
+      </h2>
+
+      <p className="mt-6 text-gray-400 max-w-xl mx-auto">
+        Whether you're a TV station, church, creator or organization —
+        Celeone gives you the power to broadcast globally.
       </p>
 
-      <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="mt-10">
         <Link
           to="/request"
-          className="flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white text-black font-bold hover:scale-105 transition"
+          className="inline-flex items-center gap-2 px-10 py-5 rounded-full bg-blue-600 hover:bg-blue-500 transition font-bold text-lg shadow-lg shadow-blue-500/30"
         >
-          <FaBroadcastTower /> Create Channel
-        </Link>
-
-        <Link
-          to="/login"
-          className="flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white/10 text-white hover:bg-white/20 transition border border-white/10"
-        >
-          <FaUser /> Broadcaster Login
+          <FaBroadcastTower /> Create Your Channel
         </Link>
       </div>
-    </div>
+    </section>
   </div>
 );
+
 
 /* ================= LOGIN ================= */
 const Login = () => {
