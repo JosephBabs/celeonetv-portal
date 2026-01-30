@@ -86,6 +86,8 @@ const Home = () => (
           </h1>
 
           <p className="mt-6 text-lg text-gray-400 max-w-xl">
+            Cele One connects members of the Celestial Church of Christ around the world.
+Access church news, official documents, discussions, and live content — all in one place to strengthen faith, unity, and community.
             Celeone lets creators, churches, TV stations and communities stream
             live with professional infrastructure — no complexity, no limits.
           </p>
@@ -196,6 +198,12 @@ const Home = () => (
       <p className="mt-6 text-gray-400 max-w-xl mx-auto">
         Whether you're a TV station, church, creator or organization —
         Celeone gives you the power to broadcast globally.
+
+        Cele One is a digital platform built to unite members of the Celestial Church of Christ worldwide.
+
+The app provides access to church news, official documents, community discussions, and multimedia content, creating a shared space for information, fellowship, and spiritual growth.
+
+By bringing Celestials together across borders, Cele One strengthens faith, promotes unity, and supports active participation in church life — anytime, anywhere.
       </p>
 
       <div className="mt-10">
