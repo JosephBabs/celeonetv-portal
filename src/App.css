@@ -340,6 +340,124 @@ button {
   margin: 1rem 0;
   font-weight: bold;
 }
+/* --- Login Form --- */
+.login-form-container {
+  max-width: 400px;
+  margin: 5rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.login-form-container h2 {
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  font-size: 2rem;
+}
+
+.login-form-container input {
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.text-error {
+  color: var(--danger-color);
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* --- Sidebar Scroll Fix for Long Dashboards --- */
+.sidebar {
+  height: 100vh;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+}
+
+/* --- Smooth Scroll for Main Content --- */
+.main-content {
+  scroll-behavior: smooth;
+}
+
+/* --- Tables Enhancement --- */
+.styled-table tr:hover {
+  background-color: rgba(47, 160, 164, 0.1);
+  transition: 0.3s;
+}
+
+.styled-table code {
+  background: #f4f4f4;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+/* --- Buttons Hover & Active --- */
+button:active {
+  transform: scale(0.97);
+}
+
+.btn-record:hover {
+  background-color: var(--primary-color);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 1024px) {
+  .grid-split {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-container {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 1rem 0;
+    gap: 5px;
+  }
+  .sidebar button {
+    flex: 1;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 1rem;
+  }
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+  .hero-description {
+    font-size: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+/* --- Minor UI Polish --- */
+.card h3 {
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.card ul {
+  list-style: inside disc;
+  color: #333;
+}
+
+.content-item h4 {
+  margin-bottom: 0.3rem;
+  color: var(--primary-color);
+}
+
 
 .status-badge.live { background-color: rgba(46, 204, 113, 0.2); color: var(--success-color); }
 .status-badge.offline { background-color: rgba(0,0,0,0.1); color: #777; }
