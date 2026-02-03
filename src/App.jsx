@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './App.css'; // Ensure you have this file or use the style tag provided at the bottom
+import './App.css';
 
 // --- Mock Data ---
 const INITIAL_CHANNELS = [
@@ -22,7 +22,7 @@ const INITIAL_CHANNELS = [
 const Navbar = ({ user, onLogin, onLogout }) => {
   return (
     <nav className="navbar">
-      <div className="nav-brand">CeleoneTV</div>
+      <div className="nav-brand">Cele One</div>
       <div className="nav-links">
         {user ? (
           <>
@@ -47,7 +47,6 @@ const LivePlayer = ({ channel }) => {
   return (
     <div className="live-player-container">
       <div className="video-wrapper">
-        {/* HLS.js would be loaded here in production. Using standard video tag for demo. */}
         <video 
           controls 
           autoPlay 
@@ -230,10 +229,20 @@ const LandingPage = ({ channels, programs, podcasts }) => {
     <div className="landing-page">
       <section className="hero-section">
         <div className="hero-content">
-          <h1>Experience Live TV Like Never Before</h1>
-          <p>Stream, connect, and share your moments with the world.</p>
+          <h1>Cele One</h1>
+          <div className="hero-description">
+            <p>
+              Cele One is a digital platform built to unite members of the Celestial Church of Christ worldwide.
+            </p>
+            <p>
+              The app provides access to church news, official documents, community discussions, and multimedia content, creating a shared space for information, fellowship, and spiritual growth.
+            </p>
+            <p>
+              By bringing Celestials together across borders, Cele One strengthens faith, promotes unity, and supports active participation in church life — anytime, anywhere.
+            </p>
+          </div>
           <div className="hero-buttons">
-            <button className="btn-primary btn-large">Get Started</button>
+            <button className="btn-primary btn-large">Join Community</button>
             <button className="btn-outline btn-large">Learn More</button>
           </div>
         </div>
@@ -280,7 +289,7 @@ const LandingPage = ({ channels, programs, podcasts }) => {
 
 // --- Main App Component ---
 function App() {
-  const [user, setUser] = useState(null); // null, { role: 'admin' }, { role: 'owner', id: 'owner1' }
+  const [user, setUser] = useState(null); 
   const [channels, setChannels] = useState(INITIAL_CHANNELS);
   const [programs, setPrograms] = useState([]);
   const [podcasts, setPodcasts] = useState([]);
@@ -349,7 +358,7 @@ function App() {
         {renderContent()}
       </main>
       <footer className="site-footer">
-        <p>&copy; 2026 CeleoneTV. All rights reserved.</p>
+        <p>&copy; 2026 Cele One. All rights reserved.</p>
       </footer>
     </div>
   );
