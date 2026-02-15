@@ -5,6 +5,8 @@ import CreatorRequest from "./pages/CreatorRequest";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import ChannelLive from "./pages/ChannelLive";
 import AdminDashboard from "./pages/AdminDashboard";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Post from "./pages/Post";
 
 export default function App() {
@@ -17,6 +19,8 @@ export default function App() {
           <Route path="/creator/request" element={<CreatorRequest />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/posts/:postId" element={<Post />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           <Route path="/:channelName/live" element={<ChannelLive />} />
         </Route>
       </Routes>

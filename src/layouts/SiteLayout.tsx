@@ -2,7 +2,7 @@ import { Outlet, Link } from "react-router-dom";
 
 export default function SiteLayout() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <div className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link to="/" className="font-black text-slate-900">

@@ -8,6 +8,8 @@ import Post from "../pages/Post";
 import CreatorRequest from "../pages/CreatorRequest";
 import CreatorDashboard from "../pages/CreatorDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +26,10 @@ export const router = createBrowserRouter([
       // Creator
       { path: "/creator/request", element: <CreatorRequest /> },
       { path: "/creator", element: <CreatorDashboard /> },
+      { path: "/login", element: <Login /> },
+      { path: "/logout", element: <Login /> },
+      { path: "/register", element: <Register /> },
+
 
       // Admin
       { path: "/admin", element: <AdminDashboard /> },
