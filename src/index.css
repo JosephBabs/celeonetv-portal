@@ -1,23 +1,9 @@
+
 @import "tailwindcss";
 
-/* =========================
-   BRAND THEME VARIABLES
-========================= */
-@theme {
-  --color-brand-dark: #0f172a;
-  --color-brand-light: #1e293b;
-  --color-brand-accent: #3b82f6;
-}
-
-/* =========================
-   GLOBAL UI POLISH
-========================= */
-html, body {
-  background-color: var(--color-brand-dark);
-  color: #e5e7eb;
-}
-
-
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
