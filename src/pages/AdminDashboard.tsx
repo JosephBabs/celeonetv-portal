@@ -158,7 +158,7 @@ export default function AdminDashboard() {
   >(null);
 
   const [activePkg, setActivePkg] = useState<any>(null);
-  const [activeReq, setActiveReq] = useState<any>(null);
+  // const [activeReq, setActiveReq] = useState<any>(null);
 
   useEffect(() => {
     const q1 = query(collection(db, "channel_requests"), orderBy("createdAt", "desc"));
@@ -319,7 +319,7 @@ export default function AdminDashboard() {
           const { id, ...rest } = parsed;
           payload = rest;
         } catch (e) {
-          alert("Invalid JSON.");
+          alert(`Invalid JSON. ${e}`);
           return;
         }
       } else {

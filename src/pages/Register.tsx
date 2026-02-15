@@ -8,7 +8,7 @@ export default function Register() {
   const [password,setPassword] = useState("");
   const navigate = useNavigate();
 
-  const register = async (e) => {
+  const register = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     await createUserWithEmailAndPassword(auth,email,password);
     navigate("/dashboard");

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-import { useAuthUser } from "../context/AuthContext";
+import { useAuthUser } from "../lib/useAuthUser";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 
