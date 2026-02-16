@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+// src/worker.ts
+// Cloudflare Worker + Static Assets (Wrangler "assets") + SPA + Dynamic OG tags for /posts/:id
+// - Serves your Vite dist via env.ASSETS.fetch
+// - Injects OG/Twitter meta tags for WhatsApp/Facebook previews
+// - Uses a short timeout for Firestore fetch to avoid 522 timeouts for bots
+// - Removes any existing og:/twitter: tags + <title> from index.html to avoid duplicates
+
 export interface Env {
   FIREBASE_PROJECT_ID?: string;
-  // Wrangler injects ASSETS when using "assets" in wrangler.jsonc
   ASSETS?: { fetch: (req: Request) => Promise<Response> };
 }
 
@@ -20,42 +25,64 @@ function isHtml(res: Response) {
   return ct.includes("text/html");
 }
 
+async function fetchWithTimeout(url: string, ms: number, init?: RequestInit) {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), ms);
+  try {
+    return await fetch(url, { ...(init || {}), signal: ac.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function stripExistingSocialMeta(html: string) {
+  // Remove duplicates from index.html (some scrapers choose the first og:title they see)
+  return html
+    .replace(/<meta[^>]+property=["']og:[^"']+["'][^>]*>\s*/gi, "")
+    .replace(/<meta[^>]+name=["']twitter:[^"']+["'][^>]*>\s*/gi, "")
+    .replace(/<title>.*?<\/title>\s*/gis, "");
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // 1) Serve static assets safely (never crash)
+    // 1) Serve assets safely (never crash)
     let baseRes: Response;
     try {
       if (env.ASSETS && typeof env.ASSETS.fetch === "function") {
         baseRes = await env.ASSETS.fetch(request);
       } else {
-        // If ASSETS binding is missing, fallback (prevents 1101 crash)
+        // If ASSETS binding is missing, avoid crashing (still serves something)
         baseRes = await fetch(request);
       }
-    } catch (e) {
+    } catch {
       return new Response("Worker assets fetch failed", { status: 500 });
     }
 
-    // 2) Only target /posts/:id
+    // 2) Only handle /posts/:id
     const m = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
     if (!m) return baseRes;
 
-    // 3) Only inject into HTML responses
+    // 3) Only inject into HTML (index.html)
     if (!isHtml(baseRes)) return baseRes;
 
     const postId = m[1];
 
-    // 4) Fetch post (but NEVER crash if it fails)
-    let title = "Celeone";
-    let description = "";
+    // 4) Defaults (so we can always respond fast)
+    let title = "Celeone TV";
+    let description = "Celeone TV";
     let image = "https://celeonetv.com/logo.png";
 
+    // 5) Fetch post data from Firestore REST (fast timeout to avoid 522 for bot UAs)
+    // NOTE: This only works if your Firestore rules allow read for this doc/fields.
     try {
       const projectId = env.FIREBASE_PROJECT_ID;
       if (projectId) {
         const firebaseURL = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/posts/${postId}`;
-        const fr = await fetch(firebaseURL);
+
+        // 2.5s timeout (tweak 1500–3000ms depending on your needs)
+        const fr = await fetchWithTimeout(firebaseURL, 2500);
 
         if (fr.ok) {
           const data: any = await fr.json();
@@ -65,31 +92,28 @@ export default {
           const contentRaw = fields.content?.stringValue || "";
           const imageRaw = fields.image?.stringValue || image;
 
-          title = titleRaw;
-          description = (contentRaw || "").trim().slice(0, 180);
-          image = imageRaw;
+          title = String(titleRaw || title);
+          description = String(contentRaw || "")
+            .trim()
+            .replace(/\s+/g, " ")
+            .slice(0, 180);
+
+          image = String(imageRaw || image);
         }
       }
-    } catch (e) {
-      // ignore — fall back to defaults
+    } catch {
+      // ignore errors/timeouts and keep defaults (prevents 522)
     }
 
-    // 5) Inject meta
+    // 6) Build OG meta
     const pageUrl = `https://celeonetv.com/posts/${postId}`;
-
-    let html = await baseRes.text();
-    html = html
-  .replace(/<meta[^>]+property="og:[^"]+"[^>]*>\s*/gi, "")
-  .replace(/<meta[^>]+name="twitter:[^"]+"[^>]*>\s*/gi, "")
-  .replace(/<title>.*?<\/title>\s*/is, "");
-
 
     const meta = `
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}" />
 
 <meta property="og:type" content="article" />
-<meta property="og:site_name" content="Celeone" />
+<meta property="og:site_name" content="Celeone TV" />
 <meta property="og:title" content="${escapeHtml(title)}" />
 <meta property="og:description" content="${escapeHtml(description)}" />
 <meta property="og:image" content="${escapeHtml(image)}" />
@@ -100,17 +124,29 @@ export default {
 <meta name="twitter:title" content="${escapeHtml(title)}" />
 <meta name="twitter:description" content="${escapeHtml(description)}" />
 <meta name="twitter:image" content="${escapeHtml(image)}" />
-`;
+`.trim();
+
+    // 7) Inject into HTML
+    let html = await baseRes.text();
+    html = stripExistingSocialMeta(html);
 
     if (html.includes("</head>")) {
       html = html.replace("</head>", `${meta}\n</head>`);
+    } else {
+      // Very rare, but keep safe
+      html = `${meta}\n${html}`;
     }
 
-    // Rebuild response (preserve headers)
+    // 8) Return modified HTML; preserve headers but ensure correct content-type
     const headers = new Headers(baseRes.headers);
     headers.set("content-type", "text/html; charset=UTF-8");
+
+    // Avoid stale previews/caches (WhatsApp caches aggressively)
     headers.set("cache-control", "no-store");
 
-    return new Response(html, { status: baseRes.status, headers });
+    return new Response(html, {
+      status: baseRes.status,
+      headers,
+    });
   },
 };
