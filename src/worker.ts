@@ -78,6 +78,11 @@ export default {
     const pageUrl = `https://celeonetv.com/posts/${postId}`;
 
     let html = await baseRes.text();
+    html = html
+  .replace(/<meta[^>]+property="og:[^"]+"[^>]*>\s*/gi, "")
+  .replace(/<meta[^>]+name="twitter:[^"]+"[^>]*>\s*/gi, "")
+  .replace(/<title>.*?<\/title>\s*/is, "");
+
 
     const meta = `
 <title>${escapeHtml(title)}</title>
