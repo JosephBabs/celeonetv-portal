@@ -7,12 +7,6 @@
     "not_found_handling": "single-page-application"
   },
   "vars": {
-    "API_HOST": "celeonetv.com",
-    "API_ACCOUNT_ID": "417d7318fb30e2ca36c57e26d66c93ee",
-    "FIREBASE_PROJECT_ID": "celeone-e5843",
-    "SERVICE_X_DATA": {
-      "URL": "service-x-api.dev.celeonetv.com",
-      "MY_ID": 123
-    }
+    "FIREBASE_PROJECT_ID": "celeone-e5843"
   }
 }
