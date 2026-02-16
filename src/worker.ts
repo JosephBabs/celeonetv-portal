@@ -36,7 +36,7 @@ export default {
     const postId = match[1];
 
     // Firestore REST fetch
-    const projectId = env.FIREBASE_PROJECT_ID;
+    const projectId = "celeone-e5843";
     if (!projectId) return assetsRes;
 
     const firebaseURL = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/posts/${postId}`;
