@@ -1,93 +1,111 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export interface Env {
-  [x: string]: any;
-  FIREBASE_PROJECT_ID: string;
+  FIREBASE_PROJECT_ID?: string;
+  // Wrangler injects ASSETS when using "assets" in wrangler.jsonc
+  ASSETS?: { fetch: (req: Request) => Promise<Response> };
 }
 
-const escapeHtml = (s: string) =>
-  (s || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+function escapeHtml(s: string) {
+  return (s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
-function isHtmlResponse(res: Response) {
+function isHtml(res: Response) {
   const ct = res.headers.get("content-type") || "";
   return ct.includes("text/html");
 }
 
 export default {
-  async fetch(request: Request, env: Env, ): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // Let assets system serve everything first
-    // (In Workers+Assets, we call env.ASSETS.fetch)
-    // Wrangler injects env.ASSETS automatically.
-    // @ts-ignor
-    const assetsRes: Response = await env.ASSETS.fetch(request);
+    // 1) Serve static assets safely (never crash)
+    let baseRes: Response;
+    try {
+      if (env.ASSETS && typeof env.ASSETS.fetch === "function") {
+        baseRes = await env.ASSETS.fetch(request);
+      } else {
+        // If ASSETS binding is missing, fallback (prevents 1101 crash)
+        baseRes = await fetch(request);
+      }
+    } catch (e) {
+      return new Response("Worker assets fetch failed", { status: 500 });
+    }
 
-    // Only modify HTML responses for /posts/:id
-    const match = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
-    if (!match) return assetsRes;
+    // 2) Only target /posts/:id
+    const m = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
+    if (!m) return baseRes;
 
-    if (!isHtmlResponse(assetsRes)) return assetsRes;
+    // 3) Only inject into HTML responses
+    if (!isHtml(baseRes)) return baseRes;
 
-    const postId = match[1];
+    const postId = m[1];
 
-    // Firestore REST fetch
-    const projectId = "celeone-e5843";
-    if (!projectId) return assetsRes;
+    // 4) Fetch post (but NEVER crash if it fails)
+    let title = "Celeone";
+    let description = "";
+    let image = "https://celeonetv.com/logo.png";
 
-    const firebaseURL = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/posts/${postId}`;
-    const fr = await fetch(firebaseURL);
+    try {
+      const projectId = env.FIREBASE_PROJECT_ID;
+      if (projectId) {
+        const firebaseURL = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/posts/${postId}`;
+        const fr = await fetch(firebaseURL);
 
-    if (!fr.ok) return assetsRes;
+        if (fr.ok) {
+          const data: any = await fr.json();
+          const fields = data?.fields || {};
 
-    const data = await fr.json();
-    const fields = data.fields || {};
+          const titleRaw = fields.title?.stringValue || title;
+          const contentRaw = fields.content?.stringValue || "";
+          const imageRaw = fields.image?.stringValue || image;
 
-    const titleRaw = fields.title?.stringValue || "Celeone";
-    const contentRaw = fields.content?.stringValue || "";
-    const imageRaw = fields.image?.stringValue || "https://celeonetv.com/logo.png";
+          title = titleRaw;
+          description = (contentRaw || "").trim().slice(0, 180);
+          image = imageRaw;
+        }
+      }
+    } catch (e) {
+      // ignore — fall back to defaults
+    }
 
-    const title = escapeHtml(titleRaw);
-    const description = escapeHtml(contentRaw.trim().slice(0, 180));
-    const image = escapeHtml(imageRaw);
+    // 5) Inject meta
     const pageUrl = `https://celeonetv.com/posts/${postId}`;
 
-    let html = await assetsRes.text();
+    let html = await baseRes.text();
 
     const meta = `
-<title>${title}</title>
-<meta name="description" content="${description}" />
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(description)}" />
 
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="Celeone" />
-<meta property="og:title" content="${title}" />
-<meta property="og:description" content="${description}" />
-<meta property="og:image" content="${image}" />
-<meta property="og:image:secure_url" content="${image}" />
-<meta property="og:url" content="${pageUrl}" />
+<meta property="og:title" content="${escapeHtml(title)}" />
+<meta property="og:description" content="${escapeHtml(description)}" />
+<meta property="og:image" content="${escapeHtml(image)}" />
+<meta property="og:image:secure_url" content="${escapeHtml(image)}" />
+<meta property="og:url" content="${escapeHtml(pageUrl)}" />
 
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="${title}" />
-<meta name="twitter:description" content="${description}" />
-<meta name="twitter:image" content="${image}" />
+<meta name="twitter:title" content="${escapeHtml(title)}" />
+<meta name="twitter:description" content="${escapeHtml(description)}" />
+<meta name="twitter:image" content="${escapeHtml(image)}" />
 `;
 
     if (html.includes("</head>")) {
       html = html.replace("</head>", `${meta}\n</head>`);
     }
 
-    return new Response(html, {
-      status: assetsRes.status,
-      headers: {
-        ...Object.fromEntries(assetsRes.headers),
-        "content-type": "text/html; charset=UTF-8",
-        // avoid caching old previews
-        "cache-control": "no-store"
-      }
-    });
-  }
+    // Rebuild response (preserve headers)
+    const headers = new Headers(baseRes.headers);
+    headers.set("content-type", "text/html; charset=UTF-8");
+    headers.set("cache-control", "no-store");
+
+    return new Response(html, { status: baseRes.status, headers });
+  },
 };
