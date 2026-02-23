@@ -4,6 +4,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   query,
   serverTimestamp,
@@ -19,6 +20,8 @@ import { useAuthUser } from "../lib/useAuthUser";
 
 export default function CreatorDashboard() {
   const { user, loading } = useAuthUser();
+  const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [channels, setChannels] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [videos, setVideos] = useState<any[]>([]);
   const [podcasts, setPodcasts] = useState<any[]>([]);
@@ -38,9 +41,31 @@ export default function CreatorDashboard() {
   useEffect(() => {
     if (!user) return;
 
+    const profileRef = doc(db, "user_data", user.uid);
+    const unSubProfile = onSnapshot(
+      profileRef,
+      (snap) => {
+        const data = snap.exists() ? snap.data() : {};
+        const resolvedOwnerId = String(data?.ownerId || data?.userId || data?.uid || user.uid);
+        setOwnerId(resolvedOwnerId);
+      },
+      () => {
+        setOwnerId(user.uid);
+      }
+    );
+
+    return () => {
+      unSubProfile();
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !ownerId) return;
+
     const requestQ = query(collection(db, "channel_requests"), where("userId", "==", user.uid));
-    const videoQ = query(collection(db, "videos"), where("ownerId", "==", user.uid));
-    const podcastQ = query(collection(db, "podcasts"), where("ownerId", "==", user.uid));
+    const channelsQ = query(collection(db, "channels"), where("ownerId", "==", ownerId));
+    const videoQ = query(collection(db, "videos"), where("ownerId", "==", ownerId));
+    const podcastQ = query(collection(db, "podcasts"), where("ownerId", "==", ownerId));
 
     const unSubRequests = onSnapshot(requestQ, (snap) => {
       setRequests(
@@ -49,6 +74,29 @@ export default function CreatorDashboard() {
           .sort((a: any, b: any) => getTime(b.createdAt) - getTime(a.createdAt))
       );
     });
+    const unSubChannels = onSnapshot(
+      channelsQ,
+      (snap) => {
+        setChannels(
+          snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .sort((a: any, b: any) => getTime(b.createdAt) - getTime(a.createdAt))
+        );
+      },
+      async () => {
+        // fallback for legacy channels linked by auth uid
+        if (ownerId !== user.uid) {
+          const fallbackSnap = await getDocs(query(collection(db, "channels"), where("ownerId", "==", user.uid)));
+          setChannels(
+            fallbackSnap.docs
+              .map((d) => ({ id: d.id, ...d.data() }))
+              .sort((a: any, b: any) => getTime(b.createdAt) - getTime(a.createdAt))
+          );
+        } else {
+          setChannels([]);
+        }
+      }
+    );
     const unSubVideos = onSnapshot(videoQ, (snap) => {
       setVideos(
         snap.docs
@@ -72,15 +120,31 @@ export default function CreatorDashboard() {
 
     return () => {
       unSubRequests();
+      unSubChannels();
       unSubVideos();
       unSubPodcasts();
     };
-  }, [user]);
+  }, [ownerId, user]);
 
-  const approvedChannel = useMemo(() => requests.find((r) => r.status === "approved"), [requests]);
+  const approvedChannel = useMemo(() => {
+    const fromChannels =
+      channels.find((c: any) => c.status === "approved") ||
+      channels.find((c: any) => c.streamLink || c.hlsUrl || c.streamKey) ||
+      channels[0];
+    return fromChannels || requests.find((r) => r.status === "approved") || null;
+  }, [channels, requests]);
 
   const hls = useMemo(() => {
-    if (!approvedChannel?.streamKey) return null;
+    if (!approvedChannel) return null;
+    const direct =
+      approvedChannel.streamLink ||
+      approvedChannel.hlsUrl ||
+      approvedChannel.streamUrl ||
+      approvedChannel.playbackUrl ||
+      approvedChannel.m3u8 ||
+      approvedChannel.url;
+    if (direct) return String(direct).replace(".m6u8", ".m3u8");
+    if (!approvedChannel.streamKey) return null;
     return `${APP.streaming.hlsBase}/${approvedChannel.streamKey}.m3u8`;
   }, [approvedChannel]);
 
@@ -90,7 +154,7 @@ export default function CreatorDashboard() {
     setSavingVideo(true);
     try {
       await addDoc(collection(db, "videos"), {
-        ownerId: user.uid,
+        ownerId: ownerId || user.uid,
         channelName: approvedChannel?.channelName || "",
         title: videoForm.title.trim(),
         description: videoForm.description.trim(),
@@ -113,7 +177,7 @@ export default function CreatorDashboard() {
     setSavingPodcast(true);
     try {
       await addDoc(collection(db, "podcasts"), {
-        ownerId: user.uid,
+        ownerId: ownerId || user.uid,
         channelName: approvedChannel?.channelName || "",
         title: podcastForm.title.trim(),
         description: podcastForm.description.trim(),
@@ -169,7 +233,7 @@ export default function CreatorDashboard() {
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">
           <Stat label="Requests" value={String(requests.length)} />
-          <Stat label="Approved" value={String(requests.filter((r) => r.status === "approved").length)} />
+          <Stat label="My Channels" value={String(channels.length)} />
           <Stat label="Videos" value={String(videos.length)} />
           <Stat label="Podcasts" value={String(podcasts.length)} />
         </div>
@@ -181,7 +245,7 @@ export default function CreatorDashboard() {
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             <Card label="Channel URL" value={`/${approvedChannel.channelName}/live`} />
             <Card label="RTMP Push" value={`${APP.streaming.rtmpBase}/${approvedChannel.streamKey || "{streamKey}"}`} mono />
-            <Card label="HLS Playback" value={`${APP.streaming.hlsBase}/${approvedChannel.streamKey || "{streamKey}"}.m3u8`} mono />
+            <Card label="HLS Playback" value={hls || "No playback URL"} mono />
           </div>
         ) : (
           <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
