@@ -13,7 +13,9 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
+import { setPageMeta } from "../lib/seo";
 
 /**
  * AdminDashboard (extended)
@@ -71,6 +73,15 @@ const COLLECTION_META: Record<
 const PAGE_SIZE = 50;
 
 export default function AdminDashboard() {
+  const nav = useNavigate();
+
+  useEffect(() => {
+    setPageMeta({
+      title: "Admin Dashboard | Celeone TV",
+      description: "Manage users, posts, chatrooms, cantiques, requests and channels.",
+    });
+  }, []);
+
   // ---------- stats ----------
   const [counts, setCounts] = useState({
     users: 0,
@@ -264,6 +275,10 @@ export default function AdminDashboard() {
     await loadManageItems(key);
   };
 
+/**
+ * 加载管理项目的异步函数
+ * @param key - 管理键，用于标识要加载的集合
+ */
   const loadManageItems = async (key: ManageKey) => {
     setManageLoading(true);
     try {
@@ -486,6 +501,13 @@ export default function AdminDashboard() {
     [counts]
   );
 
+  const manageRouteMap: Partial<Record<ManageKey, string>> = {
+    platformRequests: "/admin/functions",
+    cantiques: "/admin/cantiques",
+    posts: "/admin/posts",
+    chatrooms: "/admin/chatrooms",
+  };
+
   return (
     <div className="space-y-6">
       {/* ---------- header ---------- */}
@@ -556,10 +578,18 @@ export default function AdminDashboard() {
                   Manage
                 </button>
                 <button
-                  onClick={() => alert("Next: connect routes. For now, Manage modal edits Firestore directly.")}
+                  onClick={() => {
+                    if (s.key === "joinRequests" || s.key === "channels") {
+                      nav("/admin/channel-requests");
+                      return;
+                    }
+                    const to = manageRouteMap[s.key];
+                    if (to) nav(to);
+                    else openManage(s.key);
+                  }}
                   className="rounded-2xl bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-800 hover:bg-slate-200"
                 >
-                  View Page
+                  Open Page
                 </button>
               </div>
             </div>

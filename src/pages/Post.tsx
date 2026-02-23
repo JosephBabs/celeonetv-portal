@@ -3,25 +3,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { db } from "../lib/firebase";
-
-function upsertMeta(selector: string, attrs: Record<string, string>) {
-  let el = document.head.querySelector(selector) as HTMLMetaElement | null;
-
-  if (!el) {
-    el = document.createElement("meta");
-    if (selector.includes('property="')) {
-      const prop = selector.match(/property="([^"]+)"/)?.[1];
-      if (prop) el.setAttribute("property", prop);
-    }
-    if (selector.includes('name="')) {
-      const name = selector.match(/name="([^"]+)"/)?.[1];
-      if (name) el.setAttribute("name", name);
-    }
-    document.head.appendChild(el);
-  }
-
-  Object.entries(attrs).forEach(([k, v]) => el!.setAttribute(k, v));
-}
+import { setPageMeta } from "../lib/seo";
 
 export default function Post() {
   const { postId } = useParams();
@@ -42,38 +24,26 @@ export default function Post() {
     run();
   }, [postId]);
 
-  // ✅ Update browser meta tags when post is ready (client-side)
   useEffect(() => {
     if (!post) return;
-
-    const title = post.title || "Celeone";
-    const description = (post.content || "").toString().trim().slice(0, 180);
-    const image = post.image || "https://celeonetv.com/logo.png";
-    const url = window.location.href;
-
-    document.title = title;
-
-    upsertMeta('meta[name="description"]', { content: description });
-
-    upsertMeta('meta[property="og:type"]', { content: "article" });
-    upsertMeta('meta[property="og:site_name"]', { content: "Celeone TV" });
-    upsertMeta('meta[property="og:title"]', { content: title });
-    upsertMeta('meta[property="og:description"]', { content: description });
-    upsertMeta('meta[property="og:image"]', { content: image });
-    upsertMeta('meta[property="og:url"]', { content: url });
-
-    upsertMeta('meta[name="twitter:card"]', { content: "summary_large_image" });
-    upsertMeta('meta[name="twitter:title"]', { content: title });
-    upsertMeta('meta[name="twitter:description"]', { content: description });
-    upsertMeta('meta[name="twitter:image"]', { content: image });
+    const title = post.shareTitle || post.title || "Celeone TV";
+    const description = (post.shareDescription || post.content || "").toString().trim().slice(0, 180);
+    const image = post.shareImage || post.image || "https://celeonetv.com/logo.png";
+    setPageMeta({
+      title,
+      description,
+      image,
+      url: window.location.href,
+      type: "article",
+    });
   }, [post]);
 
-  if (loading) return <div className="py-10 text-center text-slate-600">Chargement…</div>;
+  if (loading) return <div className="py-10 text-center text-slate-600">Loading...</div>;
 
   if (!post) {
     return (
       <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="text-2xl font-black">Post introuvable</div>
+        <div className="text-2xl font-black">Post not found</div>
       </div>
     );
   }
@@ -81,22 +51,22 @@ export default function Post() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div className="rounded-3xl border border-teal-200 bg-teal-50 p-5">
-        <div className="text-lg font-black text-teal-900">Ouvrir dans l’application</div>
+        <div className="text-lg font-black text-teal-900">Open in app</div>
         <div className="mt-1 text-sm text-teal-900/80">
-          Pour la meilleure expérience (deeplink), ouvre ce post dans l’app mobile Celeone.
+          For the best deep-link experience, open this post in the Celeone mobile app.
         </div>
         <button
-          onClick={() => alert("Deep link (on détaille plus tard)")}
+          onClick={() => alert("Deep link will be wired next.")}
           className="mt-3 rounded-2xl bg-teal-600 px-4 py-3 font-extrabold text-white hover:bg-teal-700"
         >
-          Ouvrir dans l’app
+          Open in app
         </button>
       </div>
 
       <article className="rounded-3xl border border-slate-200 bg-white p-6">
         {post.image ? (
           <div className="overflow-hidden rounded-3xl border border-slate-200">
-            <img src={post.image} className="h-auto w-full" />
+            <img src={post.image} className="h-auto w-full" alt={post.title || "Post image"} />
           </div>
         ) : null}
 

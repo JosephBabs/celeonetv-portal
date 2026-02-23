@@ -8,6 +8,7 @@ import Post from "../pages/Post";
 import CreatorRequest from "../pages/CreatorRequest";
 import CreatorDashboard from "../pages/CreatorDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
+import AdminManagePage from "../pages/AdminManagePage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
 
       // Admin
       { path: "/admin", element: <AdminDashboard /> },
+      { path: "/admin/:section", element: <AdminManagePage /> },
     ],
   },
 ]);
