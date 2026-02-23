@@ -14,6 +14,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import CreateChatroom from "../pages/CreateChatroom";
 import Documentation from "../pages/Documentation";
+import Jeunesse from "../pages/Jeunesse";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "/creator", element: <CreatorDashboard /> },
       { path: "/chatrooms/create", element: <CreateChatroom /> },
       { path: "/documentation", element: <Documentation /> },
+      { path: "/jeunesse", element: <Jeunesse /> },
       { path: "/login", element: <Login /> },
       { path: "/logout", element: <Login /> },
       { path: "/register", element: <Register /> },

@@ -24,6 +24,7 @@ export default function AppShell() {
       [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your creator channel request on Celeone TV." }],
       [/^\/creator\/?$/, { title: "Creator Dashboard | Celeone TV", description: "Manage your channel requests, keys and live preview." }],
       [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create and launch a new Celeone community chatroom." }],
+      [/^\/jeunesse\/?$/, { title: "Amis de Jesus | Jeunesse", description: "Register children and verify concours results." }],
       [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Read full platform documentation and policies." }],
       [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "Manage all portal collections and moderation workflows." }],
       [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage functions, cantiques, posts, channel requests and chatrooms." }],
