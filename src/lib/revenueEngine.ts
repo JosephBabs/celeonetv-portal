@@ -55,6 +55,7 @@ type ContentRow = {
   contentId: string;
   title: string;
   creatorId: string;
+  creatorName: string;
   plays: number;
   type: "song" | "video";
 };
@@ -66,25 +67,47 @@ function aggregateContentPlays(rows: any[], type: "song" | "video", periodStart:
     if (created < periodStart || created > periodEnd) continue;
 
     const contentId = String(row?.id || row?.contentId || row?.mediaId || `${type}-${Math.random()}`);
-    const title = getFirstString(row, ["title", "name", "trackName", "movieTitle"]) || "Untitled";
-    const creatorId = getFirstString(row, ["ownerId", "artistId", "creatorId", "uid", "userId"]) || "unknown";
-    const plays = getFirstNumber(row, ["playCount", "plays", "streamCount", "streams", "views", "totalPlays"]);
+    const title = getFirstString(row, ["title", "name", "trackName", "songTitle", "movieTitle"]) || "Untitled";
+    const creatorName = getFirstString(row, ["artist", "artistName", "channelName", "creatorName"]);
+    const creatorId =
+      getFirstString(row, ["ownerId", "artistId", "creatorId", "uid", "userId", "artist"]) ||
+      creatorName ||
+      "unknown";
+    const plays = getFirstNumber(row, [
+      "playCount",
+      "plays",
+      "streamCount",
+      "streams",
+      "views",
+      "viewCount",
+      "listenCount",
+      "totalStreams",
+      "totalPlays",
+      "play_count",
+    ]);
     if (plays <= 0) continue;
 
-    list.push({ contentId, title, creatorId, plays, type });
+    list.push({ contentId, title, creatorId, creatorName, plays, type });
   }
   return list;
 }
 
 function groupCreatorFromContent(content: Array<ContentRow & { amount: number }>) {
-  const map = new Map<string, { creatorId: string; plays: number; amount: number }>();
+  const map = new Map<string, { creatorId: string; creatorName: string; plays: number; amount: number }>();
   for (const c of content) {
-    const prev = map.get(c.creatorId);
+    const key = c.creatorId || c.creatorName || "unknown";
+    const prev = map.get(key);
     if (prev) {
       prev.plays += c.plays;
       prev.amount += c.amount;
+      if (!prev.creatorName && c.creatorName) prev.creatorName = c.creatorName;
     } else {
-      map.set(c.creatorId, { creatorId: c.creatorId, plays: c.plays, amount: c.amount });
+      map.set(key, {
+        creatorId: c.creatorId || key,
+        creatorName: c.creatorName || "",
+        plays: c.plays,
+        amount: c.amount,
+      });
     }
   }
   return Array.from(map.values()).sort((a, b) => b.amount - a.amount);
