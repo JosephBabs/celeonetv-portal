@@ -112,6 +112,13 @@ export default function AdminManagePage() {
     image: "",
     contentHtml: "",
   });
+  const [newDocument, setNewDocument] = useState({
+    title: "",
+    category: "Essentials",
+    type: "Biblique",
+    description: "",
+    contentHtml: "",
+  });
 
   useEffect(() => {
     if (!cfg) {
@@ -299,6 +306,37 @@ export default function AdminManagePage() {
     }
   };
 
+  const createDocument = async () => {
+    if (!cfg || cfg.collection !== "documents") return;
+    if (!newDocument.title.trim()) return alert("Document title is required.");
+    if (!newDocument.contentHtml.trim()) return alert("Document content is required.");
+    setCreating(true);
+    try {
+      await addDoc(collection(db, "documents"), {
+        title: newDocument.title.trim(),
+        category: newDocument.category.trim(),
+        type: newDocument.type.trim(),
+        description: newDocument.description.trim(),
+        contentHtml: newDocument.contentHtml.trim(),
+        updatedAt: serverTimestamp(),
+      });
+      setNewDocument({
+        title: "",
+        category: "Essentials",
+        type: "Biblique",
+        description: "",
+        contentHtml: "",
+      });
+      await load();
+      alert("Document created.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to create document.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const sortedSections = useMemo(
     () => Object.keys(SECTION_CONFIG) as SectionKey[],
     []
@@ -466,6 +504,54 @@ export default function AdminManagePage() {
               className="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
             >
               {creating ? "Publishing..." : "Create Post"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {cfg.collection === "documents" ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-6">
+          <div className="text-lg font-black text-slate-900">Create Document</div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <input
+              value={newDocument.title}
+              onChange={(e) => setNewDocument((v) => ({ ...v, title: e.target.value }))}
+              placeholder="Document Title"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <input
+              value={newDocument.category}
+              onChange={(e) => setNewDocument((v) => ({ ...v, category: e.target.value }))}
+              placeholder="Category"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <input
+              value={newDocument.type}
+              onChange={(e) => setNewDocument((v) => ({ ...v, type: e.target.value }))}
+              placeholder="Type"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <input
+              value={newDocument.description}
+              onChange={(e) => setNewDocument((v) => ({ ...v, description: e.target.value }))}
+              placeholder="Description"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+          </div>
+          <div className="mt-3">
+            <HtmlEditor
+              value={newDocument.contentHtml}
+              onChange={(v) => setNewDocument((s) => ({ ...s, contentHtml: v }))}
+              placeholder="Write document HTML content..."
+            />
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              disabled={creating}
+              onClick={createDocument}
+              className="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
+            >
+              {creating ? "Creating..." : "Create Document"}
             </button>
           </div>
         </div>
