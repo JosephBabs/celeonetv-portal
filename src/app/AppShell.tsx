@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import TopNav from "../components/TopNav";
 import Footer from "../components/Footer";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { setPageMeta } from "../lib/seo";
 
 export default function AppShell() {
@@ -41,6 +42,7 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      <LanguageSwitcher />
       {!hideTopNav ? <TopNav /> : null}
       <main className="mx-auto max-w-6xl px-4 py-6">
         <Outlet />
