@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -93,9 +94,24 @@ export default function AdminManagePage() {
   const [draft, setDraft] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState("");
   const [language, setLanguage] = useState("all");
   const [mobileTab, setMobileTab] = useState<"list" | "editor">("list");
+  const [newHymn, setNewHymn] = useState({
+    title: "",
+    hymnNumber: "",
+    language: "francais",
+    musicalKey: "",
+    hymnContent: "",
+  });
+  const [newPost, setNewPost] = useState({
+    title: "",
+    category: "Actualites",
+    description: "",
+    image: "",
+    contentHtml: "",
+  });
 
   useEffect(() => {
     if (!cfg) {
@@ -216,6 +232,73 @@ export default function AdminManagePage() {
     }));
   };
 
+  const createHymn = async () => {
+    if (!cfg || cfg.collection !== "cantiques") return;
+    if (!newHymn.title.trim()) return alert("Hymn title is required.");
+    if (!newHymn.hymnNumber.trim()) return alert("Hymn number is required.");
+    if (!newHymn.hymnContent.trim()) return alert("Hymn content is required.");
+    setCreating(true);
+    try {
+      await addDoc(collection(db, "cantiques"), {
+        title: newHymn.title.trim(),
+        hymnNumber: newHymn.hymnNumber.trim(),
+        language: newHymn.language,
+        musicalKey: newHymn.musicalKey.trim(),
+        hymnContent: newHymn.hymnContent.trim(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      setNewHymn({
+        title: "",
+        hymnNumber: "",
+        language: "francais",
+        musicalKey: "",
+        hymnContent: "",
+      });
+      await load();
+      alert("Hymn added.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to add hymn.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const createPost = async () => {
+    if (!cfg || cfg.collection !== "posts") return;
+    if (!newPost.title.trim()) return alert("Post title is required.");
+    if (!newPost.contentHtml.trim()) return alert("Post HTML content is required.");
+    setCreating(true);
+    try {
+      const contentText = stripHtml(newPost.contentHtml).slice(0, 10000);
+      await addDoc(collection(db, "posts"), {
+        title: newPost.title.trim(),
+        category: newPost.category.trim(),
+        description: newPost.description.trim(),
+        image: newPost.image.trim(),
+        contentHtml: newPost.contentHtml.trim(),
+        content: contentText,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      setNewPost({
+        title: "",
+        category: "Actualites",
+        description: "",
+        image: "",
+        contentHtml: "",
+      });
+      await load();
+      alert("Post created.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to create post.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const sortedSections = useMemo(
     () => Object.keys(SECTION_CONFIG) as SectionKey[],
     []
@@ -231,7 +314,7 @@ export default function AdminManagePage() {
 
       if (!q) return true;
       const title = String(it.title || "").toLowerCase();
-      const content = String(it.content || it.lyrics || it.text || "").toLowerCase();
+      const content = String(it.hymnContent || it.contentHtml || it.content || it.lyrics || it.text || "").toLowerCase();
       const number = String(it.number || it.hymnNumber || it.numero || "").toLowerCase();
       const author = String(it.author || "").toLowerCase();
       return (
@@ -287,6 +370,106 @@ export default function AdminManagePage() {
           </div>
         </div>
       </div>
+
+      {cfg.collection === "cantiques" ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-6">
+          <div className="text-lg font-black text-slate-900">Add Hymn</div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <input
+              value={newHymn.title}
+              onChange={(e) => setNewHymn((v) => ({ ...v, title: e.target.value }))}
+              placeholder="Title"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <input
+              value={newHymn.hymnNumber}
+              onChange={(e) => setNewHymn((v) => ({ ...v, hymnNumber: e.target.value }))}
+              placeholder="Hymn Number (ex: 87)"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <select
+              value={newHymn.language}
+              onChange={(e) => setNewHymn((v) => ({ ...v, language: e.target.value }))}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            >
+              <option value="francais">francais</option>
+              <option value="anglais">anglais</option>
+              <option value="yoruba">yoruba</option>
+              <option value="goun">goun</option>
+            </select>
+            <input
+              value={newHymn.musicalKey}
+              onChange={(e) => setNewHymn((v) => ({ ...v, musicalKey: e.target.value }))}
+              placeholder="Musical Key (optional)"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+          </div>
+          <div className="mt-3">
+            <HtmlEditor
+              value={newHymn.hymnContent}
+              onChange={(v) => setNewHymn((s) => ({ ...s, hymnContent: v }))}
+              placeholder="Paste hymn HTML content here..."
+            />
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              disabled={creating}
+              onClick={createHymn}
+              className="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
+            >
+              {creating ? "Saving..." : "Add Hymn"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {cfg.collection === "posts" ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-6">
+          <div className="text-lg font-black text-slate-900">Create Post</div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <input
+              value={newPost.title}
+              onChange={(e) => setNewPost((v) => ({ ...v, title: e.target.value }))}
+              placeholder="Post Title"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <input
+              value={newPost.category}
+              onChange={(e) => setNewPost((v) => ({ ...v, category: e.target.value }))}
+              placeholder="Category"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <input
+              value={newPost.description}
+              onChange={(e) => setNewPost((v) => ({ ...v, description: e.target.value }))}
+              placeholder="Description"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200 md:col-span-2"
+            />
+            <input
+              value={newPost.image}
+              onChange={(e) => setNewPost((v) => ({ ...v, image: e.target.value }))}
+              placeholder="Image URL"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200 md:col-span-2"
+            />
+          </div>
+          <div className="mt-3">
+            <HtmlEditor
+              value={newPost.contentHtml}
+              onChange={(v) => setNewPost((s) => ({ ...s, contentHtml: v }))}
+              placeholder="Write post HTML content..."
+            />
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              disabled={creating}
+              onClick={createPost}
+              className="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-extrabold text-white hover:bg-teal-700 disabled:opacity-60"
+            >
+              {creating ? "Publishing..." : "Create Post"}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
         <div className="grid grid-cols-2 gap-2 lg:hidden">
@@ -425,18 +608,21 @@ export default function AdminManagePage() {
                     const isComplex = typeof v === "object" && v !== null;
                     const isHymnTextField =
                       cfg.collection === "cantiques" &&
-                      ["content", "lyrics", "text", "verse"].includes(k.toLowerCase());
+                      ["hymncontent", "content", "lyrics", "text", "verse"].includes(k.toLowerCase());
                     const isDocumentTextField =
                       cfg.collection === "documents" &&
                       ["contenthtml", "content", "description"].includes(k.toLowerCase());
+                    const isPostHtmlField =
+                      cfg.collection === "posts" &&
+                      ["contenthtml", "content"].includes(k.toLowerCase());
                     return (
                       <div key={k} className="rounded-2xl border border-slate-200 p-3">
                         <div className="text-xs font-black uppercase tracking-wide text-slate-600">{k}</div>
-                        {isHymnTextField || isDocumentTextField ? (
-                          <textarea
+                        {isHymnTextField || isDocumentTextField || isPostHtmlField ? (
+                          <HtmlEditor
                             value={String(v ?? "")}
-                            onChange={(e) => setDraft((prev: any) => ({ ...prev, [k]: e.target.value }))}
-                            className="mt-2 min-h-[260px] w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-teal-200"
+                            onChange={(value) => setDraft((prev: any) => ({ ...prev, [k]: value }))}
+                            placeholder={`Edit ${k} HTML...`}
                           />
                         ) : isComplex ? (
                           <textarea
@@ -492,6 +678,38 @@ export default function AdminManagePage() {
       </div>
     </div>
   );
+}
+
+function HtmlEditor({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="mt-2 space-y-2">
+      <textarea
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="min-h-[260px] w-full rounded-2xl border border-slate-200 bg-white p-4 font-mono text-sm font-medium outline-none focus:ring-2 focus:ring-teal-200"
+      />
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+        <div className="mb-2 text-xs font-extrabold uppercase tracking-wide text-slate-600">Preview</div>
+        <div
+          className="prose prose-slate max-w-none text-sm"
+          dangerouslySetInnerHTML={{ __html: value || "" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function stripHtml(html: string) {
+  return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function safeStringify(v: any) {

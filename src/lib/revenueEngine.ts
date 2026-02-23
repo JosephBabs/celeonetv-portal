@@ -6,6 +6,8 @@ type Input = {
   songs: any[];
   videos: any[];
   periodDays: number;
+  songMonetizeThreshold?: number;
+  videoMonetizeThreshold?: number;
 };
 
 const POLICY = {
@@ -49,28 +51,53 @@ function overlapMs(start: number, end: number, windowStart: number, windowEnd: n
   return Math.max(0, right - left);
 }
 
-function aggregateCreatorPlays(rows: any[], type: "song" | "video", periodStart: number, periodEnd: number) {
-  const map = new Map<string, { creatorId: string; plays: number; type: "song" | "video" }>();
-  for (const row of rows) {
+type ContentRow = {
+  contentId: string;
+  title: string;
+  creatorId: string;
+  plays: number;
+  type: "song" | "video";
+};
+
+function aggregateContentPlays(rows: any[], type: "song" | "video", periodStart: number, periodEnd: number): ContentRow[] {
+  const list: ContentRow[] = [];
+  for (const row of rows || []) {
     const created = toMs(row?.updatedAt) || toMs(row?.createdAt) || toMs(row?.lastPlayedAt) || periodEnd;
     if (created < periodStart || created > periodEnd) continue;
 
-    const creatorId =
-      getFirstString(row, ["ownerId", "artistId", "creatorId", "uid", "userId"]) || "unknown";
+    const contentId = String(row?.id || row?.contentId || row?.mediaId || `${type}-${Math.random()}`);
+    const title = getFirstString(row, ["title", "name", "trackName", "movieTitle"]) || "Untitled";
+    const creatorId = getFirstString(row, ["ownerId", "artistId", "creatorId", "uid", "userId"]) || "unknown";
     const plays = getFirstNumber(row, ["playCount", "plays", "streamCount", "streams", "views", "totalPlays"]);
     if (plays <= 0) continue;
 
-    const prev = map.get(creatorId);
-    if (prev) {
-      prev.plays += plays;
-    } else {
-      map.set(creatorId, { creatorId, plays, type });
-    }
+    list.push({ contentId, title, creatorId, plays, type });
   }
-  return Array.from(map.values());
+  return list;
 }
 
-export function calculateRevenueDistribution({ subscriptions, songs, videos, periodDays }: Input) {
+function groupCreatorFromContent(content: Array<ContentRow & { amount: number }>) {
+  const map = new Map<string, { creatorId: string; plays: number; amount: number }>();
+  for (const c of content) {
+    const prev = map.get(c.creatorId);
+    if (prev) {
+      prev.plays += c.plays;
+      prev.amount += c.amount;
+    } else {
+      map.set(c.creatorId, { creatorId: c.creatorId, plays: c.plays, amount: c.amount });
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => b.amount - a.amount);
+}
+
+export function calculateRevenueDistribution({
+  subscriptions,
+  songs,
+  videos,
+  periodDays,
+  songMonetizeThreshold = 100,
+  videoMonetizeThreshold = 100,
+}: Input) {
   const now = Date.now();
   const windowEnd = now;
   const windowStart = now - Math.max(1, periodDays) * DAY_MS;
@@ -88,13 +115,11 @@ export function calculateRevenueDistribution({ subscriptions, songs, videos, per
     if (endAt <= startAt || price <= 0) continue;
 
     grossSubscriptionRevenue += price;
-
     const overlap = overlapMs(startAt, endAt, windowStart, windowEnd);
     if (overlap <= 0) continue;
 
     const duration = Math.max(endAt - startAt, DAY_MS);
-    const prorated = price * (overlap / duration);
-    recognizedRevenue += prorated;
+    recognizedRevenue += price * (overlap / duration);
     if (status === "active" && uid) activeUsers.add(uid);
   }
 
@@ -107,30 +132,39 @@ export function calculateRevenueDistribution({ subscriptions, songs, videos, per
   const creatorPool = Math.max(0, Math.min(distributable * POLICY.targetCreatorPoolPct, maxCreatorBySafety));
   const companyShare = Math.max(0, distributable - creatorPool);
 
-  const songCreators = aggregateCreatorPlays(songs || [], "song", windowStart, windowEnd);
-  const videoCreators = aggregateCreatorPlays(videos || [], "video", windowStart, windowEnd);
-  const totalSongPlays = songCreators.reduce((a, b) => a + b.plays, 0);
-  const totalVideoPlays = videoCreators.reduce((a, b) => a + b.plays, 0);
+  const allSongContent = aggregateContentPlays(songs || [], "song", windowStart, windowEnd);
+  const allVideoContent = aggregateContentPlays(videos || [], "video", windowStart, windowEnd);
+
+  const monetizedSongs = allSongContent.filter((c) => c.plays >= songMonetizeThreshold);
+  const monetizedVideos = allVideoContent.filter((c) => c.plays >= videoMonetizeThreshold);
+
+  const totalSongPlays = monetizedSongs.reduce((a, b) => a + b.plays, 0);
+  const totalVideoPlays = monetizedVideos.reduce((a, b) => a + b.plays, 0);
   const totalCreatorPlays = totalSongPlays + totalVideoPlays;
 
   const songPool = totalCreatorPlays > 0 ? creatorPool * (totalSongPlays / totalCreatorPlays) : 0;
   const videoPool = totalCreatorPlays > 0 ? creatorPool * (totalVideoPlays / totalCreatorPlays) : 0;
 
-  const artistPayouts = songCreators
+  const songContentPayouts = monetizedSongs
     .map((c) => ({
-      creatorId: c.creatorId,
-      plays: c.plays,
+      ...c,
       amount: totalSongPlays > 0 ? songPool * (c.plays / totalSongPlays) : 0,
+      isMonetized: true,
+      threshold: songMonetizeThreshold,
     }))
     .sort((a, b) => b.amount - a.amount);
 
-  const filmmakerPayouts = videoCreators
+  const videoContentPayouts = monetizedVideos
     .map((c) => ({
-      creatorId: c.creatorId,
-      plays: c.plays,
+      ...c,
       amount: totalVideoPlays > 0 ? videoPool * (c.plays / totalVideoPlays) : 0,
+      isMonetized: true,
+      threshold: videoMonetizeThreshold,
     }))
     .sort((a, b) => b.amount - a.amount);
+
+  const artistPayouts = groupCreatorFromContent(songContentPayouts);
+  const filmmakerPayouts = groupCreatorFromContent(videoContentPayouts);
 
   return {
     periodDays,
@@ -149,6 +183,16 @@ export function calculateRevenueDistribution({ subscriptions, songs, videos, per
     totalVideoPlays,
     artistPayouts,
     filmmakerPayouts,
+    songContentPayouts,
+    videoContentPayouts,
+    monetizedSongCount: songContentPayouts.length,
+    monetizedVideoCount: videoContentPayouts.length,
+    eligibleSongCount: allSongContent.length,
+    eligibleVideoCount: allVideoContent.length,
+    monetizationThresholds: {
+      song: songMonetizeThreshold,
+      video: videoMonetizeThreshold,
+    },
     policy: POLICY,
   };
 }

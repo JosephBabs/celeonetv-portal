@@ -172,6 +172,8 @@ export default function AdminDashboard() {
   const [songsRevenueRows, setSongsRevenueRows] = useState<any[]>([]);
   const [videosRevenueRows, setVideosRevenueRows] = useState<any[]>([]);
   const [periodDays, setPeriodDays] = useState(30);
+  const [songMonetizeThreshold, setSongMonetizeThreshold] = useState(100);
+  const [videoMonetizeThreshold, setVideoMonetizeThreshold] = useState(100);
 
   // package form
   const [pName, setPName] = useState("");
@@ -235,8 +237,10 @@ export default function AdminDashboard() {
         songs: songsRevenueRows,
         videos: videosRevenueRows,
         periodDays,
+        songMonetizeThreshold,
+        videoMonetizeThreshold,
       }),
-    [periodDays, songsRevenueRows, userSubscriptions, videosRevenueRows]
+    [periodDays, songMonetizeThreshold, songsRevenueRows, userSubscriptions, videoMonetizeThreshold, videosRevenueRows]
   );
 
   const approve = async (r: any) => {
@@ -621,7 +625,7 @@ export default function AdminDashboard() {
               Payout simulation based on active subscriptions, stream/play volume, and protected company margin.
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-extrabold text-slate-600">Period</span>
             <select
               value={periodDays}
@@ -632,6 +636,22 @@ export default function AdminDashboard() {
               <option value={30}>30d</option>
               <option value={90}>90d</option>
             </select>
+            <span className="ml-2 text-xs font-extrabold text-slate-600">Song threshold</span>
+            <input
+              type="number"
+              min={1}
+              value={songMonetizeThreshold}
+              onChange={(e) => setSongMonetizeThreshold(Math.max(1, Number(e.target.value) || 1))}
+              className="w-20 rounded-2xl border border-slate-200 px-2 py-2 text-sm font-extrabold text-slate-800 outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            <span className="text-xs font-extrabold text-slate-600">Video threshold</span>
+            <input
+              type="number"
+              min={1}
+              value={videoMonetizeThreshold}
+              onChange={(e) => setVideoMonetizeThreshold(Math.max(1, Number(e.target.value) || 1))}
+              className="w-20 rounded-2xl border border-slate-200 px-2 py-2 text-sm font-extrabold text-slate-800 outline-none focus:ring-2 focus:ring-teal-200"
+            />
           </div>
         </div>
 
@@ -640,8 +660,8 @@ export default function AdminDashboard() {
           <MiniStat label="Company Share" value={formatMoney(revenueModel.companyShare)} />
           <MiniStat label="Creator Pool" value={formatMoney(revenueModel.creatorPool)} />
           <MiniStat label="Active Subs" value={String(revenueModel.activeSubscriptions)} />
-          <MiniStat label="Song Plays" value={String(Math.round(revenueModel.totalSongPlays))} />
-          <MiniStat label="Video Plays" value={String(Math.round(revenueModel.totalVideoPlays))} />
+          <MiniStat label="Monetized Songs" value={`${revenueModel.monetizedSongCount}/${revenueModel.eligibleSongCount}`} />
+          <MiniStat label="Monetized Videos" value={`${revenueModel.monetizedVideoCount}/${revenueModel.eligibleVideoCount}`} />
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -683,6 +703,58 @@ export default function AdminDashboard() {
               ))}
               {revenueModel.filmmakerPayouts.length === 0 ? (
                 <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">No video play data in this period.</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-black text-slate-900">Monetized Songs (Per Content)</div>
+              <div className="text-xs font-bold text-slate-500">Threshold: {revenueModel.monetizationThresholds.song} plays</div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {revenueModel.songContentPayouts.slice(0, 8).map((c: any) => (
+                <div key={c.contentId} className="rounded-xl bg-slate-50 px-3 py-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-black text-slate-900">{c.title}</div>
+                      <div className="text-xs text-slate-600">{c.creatorId} • {Math.round(c.plays)} plays</div>
+                    </div>
+                    <div className="text-sm font-black text-emerald-700">{formatMoney(c.amount)}</div>
+                  </div>
+                </div>
+              ))}
+              {revenueModel.songContentPayouts.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                  No song crossed monetization threshold in this period.
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-black text-slate-900">Monetized Videos (Per Content)</div>
+              <div className="text-xs font-bold text-slate-500">Threshold: {revenueModel.monetizationThresholds.video} plays</div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {revenueModel.videoContentPayouts.slice(0, 8).map((c: any) => (
+                <div key={c.contentId} className="rounded-xl bg-slate-50 px-3 py-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-black text-slate-900">{c.title}</div>
+                      <div className="text-xs text-slate-600">{c.creatorId} • {Math.round(c.plays)} plays</div>
+                    </div>
+                    <div className="text-sm font-black text-indigo-700">{formatMoney(c.amount)}</div>
+                  </div>
+                </div>
+              ))}
+              {revenueModel.videoContentPayouts.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                  No video crossed monetization threshold in this period.
+                </div>
               ) : null}
             </div>
           </div>
