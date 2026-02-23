@@ -15,7 +15,7 @@ import {
 import { db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
 
-type SectionKey = "functions" | "cantiques" | "posts" | "channel-requests" | "chatrooms";
+type SectionKey = "functions" | "cantiques" | "posts" | "documents" | "channel-requests" | "chatrooms";
 
 const SECTION_CONFIG: Record<
   SectionKey,
@@ -51,6 +51,14 @@ const SECTION_CONFIG: Record<
     secondary: "category",
     orderField: "createdAt",
     description: "Edit posts and social share metadata.",
+  },
+  documents: {
+    title: "Documents",
+    collection: "documents",
+    primary: "title",
+    secondary: "category",
+    orderField: "updatedAt",
+    description: "Manage essential ECC documents and HTML content.",
   },
   "channel-requests": {
     title: "Channel Requests",
@@ -418,10 +426,13 @@ export default function AdminManagePage() {
                     const isHymnTextField =
                       cfg.collection === "cantiques" &&
                       ["content", "lyrics", "text", "verse"].includes(k.toLowerCase());
+                    const isDocumentTextField =
+                      cfg.collection === "documents" &&
+                      ["contenthtml", "content", "description"].includes(k.toLowerCase());
                     return (
                       <div key={k} className="rounded-2xl border border-slate-200 p-3">
                         <div className="text-xs font-black uppercase tracking-wide text-slate-600">{k}</div>
-                        {isHymnTextField ? (
+                        {isHymnTextField || isDocumentTextField ? (
                           <textarea
                             value={String(v ?? "")}
                             onChange={(e) => setDraft((prev: any) => ({ ...prev, [k]: e.target.value }))}

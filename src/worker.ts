@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Env {
   FIREBASE_PROJECT_ID?: string;
   ASSETS?: { fetch: (req: Request) => Promise<Response> };

@@ -16,6 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
+import { calculateRevenueDistribution, formatMoney } from "../lib/revenueEngine";
 
 /**
  * AdminDashboard (extended)
@@ -42,6 +43,7 @@ type ManageKey =
   | "user_data"
   | "chatrooms"
   | "posts"
+  | "documents"
   | "joinRequests"
   | "platformRequests"
   | "cantiques"
@@ -62,6 +64,7 @@ const COLLECTION_META: Record<
   user_data: { label: "Users", icon: "👤", primary: "email", secondary: "firstName", orderField: "createdAt" },
   chatrooms: { label: "Chatrooms", icon: "💬", primary: "name", secondary: "lastMessage", orderField: "updatedAt" },
   posts: { label: "Posts", icon: "📝", primary: "title", secondary: "category", orderField: "createdAt" },
+  documents: { label: "Documents", icon: "📄", primary: "title", secondary: "category", orderField: "updatedAt" },
   joinRequests: { label: "Join Requests", icon: "⏳", primary: "email", secondary: "status", orderField: "createdAt" },
   platformRequests: { label: "Platform Requests", icon: "🧾", primary: "title", secondary: "status", orderField: "createdAt" },
   cantiques: { label: "Cantiques", icon: "🎶", primary: "title", secondary: "author", orderField: "createdAt" },
@@ -87,12 +90,15 @@ export default function AdminDashboard() {
     users: 0,
     chatrooms: 0,
     posts: 0,
+    documents: 0,
     pendingRequests: 0,
     platformRequests: 0,
     cantiques: 0,
     tvChannels: 0,
     filmsAndSongs: 0,
     videos: 0,
+    subscriptionPackages: 0,
+    activeUserSubscriptions: 0,
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [loadingCounts, setLoadingCounts] = useState(true);
@@ -106,34 +112,43 @@ export default function AdminDashboard() {
         usersSnap,
         chatroomsSnap,
         postsSnap,
+        documentsSnap,
         pendingSnap,
         platformSnap,
         cantiquesSnap,
         tvSnap,
         songsSnap,
         videosSnap,
+        subscriptionPackagesSnap,
+        userSubscriptionsSnap,
       ] = await Promise.all([
         getDocs(collection(db, "user_data")),
         getDocs(collection(db, "chatrooms")),
         getDocs(collection(db, "posts")),
+        getDocs(collection(db, "documents")),
         getDocs(collection(db, "joinRequests")),
         getDocs(collection(db, "platformRequests")),
         getDocs(collection(db, "cantiques")),
         getDocs(collection(db, "channels")),
         getDocs(collection(db, "songs")),
         getDocs(collection(db, "videos")),
+        getDocs(collection(db, "subscription_packages")),
+        getDocs(collection(db, "user_subscriptions")),
       ]);
 
       setCounts({
         users: usersSnap.size,
         chatrooms: chatroomsSnap.size,
         posts: postsSnap.size,
+        documents: documentsSnap.size,
         pendingRequests: pendingSnap.size,
         platformRequests: platformSnap.size,
         cantiques: cantiquesSnap.size,
         tvChannels: tvSnap.size,
         filmsAndSongs: songsSnap.size,
         videos: videosSnap.size,
+        subscriptionPackages: subscriptionPackagesSnap.size,
+        activeUserSubscriptions: userSubscriptionsSnap.docs.filter((d) => d.data()?.status === "active").length,
       });
 
       setLastUpdated(new Date());
@@ -150,9 +165,13 @@ export default function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- requests + packages ----------
+  // ---------- requests + subscriptions ----------
   const [requests, setRequests] = useState<any[]>([]);
   const [packages, setPackages] = useState<any[]>([]);
+  const [userSubscriptions, setUserSubscriptions] = useState<any[]>([]);
+  const [songsRevenueRows, setSongsRevenueRows] = useState<any[]>([]);
+  const [videosRevenueRows, setVideosRevenueRows] = useState<any[]>([]);
+  const [periodDays, setPeriodDays] = useState(30);
 
   // package form
   const [pName, setPName] = useState("");
@@ -175,16 +194,50 @@ export default function AdminDashboard() {
     const q1 = query(collection(db, "channel_requests"), orderBy("createdAt", "desc"));
     const u1 = onSnapshot(q1, (snap) => setRequests(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
 
-    const q2 = query(collection(db, "packages"), orderBy("createdAt", "desc"));
+    const q2 = query(collection(db, "subscription_packages"), orderBy("createdAt", "desc"));
     const u2 = onSnapshot(q2, (snap) => setPackages(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
+
+    const q3 = query(collection(db, "user_subscriptions"), orderBy("updatedAt", "desc"));
+    const u3 = onSnapshot(
+      q3,
+      (snap) => setUserSubscriptions(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => setUserSubscriptions([])
+    );
+
+    const q4 = query(collection(db, "songs"), limit(1000));
+    const u4 = onSnapshot(
+      q4,
+      (snap) => setSongsRevenueRows(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => setSongsRevenueRows([])
+    );
+
+    const q5 = query(collection(db, "videos"), limit(1000));
+    const u5 = onSnapshot(
+      q5,
+      (snap) => setVideosRevenueRows(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => setVideosRevenueRows([])
+    );
 
     return () => {
       u1();
       u2();
+      u3();
+      u4();
+      u5();
     };
   }, []);
 
   const pending = useMemo(() => requests.filter((r) => r.status === "pending"), [requests]);
+  const revenueModel = useMemo(
+    () =>
+      calculateRevenueDistribution({
+        subscriptions: userSubscriptions,
+        songs: songsRevenueRows,
+        videos: videosRevenueRows,
+        periodDays,
+      }),
+    [periodDays, songsRevenueRows, userSubscriptions, videosRevenueRows]
+  );
 
   const approve = async (r: any) => {
     await updateDoc(doc(db, "channel_requests", r.id), {
@@ -205,11 +258,11 @@ export default function AdminDashboard() {
     if (!pName.trim()) return alert("Package name required");
     if (!pPrice.trim()) return alert("Price required");
 
-    await addDoc(collection(db, "packages"), {
+    await addDoc(collection(db, "subscription_packages"), {
       name: pName.trim(),
-      price: pPrice.trim(),
+      price: Number(pPrice || "0"),
       durationDays: Number(pDays || "30"),
-      active: true,
+      isActive: true,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -223,7 +276,7 @@ export default function AdminDashboard() {
   const openEditPackage = (pkg: any) => {
     setActivePkg(pkg);
     setPName(pkg.name || "");
-    setPPrice(pkg.price || "");
+    setPPrice(String(pkg.price ?? ""));
     setPDays(String(pkg.durationDays ?? "30"));
     setModalOpen("EDIT_PACKAGE");
   };
@@ -233,9 +286,9 @@ export default function AdminDashboard() {
     if (!pName.trim()) return alert("Package name required");
     if (!pPrice.trim()) return alert("Price required");
 
-    await updateDoc(doc(db, "packages", activePkg.id), {
+    await updateDoc(doc(db, "subscription_packages", activePkg.id), {
       name: pName.trim(),
-      price: pPrice.trim(),
+      price: Number(pPrice || "0"),
       durationDays: Number(pDays || "30"),
       updatedAt: serverTimestamp(),
     });
@@ -248,8 +301,8 @@ export default function AdminDashboard() {
   };
 
   const togglePackage = async (pkg: any) => {
-    await updateDoc(doc(db, "packages", pkg.id), {
-      active: !pkg.active,
+    await updateDoc(doc(db, "subscription_packages", pkg.id), {
+      isActive: !pkg.isActive,
       updatedAt: serverTimestamp(),
     });
   };
@@ -494,6 +547,7 @@ export default function AdminDashboard() {
       { key: "user_data" as ManageKey, label: "Users", value: counts.users, icon: "👤" },
       { key: "chatrooms" as ManageKey, label: "Chatrooms", value: counts.chatrooms, icon: "💬" },
       { key: "posts" as ManageKey, label: "Posts", value: counts.posts, icon: "📝" },
+      { key: "documents" as ManageKey, label: "Documents", value: counts.documents, icon: "📄" },
       { key: "joinRequests" as ManageKey, label: "Join Requests", value: counts.pendingRequests, icon: "⏳" },
       { key: "platformRequests" as ManageKey, label: "Platform Requests", value: counts.platformRequests, icon: "🧾" },
       { key: "cantiques" as ManageKey, label: "Cantiques", value: counts.cantiques, icon: "🎶" },
@@ -508,6 +562,7 @@ export default function AdminDashboard() {
     platformRequests: "/admin/functions",
     cantiques: "/admin/cantiques",
     posts: "/admin/posts",
+    documents: "/admin/documents",
     chatrooms: "/admin/chatrooms",
   };
 
@@ -520,6 +575,14 @@ export default function AdminDashboard() {
             <div className="text-2xl font-black">Admin Dashboard</div>
             <div className="mt-2 text-slate-600">
               Stats + management modals for all Firestore collections.
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full bg-slate-100 px-3 py-1 font-extrabold text-slate-700">
+                Packages: {counts.subscriptionPackages}
+              </span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 font-extrabold text-emerald-800">
+                Active subs: {counts.activeUserSubscriptions}
+              </span>
             </div>
             <div className="mt-2 text-xs font-bold text-slate-500">
               Last updated: {lastUpdated ? lastUpdated.toLocaleString() : "—"}
@@ -546,6 +609,88 @@ export default function AdminDashboard() {
               + New Package
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* ---------- revenue intelligence ---------- */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-lg font-black">Revenue Intelligence</div>
+            <div className="mt-1 text-sm text-slate-600">
+              Payout simulation based on active subscriptions, stream/play volume, and protected company margin.
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold text-slate-600">Period</span>
+            <select
+              value={periodDays}
+              onChange={(e) => setPeriodDays(Number(e.target.value))}
+              className="rounded-2xl border border-slate-200 px-3 py-2 text-sm font-extrabold text-slate-800 outline-none focus:ring-2 focus:ring-teal-200"
+            >
+              <option value={7}>7d</option>
+              <option value={30}>30d</option>
+              <option value={90}>90d</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <MiniStat label="Recognized Revenue" value={formatMoney(revenueModel.recognizedRevenue)} />
+          <MiniStat label="Company Share" value={formatMoney(revenueModel.companyShare)} />
+          <MiniStat label="Creator Pool" value={formatMoney(revenueModel.creatorPool)} />
+          <MiniStat label="Active Subs" value={String(revenueModel.activeSubscriptions)} />
+          <MiniStat label="Song Plays" value={String(Math.round(revenueModel.totalSongPlays))} />
+          <MiniStat label="Video Plays" value={String(Math.round(revenueModel.totalVideoPlays))} />
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-black text-slate-900">Top Artist Payouts</div>
+              <div className="text-xs font-bold text-slate-500">Pool: {formatMoney(revenueModel.songPool)}</div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {revenueModel.artistPayouts.slice(0, 6).map((p) => (
+                <div key={p.creatorId} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                  <div className="min-w-0">
+                    <div className="truncate font-bold text-slate-900">{p.creatorId}</div>
+                    <div className="text-xs text-slate-600">{Math.round(p.plays)} plays</div>
+                  </div>
+                  <div className="font-black text-teal-700">{formatMoney(p.amount)}</div>
+                </div>
+              ))}
+              {revenueModel.artistPayouts.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">No song play data in this period.</div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-black text-slate-900">Top Filmmaker Payouts</div>
+              <div className="text-xs font-bold text-slate-500">Pool: {formatMoney(revenueModel.videoPool)}</div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {revenueModel.filmmakerPayouts.slice(0, 6).map((p) => (
+                <div key={p.creatorId} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                  <div className="min-w-0">
+                    <div className="truncate font-bold text-slate-900">{p.creatorId}</div>
+                    <div className="text-xs text-slate-600">{Math.round(p.plays)} plays</div>
+                  </div>
+                  <div className="font-black text-indigo-700">{formatMoney(p.amount)}</div>
+                </div>
+              ))}
+              {revenueModel.filmmakerPayouts.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">No video play data in this period.</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-xs font-semibold text-slate-700">
+          Policy: fee {Math.round(revenueModel.policy.paymentInfraFeePct * 100)}% + operations reserve {Math.round(revenueModel.policy.operationsReservePct * 100)}%.
+          Creator pool target {Math.round(revenueModel.policy.targetCreatorPoolPct * 100)}%, with guaranteed company minimum profit floor {Math.round(revenueModel.policy.minCompanyProfitPct * 100)}%.
         </div>
       </div>
 
@@ -653,7 +798,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ---------- packages (your existing section, with modal create/edit) ---------- */}
+      {/* ---------- subscription packages ---------- */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6">
         <div className="flex items-center justify-between">
           <div className="text-lg font-black">Subscription Packages</div>
@@ -677,7 +822,7 @@ export default function AdminDashboard() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-lg font-black">{p.name}</div>
-                  <div className="mt-1 text-2xl font-black">{p.price}</div>
+                  <div className="mt-1 text-2xl font-black">{Number(p.price || 0).toLocaleString()} FCFA</div>
                   <div className="mt-1 text-sm text-slate-600">{p.durationDays} days</div>
                 </div>
 
@@ -691,12 +836,12 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => togglePackage(p)}
                     className={`rounded-2xl px-3 py-2 text-sm font-extrabold ${
-                      p.active
+                      p.isActive
                         ? "bg-slate-900 text-white hover:bg-slate-800"
                         : "bg-emerald-100 text-emerald-900 hover:bg-emerald-200"
                     }`}
                   >
-                    {p.active ? "Deactivate" : "Activate"}
+                    {p.isActive ? "Deactivate" : "Activate"}
                   </button>
                 </div>
               </div>
@@ -705,10 +850,10 @@ export default function AdminDashboard() {
                 <div className="text-sm font-extrabold text-slate-700">Status</div>
                 <div
                   className={`rounded-full px-3 py-1 text-xs font-black ${
-                    p.active ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-700"
+                    p.isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-700"
                   }`}
                 >
-                  {p.active ? "ACTIVE" : "INACTIVE"}
+                  {p.isActive ? "ACTIVE" : "INACTIVE"}
                 </div>
               </div>
             </div>
@@ -720,6 +865,47 @@ export default function AdminDashboard() {
             No packages yet.
           </div>
         ) : null}
+      </div>
+
+      {/* ---------- user subscriptions ---------- */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex items-center justify-between">
+          <div className="text-lg font-black">User Subscriptions</div>
+          <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-800">
+            Active: {userSubscriptions.filter((s) => s.status === "active").length}
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {userSubscriptions.slice(0, 40).map((s) => (
+            <div key={s.id} className="rounded-2xl border border-slate-200 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="font-black">{s.packageName || "Package"}</div>
+                  <div className="text-sm text-slate-600">UID: {s.uid || "—"}</div>
+                </div>
+                <Pill status={s.status || "unknown"} />
+              </div>
+              <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
+                <div className="rounded-xl bg-slate-50 px-3 py-2">
+                  <span className="font-bold">Price:</span> {Number(s.price || 0).toLocaleString()} FCFA
+                </div>
+                <div className="rounded-xl bg-slate-50 px-3 py-2">
+                  <span className="font-bold">Start:</span> {formatEpoch(s.startAt)}
+                </div>
+                <div className="rounded-xl bg-slate-50 px-3 py-2">
+                  <span className="font-bold">End:</span> {formatEpoch(s.endAt)}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {userSubscriptions.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-700">
+              No user subscriptions yet.
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* ---------- MODAL: create/edit package ---------- */}
@@ -983,6 +1169,15 @@ export default function AdminDashboard() {
 
 /* ----------------- UI PARTS ----------------- */
 
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+      <div className="text-[11px] font-extrabold uppercase tracking-wide text-slate-600">{label}</div>
+      <div className="mt-1 text-base font-black text-slate-900">{value}</div>
+    </div>
+  );
+}
+
 function Pill({ status }: any) {
   const map: any = {
     pending: "bg-amber-100 text-amber-800",
@@ -1141,4 +1336,11 @@ function castSmart(input: string) {
   const n = Number(t);
   if (t !== "" && !Number.isNaN(n) && String(n) === t) return n;
   return input;
+}
+
+function formatEpoch(value: any) {
+  if (!value) return "—";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  return new Date(n).toLocaleString();
 }
