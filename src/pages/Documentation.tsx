@@ -17,7 +17,7 @@ export default function Documentation() {
     const run = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/docs/CELEONE_PLATFORM_DOCUMENTATION.md", { cache: "no-store" });
+        const res = await fetch("/docs/CELEONE_PUBLIC_GUIDE.md", { cache: "no-store" });
         const raw = await res.text();
         setText(raw);
       } catch {
@@ -36,9 +36,9 @@ export default function Documentation() {
   return (
     <div className="mx-auto max-w-5xl space-y-4">
       <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-700 p-6 text-white">
-        <div className="text-3xl font-black">CeleOne Documentation</div>
+        <div className="text-3xl font-black">Guide Public CeleOne</div>
         <div className="mt-2 text-white/80">
-          Functionalities, policies, user modules, creator opportunities, security, and governance.
+          Tout ce que les utilisateurs doivent savoir sur l'application, ses services et ses regles.
         </div>
       </div>
 
