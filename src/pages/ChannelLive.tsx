@@ -50,10 +50,12 @@ export default function ChannelLive() {
   const { channelName } = useParams();
   const [loading, setLoading] = useState(true);
   const [channel, setChannel] = useState<any>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const run = async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const routeKey = normalize(channelName);
 
@@ -108,11 +110,24 @@ export default function ChannelLive() {
 
         const firstStreamable = channels.find((c: any) => hasStream(c)) || null;
         setChannel(firstStreamable);
+      } catch (error: any) {
+        console.error("ChannelLive load error:", error);
+        const msg = String(error?.message || "");
+        if (msg.toLowerCase().includes("missing or insufficient permissions")) {
+          setLoadError("Missing or insufficient Firestore permissions for channels.");
+        } else {
+          setLoadError("Unable to load channel data right now.");
+        }
+        setChannel(null);
       } finally {
         setLoading(false);
       }
     };
-    run();
+    run().catch((error) => {
+      console.error("ChannelLive unexpected error:", error);
+      setLoadError("Unexpected error while loading channel.");
+      setLoading(false);
+    });
   }, [channelName]);
 
   const hls = useMemo(() => getStreamUrl(channel), [channel]);
@@ -127,6 +142,21 @@ export default function ChannelLive() {
   }, [channel, channelName]);
 
   if (loading) return <div className="py-10 text-center text-slate-600">Loading live channel...</div>;
+
+  if (loadError) {
+    return (
+      <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-rose-50 p-6">
+        <div className="text-2xl font-black text-rose-900">Unable to load live channel</div>
+        <div className="mt-2 text-rose-900/90">{loadError}</div>
+        <div className="mt-2 text-sm text-rose-900/80">
+          Update Firestore rules to allow read access for the collections used on this public route.
+        </div>
+        <Link to="/" className="mt-4 inline-block rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white">
+          Back Home
+        </Link>
+      </div>
+    );
+  }
 
   if (!channel || !hls) {
     return (
