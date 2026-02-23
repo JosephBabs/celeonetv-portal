@@ -4,10 +4,10 @@ export interface Env {
 }
 
 const SITE_URL = "https://celeonetv.com";
-const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/logo.jpeg`;
 const HOME_TITLE = "CeleOne | Plateforme Sociale Mobile Chretienne Celeste";
 const HOME_DESCRIPTION =
-  "CeleOne rassemble actualites, reformes, decisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace securise.";
+  "Cèlè One rassemble actualités, reformes, décisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace securisé.";
 
 function escapeHtml(s: string) {
   return (s || "")

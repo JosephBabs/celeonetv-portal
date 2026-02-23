@@ -198,7 +198,7 @@ export default function AdminManagePage() {
     const title = String(draft?.title || "Celeone TV");
     const content = String(draft?.content || "");
     const description = content.trim().replace(/\s+/g, " ").slice(0, 180);
-    const image = String(draft?.image || "https://celeonetv.com/logo.png");
+    const image = String(draft?.image || "https://celeonetv.com/logo.jpeg");
 
     setDraft((prev: any) => ({
       ...prev,

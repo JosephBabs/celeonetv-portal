@@ -6,7 +6,7 @@ type MetaInput = {
   type?: "website" | "article";
 };
 
-const DEFAULT_IMAGE = "https://celeonetv.com/logo.png";
+const DEFAULT_IMAGE = "https://celeonetv.com/logo.jpeg";
 const DEFAULT_SITE_NAME = "Celeone TV";
 
 function upsertMeta(selector: string, attrs: Record<string, string>) {
