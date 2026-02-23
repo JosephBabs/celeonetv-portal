@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   addDoc,
@@ -689,13 +689,50 @@ function HtmlEditor({
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
+  const editorRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el) return;
+    if (el.innerHTML !== (value || "")) {
+      el.innerHTML = value || "";
+    }
+  }, [value]);
+
+  const runCmd = (cmd: string, arg?: string) => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.focus();
+    document.execCommand(cmd, false, arg);
+    onChange(el.innerHTML);
+  };
+
+  const addLink = () => {
+    const url = prompt("Enter URL");
+    if (!url) return;
+    runCmd("createLink", url);
+  };
+
   return (
     <div className="mt-2 space-y-2">
-      <textarea
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="min-h-[260px] w-full rounded-2xl border border-slate-200 bg-white p-4 font-mono text-sm font-medium outline-none focus:ring-2 focus:ring-teal-200"
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
+        <ToolBtn label="B" onClick={() => runCmd("bold")} />
+        <ToolBtn label="I" onClick={() => runCmd("italic")} />
+        <ToolBtn label="U" onClick={() => runCmd("underline")} />
+        <ToolBtn label="H2" onClick={() => runCmd("formatBlock", "H2")} />
+        <ToolBtn label="H3" onClick={() => runCmd("formatBlock", "H3")} />
+        <ToolBtn label="• List" onClick={() => runCmd("insertUnorderedList")} />
+        <ToolBtn label="1. List" onClick={() => runCmd("insertOrderedList")} />
+        <ToolBtn label="Link" onClick={addLink} />
+        <ToolBtn label="Clear" onClick={() => runCmd("removeFormat")} />
+      </div>
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={(e) => onChange((e.currentTarget as HTMLDivElement).innerHTML)}
+        data-placeholder={placeholder || "Write content..."}
+        className="html-editor min-h-[260px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-teal-200"
       />
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
         <div className="mb-2 text-xs font-extrabold uppercase tracking-wide text-slate-600">Preview</div>
@@ -705,6 +742,18 @@ function HtmlEditor({
         />
       </div>
     </div>
+  );
+}
+
+function ToolBtn({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-extrabold text-slate-700 hover:bg-slate-100"
+    >
+      {label}
+    </button>
   );
 }
 

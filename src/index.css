@@ -19,6 +19,11 @@ html {
   top: 0 !important;
 }
 
+.html-editor:empty:before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+}
+
 #goog-gt-tt,
 .goog-te-balloon-frame,
 .goog-tooltip,
