@@ -4,12 +4,14 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
@@ -235,10 +237,37 @@ export default function AdminDashboard() {
     | "EDIT_PACKAGE"
     | "VIEW_REQUEST"
     | "MANAGE_COLLECTION"
+    | "CREATE_MEDIA"
+    | "USER_SUBSCRIPTIONS"
+    | "JEUNESSE_ADMIN"
   >(null);
 
   const [activePkg, setActivePkg] = useState<any>(null);
   // const [activeReq, setActiveReq] = useState<any>(null);
+  const [jeunesseLoading, setJeunesseLoading] = useState(false);
+  const [jeunesseChildren, setJeunesseChildren] = useState<any[]>([]);
+  const [jeunesseResults, setJeunesseResults] = useState<any[]>([]);
+  const [jeunesseSettings, setJeunesseSettings] = useState<any>({});
+  const [jeunesseYear, setJeunesseYear] = useState(String(new Date().getFullYear()));
+  const [jeunesseSearch, setJeunesseSearch] = useState("");
+  const [jeunesseTab, setJeunesseTab] = useState<"children" | "results" | "settings">("children");
+  const [periodDraft, setPeriodDraft] = useState({
+    prelimStart: "",
+    prelimEnd: "",
+    preselectionStart: "",
+    preselectionEnd: "",
+    selectionStart: "",
+    selectionEnd: "",
+    finalStart: "",
+    finalEnd: "",
+  });
+  const [resultDraft, setResultDraft] = useState({
+    identifier: "",
+    phase: "prelim",
+    status: "passed",
+    average: "",
+    notes: "",
+  });
 
   useEffect(() => {
     const q1 = query(collection(db, "channel_requests"), orderBy("createdAt", "desc"));
@@ -660,6 +689,137 @@ export default function AdminDashboard() {
     }
   };
 
+  const loadJeunesseAdminData = async (yearArg?: string) => {
+    const year = String(yearArg || jeunesseYear || new Date().getFullYear());
+    setJeunesseLoading(true);
+    try {
+      const settingsRef = doc(db, "jeunesse_settings", "global");
+      const settingsSnap = await getDoc(settingsRef);
+      const settings = settingsSnap.exists() ? settingsSnap.data() : {};
+      setJeunesseSettings(settings || {});
+
+      const y = (settings?.years || {})[year] || {};
+      const periods = y?.periods || {};
+      setPeriodDraft({
+        prelimStart: periods?.prelim?.start || "",
+        prelimEnd: periods?.prelim?.end || "",
+        preselectionStart: periods?.preselection?.start || "",
+        preselectionEnd: periods?.preselection?.end || "",
+        selectionStart: periods?.selection?.start || "",
+        selectionEnd: periods?.selection?.end || "",
+        finalStart: periods?.final?.start || "",
+        finalEnd: periods?.final?.end || "",
+      });
+
+      let childrenSnap;
+      try {
+        childrenSnap = await getDocs(query(collection(db, "jeunesse_children"), orderBy("createdAt", "desc"), limit(400)));
+      } catch {
+        childrenSnap = await getDocs(query(collection(db, "jeunesse_children"), limit(400)));
+      }
+      setJeunesseChildren(childrenSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
+      let resultSnap;
+      try {
+        resultSnap = await getDocs(query(collection(db, "jeunesse_results"), orderBy("createdAt", "desc"), limit(400)));
+      } catch {
+        resultSnap = await getDocs(query(collection(db, "jeunesse_results"), limit(400)));
+      }
+      const results = resultSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setJeunesseResults(results.filter((r: any) => String(r?.year || "") === year || !r?.year));
+    } catch (e) {
+      console.error(e);
+      alert("Failed to load Jeunesse data.");
+    } finally {
+      setJeunesseLoading(false);
+    }
+  };
+
+  const openJeunesseAdmin = async () => {
+    setModalOpen("JEUNESSE_ADMIN");
+    await loadJeunesseAdminData(jeunesseYear);
+  };
+
+  const saveJeunessePeriods = async () => {
+    try {
+      const year = String(jeunesseYear || new Date().getFullYear());
+      const ref = doc(db, "jeunesse_settings", "global");
+      const existingYears = jeunesseSettings?.years || {};
+      const currentYear = existingYears[year] || {};
+      const currentConcours =
+        currentYear?.concours ||
+        {
+          prelim: { candidates: [], passed: {} },
+          preselection: { candidates: [], passed: {} },
+          selection: { candidates: [], passed: {} },
+          final: { candidates: [], passed: {} },
+        };
+
+      const next = {
+        ...jeunesseSettings,
+        years: {
+          ...existingYears,
+          [year]: {
+            ...currentYear,
+            periods: {
+              prelim: { start: periodDraft.prelimStart.trim(), end: periodDraft.prelimEnd.trim() },
+              preselection: { start: periodDraft.preselectionStart.trim(), end: periodDraft.preselectionEnd.trim() },
+              selection: { start: periodDraft.selectionStart.trim(), end: periodDraft.selectionEnd.trim() },
+              final: { start: periodDraft.finalStart.trim(), end: periodDraft.finalEnd.trim() },
+            },
+            concours: currentConcours,
+          },
+        },
+        updatedAt: serverTimestamp(),
+      };
+
+      await setDoc(ref, next, { merge: true });
+      alert("Jeunesse exam dates saved.");
+      await loadJeunesseAdminData(year);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save Jeunesse settings.");
+    }
+  };
+
+  const saveJeunesseResult = async () => {
+    const identifier = resultDraft.identifier.trim();
+    const phase = String(resultDraft.phase || "prelim");
+    if (!identifier) return alert("Identifier is required.");
+    const year = String(jeunesseYear || new Date().getFullYear());
+    const docId = `${year}_${identifier}_${phase}`;
+
+    const child = jeunesseChildren.find((c: any) => String(c.identifier || "").trim() === identifier);
+    const averageNum = Number(resultDraft.average);
+
+    try {
+      await setDoc(
+        doc(db, "jeunesse_results", docId),
+        {
+          identifier,
+          year,
+          phase,
+          passed: String(resultDraft.status).toLowerCase() === "passed",
+          status: resultDraft.status,
+          average: Number.isFinite(averageNum) ? averageNum : null,
+          notes: resultDraft.notes.trim(),
+          childId: child?.id || "",
+          firstName: child?.firstName || "",
+          lastName: child?.lastName || "",
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      setResultDraft({ identifier: "", phase: "prelim", status: "passed", average: "", notes: "" });
+      await loadJeunesseAdminData(year);
+      alert("Jeunesse result saved.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save result.");
+    }
+  };
+
   // Simple admin actions for some collections
   const quickActions = useMemo(() => {
     if (!manageKey) return [];
@@ -983,378 +1143,18 @@ export default function AdminDashboard() {
           Policy: fee {Math.round(revenueModel.policy.paymentInfraFeePct * 100)}% + operations reserve {Math.round(revenueModel.policy.operationsReservePct * 100)}%.
           Creator pool target {Math.round(revenueModel.policy.targetCreatorPoolPct * 100)}%, with guaranteed company minimum profit floor {Math.round(revenueModel.policy.minCompanyProfitPct * 100)}%.
         </div>
-      </div>
-
-      <div className="rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="text-lg font-black">Create Songs And Movies</div>
-        <div className="mt-1 text-sm text-slate-600">
-          Create new song or video item. For series, add episodes before saving.
-        </div>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <div className="text-sm font-black text-slate-900">New Song</div>
-            <div className="mt-3 grid gap-3">
-              <input
-                value={newSong.title}
-                onChange={(e) => setNewSong((v) => ({ ...v, title: e.target.value }))}
-                placeholder="Title"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <input
-                value={newSong.artist}
-                onChange={(e) => setNewSong((v) => ({ ...v, artist: e.target.value }))}
-                placeholder="Artist"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <input
-                value={newSong.album}
-                onChange={(e) => setNewSong((v) => ({ ...v, album: e.target.value }))}
-                placeholder="Album"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <input
-                value={newSong.ownerId}
-                onChange={(e) => setNewSong((v) => ({ ...v, ownerId: e.target.value }))}
-                placeholder="Owner ID (optional)"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <textarea
-                value={newSong.description}
-                onChange={(e) => setNewSong((v) => ({ ...v, description: e.target.value }))}
-                placeholder="Description"
-                className="min-h-[100px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <input
-                value={newSong.audioUrl}
-                onChange={(e) => setNewSong((v) => ({ ...v, audioUrl: e.target.value }))}
-                placeholder="Audio URL"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
-                <span>{uploadingSongAudio ? "Uploading..." : "Upload Song Audio"}</span>
-                <input
-                  type="file"
-                  accept="audio/*"
-                  className="hidden"
-                  disabled={uploadingSongAudio}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setUploadingSongAudio(true);
-                    try {
-                      const url = await uploadAsset(file, "song");
-                      setNewSong((v) => ({ ...v, audioUrl: url }));
-                    } catch (err: any) {
-                      console.error(err);
-                      alert(err?.message || "Upload failed.");
-                    } finally {
-                      setUploadingSongAudio(false);
-                      e.currentTarget.value = "";
-                    }
-                  }}
-                />
-              </label>
-              <input
-                value={newSong.coverUrl}
-                onChange={(e) => setNewSong((v) => ({ ...v, coverUrl: e.target.value }))}
-                placeholder="Cover URL"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
-                <span>{uploadingSongCover ? "Uploading..." : "Upload Cover"}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploadingSongCover}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setUploadingSongCover(true);
-                    try {
-                      const url = await uploadAsset(file, "song");
-                      setNewSong((v) => ({ ...v, coverUrl: url }));
-                    } catch (err: any) {
-                      console.error(err);
-                      alert(err?.message || "Upload failed.");
-                    } finally {
-                      setUploadingSongCover(false);
-                      e.currentTarget.value = "";
-                    }
-                  }}
-                />
-              </label>
-              <button
-                onClick={createSong}
-                disabled={creatingSong}
-                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
-              >
-                {creatingSong ? "Creating..." : "Create Song"}
-              </button>
-            </div>
+      </div>      <div className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-lg font-black">Songs And Movies</div>
+            <div className="mt-1 text-sm text-slate-600">Create songs, movies, series and episodes from modal workflow.</div>
           </div>
-
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <div className="text-sm font-black text-slate-900">New Video Item</div>
-            <div className="mt-3 grid gap-3">
-              <input
-                value={newVideoItem.title}
-                onChange={(e) => setNewVideoItem((v) => ({ ...v, title: e.target.value }))}
-                placeholder="Title"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <select
-                  value={newVideoItem.type}
-                  onChange={(e) =>
-                    setNewVideoItem((v) => ({ ...v, type: e.target.value as "movie" | "series" | "musicVideo" }))
-                  }
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                >
-                  <option value="movie">movie</option>
-                  <option value="series">series</option>
-                  <option value="musicVideo">musicVideo</option>
-                </select>
-                <label className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={newVideoItem.isPremium}
-                    onChange={(e) => setNewVideoItem((v) => ({ ...v, isPremium: e.target.checked }))}
-                  />
-                  Premium
-                </label>
-              </div>
-              <input
-                value={newVideoItem.channelName}
-                onChange={(e) => setNewVideoItem((v) => ({ ...v, channelName: e.target.value }))}
-                placeholder="Channel Name"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <input
-                value={newVideoItem.artistId}
-                onChange={(e) => setNewVideoItem((v) => ({ ...v, artistId: e.target.value }))}
-                placeholder="Artist ID / Creator ID"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <textarea
-                value={newVideoItem.description}
-                onChange={(e) => setNewVideoItem((v) => ({ ...v, description: e.target.value }))}
-                placeholder="Description"
-                className="min-h-[100px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <input
-                value={newVideoItem.link}
-                onChange={(e) => setNewVideoItem((v) => ({ ...v, link: e.target.value }))}
-                placeholder="Video link"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
-                <span>{uploadingVideoLink ? "Uploading..." : "Upload Video File"}</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  disabled={uploadingVideoLink}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setUploadingVideoLink(true);
-                    try {
-                      const url = await uploadAsset(file, "vfilm");
-                      setNewVideoItem((v) => ({ ...v, link: url }));
-                    } catch (err: any) {
-                      console.error(err);
-                      alert(err?.message || "Upload failed.");
-                    } finally {
-                      setUploadingVideoLink(false);
-                      e.currentTarget.value = "";
-                    }
-                  }}
-                />
-              </label>
-              <input
-                value={newVideoItem.coverUrl}
-                onChange={(e) => setNewVideoItem((v) => ({ ...v, coverUrl: e.target.value }))}
-                placeholder="Cover URL"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
-                <span>{uploadingVideoCover ? "Uploading..." : "Upload Cover"}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploadingVideoCover}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setUploadingVideoCover(true);
-                    try {
-                      const url = await uploadAsset(file, "vfilm");
-                      setNewVideoItem((v) => ({ ...v, coverUrl: url }));
-                    } catch (err: any) {
-                      console.error(err);
-                      alert(err?.message || "Upload failed.");
-                    } finally {
-                      setUploadingVideoCover(false);
-                      e.currentTarget.value = "";
-                    }
-                  }}
-                />
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  value={newVideoItem.duration}
-                  onChange={(e) => setNewVideoItem((v) => ({ ...v, duration: e.target.value }))}
-                  placeholder="Duration"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                />
-                <input
-                  value={newVideoItem.uploadTime}
-                  onChange={(e) => setNewVideoItem((v) => ({ ...v, uploadTime: e.target.value }))}
-                  placeholder="Upload Time"
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                />
-              </div>
-              <input
-                value={newVideoItem.captionsUrl}
-                onChange={(e) => setNewVideoItem((v) => ({ ...v, captionsUrl: e.target.value }))}
-                placeholder="Captions URL"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
-
-              {newVideoItem.type === "series" ? (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                  <div className="text-xs font-black uppercase tracking-wide text-slate-600">Series Episodes</div>
-                  <div className="mt-2 grid gap-2">
-                    <input
-                      value={episodeDraft.title}
-                      onChange={(e) => setEpisodeDraft((v) => ({ ...v, title: e.target.value }))}
-                      placeholder="Episode title"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                    />
-                    <input
-                      value={episodeDraft.link}
-                      onChange={(e) => setEpisodeDraft((v) => ({ ...v, link: e.target.value }))}
-                      placeholder="Episode link"
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                    />
-                    <div className="flex flex-wrap gap-2">
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-700">
-                        <span>{uploadingEpisodeLink ? "Uploading..." : "Upload Episode File"}</span>
-                        <input
-                          type="file"
-                          className="hidden"
-                          disabled={uploadingEpisodeLink}
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            setUploadingEpisodeLink(true);
-                            try {
-                              const url = await uploadAsset(file, "vfilm");
-                              setEpisodeDraft((v) => ({ ...v, link: url }));
-                            } catch (err: any) {
-                              console.error(err);
-                              alert(err?.message || "Upload failed.");
-                            } finally {
-                              setUploadingEpisodeLink(false);
-                              e.currentTarget.value = "";
-                            }
-                          }}
-                        />
-                      </label>
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-700">
-                        <span>{uploadingEpisodeCover ? "Uploading..." : "Upload Episode Cover"}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          disabled={uploadingEpisodeCover}
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            setUploadingEpisodeCover(true);
-                            try {
-                              const url = await uploadAsset(file, "vfilm");
-                              setEpisodeDraft((v) => ({ ...v, coverUrl: url }));
-                            } catch (err: any) {
-                              console.error(err);
-                              alert(err?.message || "Upload failed.");
-                            } finally {
-                              setUploadingEpisodeCover(false);
-                              e.currentTarget.value = "";
-                            }
-                          }}
-                        />
-                      </label>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        value={episodeDraft.coverUrl}
-                        onChange={(e) => setEpisodeDraft((v) => ({ ...v, coverUrl: e.target.value }))}
-                        placeholder="Episode cover URL"
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                      />
-                      <input
-                        value={episodeDraft.duration}
-                        onChange={(e) => setEpisodeDraft((v) => ({ ...v, duration: e.target.value }))}
-                        placeholder="Duration"
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="number"
-                        min={1}
-                        value={episodeDraft.seasonNumber}
-                        onChange={(e) => setEpisodeDraft((v) => ({ ...v, seasonNumber: Math.max(1, Number(e.target.value) || 1) }))}
-                        placeholder="Season #"
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                      />
-                      <input
-                        type="number"
-                        min={1}
-                        value={episodeDraft.episodeNumber}
-                        onChange={(e) => setEpisodeDraft((v) => ({ ...v, episodeNumber: Math.max(1, Number(e.target.value) || 1) }))}
-                        placeholder="Episode #"
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={addEpisodeDraft}
-                      className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white hover:bg-slate-800"
-                    >
-                      Add Episode
-                    </button>
-                    <div className="space-y-2">
-                      {newEpisodes.map((ep, idx) => (
-                        <div key={ep.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs">
-                          <div className="truncate font-bold text-slate-800">
-                            S{ep.seasonNumber}E{ep.episodeNumber} • {ep.title}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setNewEpisodes((prev) => prev.filter((_, i) => i !== idx))}
-                            className="rounded-lg bg-rose-100 px-2 py-1 font-extrabold text-rose-700 hover:bg-rose-200"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              <button
-                onClick={createVideoItem}
-                disabled={creatingVideoItem}
-                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
-              >
-                {creatingVideoItem ? "Creating..." : "Create Video Item"}
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={() => setModalOpen("CREATE_MEDIA")}
+            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white hover:bg-slate-800"
+          >
+            Open Create Modal
+          </button>
         </div>
       </div>
 
@@ -1529,46 +1329,39 @@ export default function AdminDashboard() {
             No packages yet.
           </div>
         ) : null}
-      </div>
-
-      {/* ---------- user subscriptions ---------- */}
+      </div>      {/* ---------- user subscriptions ---------- */}
       <div className="rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="flex items-center justify-between">
-          <div className="text-lg font-black">User Subscriptions</div>
-          <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-800">
-            Active: {userSubscriptions.filter((s) => s.status === "active").length}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-lg font-black">User Subscriptions</div>
+            <div className="mt-1 text-sm text-slate-600">View all user subscriptions in modal panel.</div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-800">
+              Active: {userSubscriptions.filter((s) => s.status === "active").length}
+            </div>
+            <button
+              onClick={() => setModalOpen("USER_SUBSCRIPTIONS")}
+              className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white hover:bg-slate-800"
+            >
+              Open Subscriptions
+            </button>
           </div>
         </div>
+      </div>
 
-        <div className="mt-4 space-y-3">
-          {userSubscriptions.slice(0, 40).map((s) => (
-            <div key={s.id} className="rounded-2xl border border-slate-200 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="font-black">{s.packageName || "Package"}</div>
-                  <div className="text-sm text-slate-600">UID: {s.uid || "—"}</div>
-                </div>
-                <Pill status={s.status || "unknown"} />
-              </div>
-              <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
-                <div className="rounded-xl bg-slate-50 px-3 py-2">
-                  <span className="font-bold">Price:</span> {Number(s.price || 0).toLocaleString()} FCFA
-                </div>
-                <div className="rounded-xl bg-slate-50 px-3 py-2">
-                  <span className="font-bold">Start:</span> {formatEpoch(s.startAt)}
-                </div>
-                <div className="rounded-xl bg-slate-50 px-3 py-2">
-                  <span className="font-bold">End:</span> {formatEpoch(s.endAt)}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {userSubscriptions.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-700">
-              No user subscriptions yet.
-            </div>
-          ) : null}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-lg font-black">Jeunesse (Amis de Jesus)</div>
+            <div className="mt-1 text-sm text-slate-600">Manage online registrations, exam dates and results.</div>
+          </div>
+          <button
+            onClick={openJeunesseAdmin}
+            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white hover:bg-slate-800"
+          >
+            Open Jeunesse Admin
+          </button>
         </div>
       </div>
 
@@ -1624,6 +1417,182 @@ export default function AdminDashboard() {
           >
             {modalOpen === "EDIT_PACKAGE" ? "Save Changes" : "Create Package"}
           </button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={modalOpen === "CREATE_MEDIA"}
+        onClose={() => setModalOpen(null)}
+        title="Create Songs And Movies"
+        subtitle="Add songs, movies, series and episodes."
+        wide
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="text-sm font-black text-slate-900">New Song</div>
+            <div className="mt-3 grid gap-3">
+              <input value={newSong.title} onChange={(e) => setNewSong((v) => ({ ...v, title: e.target.value }))} placeholder="Title" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <input value={newSong.artist} onChange={(e) => setNewSong((v) => ({ ...v, artist: e.target.value }))} placeholder="Artist" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <input value={newSong.album} onChange={(e) => setNewSong((v) => ({ ...v, album: e.target.value }))} placeholder="Album" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <input value={newSong.ownerId} onChange={(e) => setNewSong((v) => ({ ...v, ownerId: e.target.value }))} placeholder="Owner ID (optional)" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <textarea value={newSong.description} onChange={(e) => setNewSong((v) => ({ ...v, description: e.target.value }))} placeholder="Description" className="min-h-[100px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <input value={newSong.audioUrl} onChange={(e) => setNewSong((v) => ({ ...v, audioUrl: e.target.value }))} placeholder="Audio URL" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100"><span>{uploadingSongAudio ? "Uploading..." : "Upload Song Audio"}</span><input type="file" accept="audio/*" className="hidden" disabled={uploadingSongAudio} onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; setUploadingSongAudio(true); try { const url = await uploadAsset(file, "song"); setNewSong((v) => ({ ...v, audioUrl: url })); } catch (err: any) { alert(err?.message || "Upload failed."); } finally { setUploadingSongAudio(false); e.currentTarget.value = ""; } }} /></label>
+              <input value={newSong.coverUrl} onChange={(e) => setNewSong((v) => ({ ...v, coverUrl: e.target.value }))} placeholder="Cover URL" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100"><span>{uploadingSongCover ? "Uploading..." : "Upload Cover"}</span><input type="file" accept="image/*" className="hidden" disabled={uploadingSongCover} onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; setUploadingSongCover(true); try { const url = await uploadAsset(file, "song"); setNewSong((v) => ({ ...v, coverUrl: url })); } catch (err: any) { alert(err?.message || "Upload failed."); } finally { setUploadingSongCover(false); e.currentTarget.value = ""; } }} /></label>
+              <button onClick={createSong} disabled={creatingSong} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60">{creatingSong ? "Creating..." : "Create Song"}</button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="text-sm font-black text-slate-900">New Video Item</div>
+            <div className="mt-3 grid gap-3">
+              <input value={newVideoItem.title} onChange={(e) => setNewVideoItem((v) => ({ ...v, title: e.target.value }))} placeholder="Title" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <div className="grid grid-cols-2 gap-3">
+                <select value={newVideoItem.type} onChange={(e) => setNewVideoItem((v) => ({ ...v, type: e.target.value as "movie" | "series" | "musicVideo" }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"><option value="movie">movie</option><option value="series">series</option><option value="musicVideo">musicVideo</option></select>
+                <label className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold"><input type="checkbox" checked={newVideoItem.isPremium} onChange={(e) => setNewVideoItem((v) => ({ ...v, isPremium: e.target.checked }))} />Premium</label>
+              </div>
+              <input value={newVideoItem.channelName} onChange={(e) => setNewVideoItem((v) => ({ ...v, channelName: e.target.value }))} placeholder="Channel Name" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <input value={newVideoItem.artistId} onChange={(e) => setNewVideoItem((v) => ({ ...v, artistId: e.target.value }))} placeholder="Artist ID / Creator ID" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <textarea value={newVideoItem.description} onChange={(e) => setNewVideoItem((v) => ({ ...v, description: e.target.value }))} placeholder="Description" className="min-h-[90px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <input value={newVideoItem.link} onChange={(e) => setNewVideoItem((v) => ({ ...v, link: e.target.value }))} placeholder="Video link" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100"><span>{uploadingVideoLink ? "Uploading..." : "Upload Video File"}</span><input type="file" className="hidden" disabled={uploadingVideoLink} onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; setUploadingVideoLink(true); try { const url = await uploadAsset(file, "vfilm"); setNewVideoItem((v) => ({ ...v, link: url })); } catch (err: any) { alert(err?.message || "Upload failed."); } finally { setUploadingVideoLink(false); e.currentTarget.value = ""; } }} /></label>
+              <input value={newVideoItem.coverUrl} onChange={(e) => setNewVideoItem((v) => ({ ...v, coverUrl: e.target.value }))} placeholder="Cover URL" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100"><span>{uploadingVideoCover ? "Uploading..." : "Upload Cover"}</span><input type="file" accept="image/*" className="hidden" disabled={uploadingVideoCover} onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; setUploadingVideoCover(true); try { const url = await uploadAsset(file, "vfilm"); setNewVideoItem((v) => ({ ...v, coverUrl: url })); } catch (err: any) { alert(err?.message || "Upload failed."); } finally { setUploadingVideoCover(false); e.currentTarget.value = ""; } }} /></label>
+              {newVideoItem.type === "series" ? (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="text-xs font-black uppercase tracking-wide text-slate-600">Series Episodes</div>
+                  <div className="mt-2 grid gap-2">
+                    <input value={episodeDraft.title} onChange={(e) => setEpisodeDraft((v) => ({ ...v, title: e.target.value }))} placeholder="Episode title" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+                    <input value={episodeDraft.link} onChange={(e) => setEpisodeDraft((v) => ({ ...v, link: e.target.value }))} placeholder="Episode link" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+                    <button type="button" onClick={addEpisodeDraft} className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white hover:bg-slate-800">Add Episode</button>
+                    <div className="space-y-2">{newEpisodes.map((ep, idx) => <div key={ep.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"><div className="truncate font-bold text-slate-800">S{ep.seasonNumber}E{ep.episodeNumber} • {ep.title}</div><button type="button" onClick={() => setNewEpisodes((prev) => prev.filter((_, i) => i !== idx))} className="rounded-lg bg-rose-100 px-2 py-1 font-extrabold text-rose-700 hover:bg-rose-200">Remove</button></div>)}</div>
+                  </div>
+                </div>
+              ) : null}
+              <button onClick={createVideoItem} disabled={creatingVideoItem} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60">{creatingVideoItem ? "Creating..." : "Create Video Item"}</button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={modalOpen === "USER_SUBSCRIPTIONS"}
+        onClose={() => setModalOpen(null)}
+        title="User Subscriptions"
+        subtitle="Active and historical subscription records."
+        wide
+      >
+        <div className="space-y-3">
+          {userSubscriptions.slice(0, 200).map((s) => (
+            <div key={s.id} className="rounded-2xl border border-slate-200 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="font-black">{s.packageName || "Package"}</div>
+                  <div className="text-sm text-slate-600">UID: {s.uid || "—"}</div>
+                </div>
+                <Pill status={s.status || "unknown"} />
+              </div>
+              <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
+                <div className="rounded-xl bg-slate-50 px-3 py-2"><span className="font-bold">Price:</span> {Number(s.price || 0).toLocaleString()} FCFA</div>
+                <div className="rounded-xl bg-slate-50 px-3 py-2"><span className="font-bold">Start:</span> {formatEpoch(s.startAt)}</div>
+                <div className="rounded-xl bg-slate-50 px-3 py-2"><span className="font-bold">End:</span> {formatEpoch(s.endAt)}</div>
+              </div>
+            </div>
+          ))}
+          {userSubscriptions.length === 0 ? <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-700">No user subscriptions yet.</div> : null}
+        </div>
+      </Modal>
+
+      <Modal
+        open={modalOpen === "JEUNESSE_ADMIN"}
+        onClose={() => setModalOpen(null)}
+        title="Jeunesse Admin (Amis de Jesus)"
+        subtitle="Manage registrations, exam dates and results."
+        wide
+      >
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => setJeunesseTab("children")} className={`rounded-xl px-3 py-2 text-sm font-extrabold ${jeunesseTab === "children" ? "bg-slate-900 text-white" : "bg-white text-slate-800"}`}>Children</button>
+              <button onClick={() => setJeunesseTab("results")} className={`rounded-xl px-3 py-2 text-sm font-extrabold ${jeunesseTab === "results" ? "bg-slate-900 text-white" : "bg-white text-slate-800"}`}>Results</button>
+              <button onClick={() => setJeunesseTab("settings")} className={`rounded-xl px-3 py-2 text-sm font-extrabold ${jeunesseTab === "settings" ? "bg-slate-900 text-white" : "bg-white text-slate-800"}`}>Exam Dates</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <input value={jeunesseYear} onChange={(e) => setJeunesseYear(e.target.value)} className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <button onClick={() => loadJeunesseAdminData(jeunesseYear)} className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-extrabold text-white">Reload</button>
+            </div>
+          </div>
+
+          {jeunesseLoading ? <div className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">Loading...</div> : null}
+
+          {jeunesseTab === "children" ? (
+            <div>
+              <input value={jeunesseSearch} onChange={(e) => setJeunesseSearch(e.target.value)} placeholder="Search by name, identifier, parish, city" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+              <div className="mt-3 space-y-2">
+                {jeunesseChildren
+                  .filter((c: any) => {
+                    const q = jeunesseSearch.trim().toLowerCase();
+                    if (!q) return true;
+                    const blob = `${c.firstName || ""} ${c.lastName || ""} ${c.identifier || ""} ${c.parishName || ""} ${c.city || ""}`.toLowerCase();
+                    return blob.includes(q);
+                  })
+                  .slice(0, 200)
+                  .map((c: any) => (
+                    <div key={c.id} className="rounded-2xl border border-slate-200 p-3">
+                      <div className="font-black text-slate-900">{`${c.firstName || ""} ${c.lastName || ""}`.trim() || "Unnamed"}</div>
+                      <div className="text-xs font-semibold text-slate-600">ID: {c.identifier || "—"} • {c.parishName || "—"} • {c.city || "—"}</div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ) : null}
+
+          {jeunesseTab === "results" ? (
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 p-3">
+                <div className="text-sm font-black">Set Result</div>
+                <div className="mt-2 grid gap-2">
+                  <input value={resultDraft.identifier} onChange={(e) => setResultDraft((v) => ({ ...v, identifier: e.target.value }))} placeholder="Child identifier" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <select value={resultDraft.phase} onChange={(e) => setResultDraft((v) => ({ ...v, phase: e.target.value }))} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"><option value="prelim">prelim</option><option value="preselection">preselection</option><option value="selection">selection</option><option value="final">final</option></select>
+                    <select value={resultDraft.status} onChange={(e) => setResultDraft((v) => ({ ...v, status: e.target.value }))} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"><option value="passed">passed</option><option value="failed">failed</option></select>
+                  </div>
+                  <input value={resultDraft.average} onChange={(e) => setResultDraft((v) => ({ ...v, average: e.target.value }))} placeholder="Average mark" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+                  <textarea value={resultDraft.notes} onChange={(e) => setResultDraft((v) => ({ ...v, notes: e.target.value }))} placeholder="Notes" className="min-h-[80px] w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />
+                  <button onClick={saveJeunesseResult} className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white hover:bg-slate-800">Save Result</button>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-3">
+                <div className="text-sm font-black">Results ({jeunesseResults.length})</div>
+                <div className="mt-2 space-y-2">
+                  {jeunesseResults.slice(0, 150).map((r: any) => (
+                    <div key={r.id} className="rounded-xl border border-slate-200 bg-slate-50 p-2">
+                      <div className="text-sm font-black text-slate-900">{r.identifier || "—"} • {r.phase || "—"}</div>
+                      <div className="text-xs font-semibold text-slate-600">{r.status || (r.passed ? "passed" : "failed")} • avg: {r.average ?? "—"}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {jeunesseTab === "settings" ? (
+            <div className="rounded-2xl border border-slate-200 p-3">
+              <div className="text-sm font-black">Exam Dates ({jeunesseYear})</div>
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                <input value={periodDraft.prelimStart} onChange={(e) => setPeriodDraft((v) => ({ ...v, prelimStart: e.target.value }))} placeholder="prelim start" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold" />
+                <input value={periodDraft.prelimEnd} onChange={(e) => setPeriodDraft((v) => ({ ...v, prelimEnd: e.target.value }))} placeholder="prelim end" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold" />
+                <input value={periodDraft.preselectionStart} onChange={(e) => setPeriodDraft((v) => ({ ...v, preselectionStart: e.target.value }))} placeholder="preselection start" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold" />
+                <input value={periodDraft.preselectionEnd} onChange={(e) => setPeriodDraft((v) => ({ ...v, preselectionEnd: e.target.value }))} placeholder="preselection end" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold" />
+                <input value={periodDraft.selectionStart} onChange={(e) => setPeriodDraft((v) => ({ ...v, selectionStart: e.target.value }))} placeholder="selection start" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold" />
+                <input value={periodDraft.selectionEnd} onChange={(e) => setPeriodDraft((v) => ({ ...v, selectionEnd: e.target.value }))} placeholder="selection end" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold" />
+                <input value={periodDraft.finalStart} onChange={(e) => setPeriodDraft((v) => ({ ...v, finalStart: e.target.value }))} placeholder="final start" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold" />
+                <input value={periodDraft.finalEnd} onChange={(e) => setPeriodDraft((v) => ({ ...v, finalEnd: e.target.value }))} placeholder="final end" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold" />
+              </div>
+              <button onClick={saveJeunessePeriods} className="mt-3 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white hover:bg-slate-800">Save Exam Dates</button>
+            </div>
+          ) : null}
         </div>
       </Modal>
 
@@ -2158,3 +2127,5 @@ function formatEpoch(value: any) {
   if (!Number.isFinite(n)) return "—";
   return new Date(n).toLocaleString();
 }
+
+
