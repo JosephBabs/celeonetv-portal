@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { uploadToCeleoneCdn, type CdnUploadKind } from "../lib/cdnUpload";
 import { db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
 import { calculateRevenueDistribution, formatMoney } from "../lib/revenueEngine";
@@ -353,6 +354,12 @@ export default function AdminDashboard() {
           );
           const snap = await getDocs(q);
           items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          // Some collections (like songs) may not have orderField on all docs.
+          // Firestore excludes missing-field docs from ordered queries, so fallback.
+          if (items.length === 0) {
+            const plainSnap = await getDocs(collection(db, key));
+            items = plainSnap.docs.slice(0, PAGE_SIZE).map((d) => ({ id: d.id, ...d.data() }));
+          }
         } else {
           const snap = await getDocs(collection(db, key));
           items = snap.docs.slice(0, PAGE_SIZE).map((d) => ({ id: d.id, ...d.data() }));
@@ -1210,6 +1217,7 @@ export default function AdminDashboard() {
                         value={editDraft}
                         onChange={setEditDraft}
                         lockedKeys={["id"]}
+                        collectionKey={manageKey}
                       />
                     )}
                   </div>
@@ -1318,15 +1326,32 @@ function KeyValueEditor({
   value,
   onChange,
   lockedKeys = [],
+  collectionKey,
 }: {
   value: any;
   onChange: (v: any) => void;
   lockedKeys?: string[];
+  collectionKey?: ManageKey | null;
 }) {
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
   const entries = Object.entries(value || {}).filter(([k]) => !lockedKeys.includes(k));
 
   const setField = (key: string, val: any) => {
     onChange({ ...(value || {}), [key]: val });
+  };
+
+  const canUploadField = (field: string) => {
+    const k = field.toLowerCase();
+    if (collectionKey === "posts") return ["image", "shareimage", "thumbnail", "coverurl"].includes(k);
+    if (collectionKey === "songs") return ["coverurl", "image", "mediaurl", "audiourl", "url", "fileurl"].includes(k);
+    if (collectionKey === "videos") return ["mediaurl", "videourl", "streamlink", "url", "coverurl", "thumbnail"].includes(k);
+    return false;
+  };
+
+  const uploadKindFor = (): CdnUploadKind => {
+    if (collectionKey === "songs") return "song";
+    if (collectionKey === "videos") return "vfilm";
+    return "posts";
   };
 
   return (
@@ -1351,11 +1376,39 @@ function KeyValueEditor({
                 className="mt-2 h-28 w-full rounded-2xl border border-slate-200 bg-white p-3 font-mono text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-200"
               />
             ) : (
-              <input
-                value={String(v ?? "")}
-                onChange={(e) => setField(k, castSmart(e.target.value))}
-                className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-              />
+              <div className="mt-2 space-y-2">
+                <input
+                  value={String(v ?? "")}
+                  onChange={(e) => setField(k, castSmart(e.target.value))}
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                />
+                {canUploadField(k) ? (
+                  <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
+                    <span>{uploadingField === k ? "Uploading..." : `Upload ${k}`}</span>
+                    <input
+                      type="file"
+                      accept={k.toLowerCase().includes("image") || k.toLowerCase().includes("cover") || k.toLowerCase().includes("thumbnail") ? "image/*" : "*/*"}
+                      className="hidden"
+                      disabled={uploadingField === k}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setUploadingField(k);
+                        try {
+                          const url = await uploadToCeleoneCdn(file, uploadKindFor());
+                          setField(k, url);
+                        } catch (err: any) {
+                          console.error(err);
+                          alert(err?.message || "Upload failed.");
+                        } finally {
+                          setUploadingField(null);
+                          e.currentTarget.value = "";
+                        }
+                      }}
+                    />
+                  </label>
+                ) : null}
+              </div>
             )}
           </div>
         );

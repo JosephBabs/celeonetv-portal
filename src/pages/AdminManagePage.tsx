@@ -13,6 +13,7 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
+import { uploadToCeleoneCdn } from "../lib/cdnUpload";
 import { db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
 
@@ -112,6 +113,7 @@ export default function AdminManagePage() {
     image: "",
     contentHtml: "",
   });
+  const [uploadingPostAsset, setUploadingPostAsset] = useState(false);
   const [newDocument, setNewDocument] = useState({
     title: "",
     category: "Essentials",
@@ -306,6 +308,23 @@ export default function AdminManagePage() {
     }
   };
 
+  const uploadPostAsset = async (file: File, target: "create_image" | "edit_field", field?: string) => {
+    setUploadingPostAsset(true);
+    try {
+      const url = await uploadToCeleoneCdn(file, "posts");
+      if (target === "create_image") {
+        setNewPost((prev) => ({ ...prev, image: url }));
+      } else if (field) {
+        setDraft((prev: any) => ({ ...(prev || {}), [field]: url }));
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "Upload failed.");
+    } finally {
+      setUploadingPostAsset(false);
+    }
+  };
+
   const createDocument = async () => {
     if (!cfg || cfg.collection !== "documents") return;
     if (!newDocument.title.trim()) return alert("Document title is required.");
@@ -489,6 +508,21 @@ export default function AdminManagePage() {
               placeholder="Image URL"
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200 md:col-span-2"
             />
+            <label className="md:col-span-2 inline-flex w-fit cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-800 hover:bg-slate-100">
+              <span>{uploadingPostAsset ? "Uploading..." : "Upload Post Image"}</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={uploadingPostAsset}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  await uploadPostAsset(file, "create_image");
+                  e.currentTarget.value = "";
+                }}
+              />
+            </label>
           </div>
           <div className="mt-3">
             <HtmlEditor
@@ -701,6 +735,9 @@ export default function AdminManagePage() {
                     const isPostHtmlField =
                       cfg.collection === "posts" &&
                       ["contenthtml", "content"].includes(k.toLowerCase());
+                    const isPostAssetField =
+                      cfg.collection === "posts" &&
+                      ["image", "shareimage", "thumbnail", "coverurl"].includes(k.toLowerCase());
                     return (
                       <div key={k} className="rounded-2xl border border-slate-200 p-3">
                         <div className="text-xs font-black uppercase tracking-wide text-slate-600">{k}</div>
@@ -724,11 +761,30 @@ export default function AdminManagePage() {
                             className="mt-2 h-24 w-full rounded-2xl border border-slate-200 p-3 font-mono text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-200"
                           />
                         ) : (
-                          <input
-                            value={String(v ?? "")}
-                            onChange={(e) => setDraft((prev: any) => ({ ...prev, [k]: smartCast(e.target.value) }))}
-                            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-                          />
+                          <div className="mt-2 space-y-2">
+                            <input
+                              value={String(v ?? "")}
+                              onChange={(e) => setDraft((prev: any) => ({ ...prev, [k]: smartCast(e.target.value) }))}
+                              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                            />
+                            {isPostAssetField ? (
+                              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
+                                <span>{uploadingPostAsset ? "Uploading..." : `Upload ${k}`}</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  disabled={uploadingPostAsset}
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    await uploadPostAsset(file, "edit_field", k);
+                                    e.currentTarget.value = "";
+                                  }}
+                                />
+                              </label>
+                            ) : null}
+                          </div>
                         )}
                       </div>
                     );
