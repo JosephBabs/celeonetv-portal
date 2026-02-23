@@ -259,6 +259,7 @@ export default function AdminDashboard() {
   const [manageLoading, setManageLoading] = useState(false);
   const [manageItems, setManageItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [manageMobileTab, setManageMobileTab] = useState<"list" | "editor">("list");
 
   // edit form (generic key/value editor)
   const [editDraft, setEditDraft] = useState<any>({});
@@ -271,6 +272,7 @@ export default function AdminDashboard() {
     setEditDraft({});
     setEditJsonMode(false);
     setEditJsonText("");
+    setManageMobileTab("list");
     setModalOpen("MANAGE_COLLECTION");
     await loadManageItems(key);
   };
@@ -316,6 +318,7 @@ export default function AdminDashboard() {
     setSelectedItem(item);
     setEditDraft(item);
     setEditJsonText(JSON.stringify(item, null, 2));
+    setManageMobileTab("editor");
   };
 
   const saveItem = async () => {
@@ -782,6 +785,7 @@ export default function AdminDashboard() {
           setManageKey(null);
           setSelectedItem(null);
           setManageItems([]);
+          setManageMobileTab("list");
         }}
         title={manageKey ? `${COLLECTION_META[manageKey].icon} Manage ${COLLECTION_META[manageKey].label}` : "Manage"}
         subtitle={`Edit Firestore docs directly. Showing latest ${PAGE_SIZE}.`}
@@ -790,9 +794,29 @@ export default function AdminDashboard() {
         {!manageKey ? (
           <div className="rounded-2xl bg-slate-50 p-4 text-slate-700">No collection selected.</div>
         ) : (
-          <div className="grid gap-4 lg:grid-cols-[380px_1fr]">
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2 md:hidden">
+              <button
+                onClick={() => setManageMobileTab("list")}
+                className={`rounded-2xl px-3 py-2 text-sm font-extrabold ${
+                  manageMobileTab === "list" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"
+                }`}
+              >
+                Items
+              </button>
+              <button
+                onClick={() => setManageMobileTab("editor")}
+                className={`rounded-2xl px-3 py-2 text-sm font-extrabold ${
+                  manageMobileTab === "editor" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"
+                }`}
+              >
+                Editor
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[320px_1fr]">
             {/* Left: list */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-4">
+            <div className={`rounded-3xl border border-slate-200 bg-white p-4 ${manageMobileTab === "editor" ? "hidden md:block" : ""}`}>
               <div className="flex items-center justify-between">
                 <div className="text-sm font-black text-slate-900">Items</div>
                 <button
@@ -845,7 +869,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Right: editor */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-5">
+            <div className={`rounded-3xl border border-slate-200 bg-white p-4 md:p-5 ${manageMobileTab === "list" ? "hidden md:block" : ""}`}>
               {!selectedItem ? (
                 <div className="rounded-2xl bg-slate-50 p-6 text-sm font-bold text-slate-700">
                   Select an item on the left to view/edit.
@@ -921,7 +945,7 @@ export default function AdminDashboard() {
                       <textarea
                         value={editJsonText}
                         onChange={(e) => setEditJsonText(e.target.value)}
-                        className="h-[360px] w-full rounded-3xl border border-slate-200 bg-white p-4 font-mono text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                        className="h-[55vh] min-h-[260px] w-full rounded-3xl border border-slate-200 bg-white p-4 font-mono text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200 md:h-[360px]"
                       />
                     ) : (
                       <KeyValueEditor
@@ -949,6 +973,7 @@ export default function AdminDashboard() {
                 </>
               )}
             </div>
+          </div>
           </div>
         )}
       </Modal>
@@ -988,21 +1013,21 @@ function Modal({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/50 p-4 md:items-center">
-      <div className={`w-full ${wide ? "max-w-6xl" : "max-w-3xl"} rounded-3xl bg-white shadow-xl h-[85vh] flex flex-col`}>
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-5">
-          <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-5 shrink-0">
-            <div className="text-lg font-black">{title}</div>
-            {subtitle ? <div className="mt-1 text-sm font-semibold text-slate-600">{subtitle}</div> : null}
+    <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/55 p-2 md:items-center md:p-4">
+      <div className={`h-[92vh] w-full ${wide ? "max-w-6xl" : "max-w-3xl"} rounded-2xl bg-white shadow-xl md:h-[85vh] md:rounded-3xl flex flex-col`}>
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-slate-200 bg-white p-4 md:p-5">
+          <div className="min-w-0">
+            <div className="text-base font-black md:text-lg">{title}</div>
+            {subtitle ? <div className="mt-1 text-xs font-semibold text-slate-600 md:text-sm">{subtitle}</div> : null}
           </div>
           <button
             onClick={onClose}
-            className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-extrabold text-slate-800 hover:bg-slate-200"
+            className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-800 hover:bg-slate-200 md:rounded-2xl md:px-4 md:text-sm"
           >
             Close
           </button>
         </div>
-        <div className="p-5 flex-1 overflow-y-auto">{children}</div>
+        <div className="flex-1 overflow-y-auto p-3 md:p-5">{children}</div>
       </div>
     </div>
   );

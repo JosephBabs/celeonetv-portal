@@ -7,6 +7,14 @@ const escapeHtml = (s: string) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+const compressShareImage = (url: string) => {
+  const clean = (url || "").trim();
+  if (!clean) return "https://celeonetv.com/logo.png";
+  if (!/^https?:\/\//i.test(clean)) return "https://celeonetv.com/logo.png";
+  if (clean.includes("logo.png")) return clean;
+  return `https://wsrv.nl/?url=${encodeURIComponent(clean)}&w=1200&h=630&fit=cover&output=jpg&q=72`;
+};
+
 export async function onRequestGet(context: any) {
   const postId = context.params.id as string;
  
@@ -28,7 +36,7 @@ export async function onRequestGet(context: any) {
 
   const title = escapeHtml(titleRaw);
   const description = escapeHtml(contentRaw.trim().slice(0, 180));
-  const image = escapeHtml(imageRaw);
+  const image = escapeHtml(compressShareImage(imageRaw));
   const url = `https://celeonetv.com/posts/${postId}`;
 
   // ✅ Get the HTML that Pages would normally serve for THIS route (your index.html)

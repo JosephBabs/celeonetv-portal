@@ -87,6 +87,7 @@ export default function AdminManagePage() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [language, setLanguage] = useState("all");
+  const [mobileTab, setMobileTab] = useState<"list" | "editor">("list");
 
   useEffect(() => {
     if (!cfg) {
@@ -138,6 +139,7 @@ export default function AdminManagePage() {
     setItems([]);
     setSearch("");
     setLanguage("all");
+    setMobileTab("list");
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cfg?.collection]);
@@ -279,7 +281,22 @@ export default function AdminManagePage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
-        <div className="rounded-3xl border border-slate-200 bg-white p-4">
+        <div className="grid grid-cols-2 gap-2 lg:hidden">
+          <button
+            onClick={() => setMobileTab("list")}
+            className={`rounded-2xl px-3 py-2 text-sm font-extrabold ${mobileTab === "list" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"}`}
+          >
+            Documents
+          </button>
+          <button
+            onClick={() => setMobileTab("editor")}
+            className={`rounded-2xl px-3 py-2 text-sm font-extrabold ${mobileTab === "editor" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"}`}
+          >
+            Editor
+          </button>
+        </div>
+
+        <div className={`rounded-3xl border border-slate-200 bg-white p-4 ${mobileTab === "editor" ? "hidden lg:block" : ""}`}>
           <div className="flex items-center justify-between">
             <div className="text-sm font-black text-slate-700">Documents</div>
             <div className="text-xs font-bold text-slate-500">{filteredItems.length}</div>
@@ -317,6 +334,7 @@ export default function AdminManagePage() {
                   onClick={() => {
                     setSelected(it);
                     setDraft(it);
+                    setMobileTab("editor");
                   }}
                   className={`w-full rounded-2xl border p-3 text-left ${
                     selected?.id === it.id
@@ -341,7 +359,7 @@ export default function AdminManagePage() {
           )}
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-5">
+        <div className={`rounded-3xl border border-slate-200 bg-white p-4 md:p-5 ${mobileTab === "list" ? "hidden lg:block" : ""}`}>
           {!selected || !draft ? (
             <div className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">
               Select a document from the left list.
@@ -407,7 +425,7 @@ export default function AdminManagePage() {
                           <textarea
                             value={String(v ?? "")}
                             onChange={(e) => setDraft((prev: any) => ({ ...prev, [k]: e.target.value }))}
-                            className="mt-2 min-h-[240px] w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-teal-200"
+                            className="mt-2 min-h-[260px] w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-teal-200"
                           />
                         ) : isComplex ? (
                           <textarea

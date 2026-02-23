@@ -10,13 +10,17 @@ import { setPageMeta } from "../lib/seo";
 function getStreamUrl(channel: any) {
   if (!channel) return null;
   const direct =
+    channel.streamLink ||
     channel.hlsUrl ||
     channel.streamUrl ||
-    channel.streamLink ||
     channel.playbackUrl ||
     channel.m3u8 ||
     channel.url;
-  if (direct && String(direct).includes(".m3u8")) return String(direct);
+  if (direct) {
+    const raw = String(direct).trim();
+    if (raw.includes(".m6u8")) return raw.replace(".m6u8", ".m3u8");
+    return raw;
+  }
   if (channel.streamKey) return `${APP.streaming.hlsBase}/${channel.streamKey}.m3u8`;
   return null;
 }

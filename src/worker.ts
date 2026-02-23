@@ -3,6 +3,12 @@ export interface Env {
   ASSETS?: { fetch: (req: Request) => Promise<Response> };
 }
 
+const SITE_URL = "https://celeonetv.com";
+const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
+const HOME_TITLE = "CeleOne | Plateforme Sociale Mobile Chretienne Celeste";
+const HOME_DESCRIPTION =
+  "CeleOne rassemble actualites, reformes, decisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace securise.";
+
 function escapeHtml(s: string) {
   return (s || "")
     .replace(/&/g, "&amp;")
@@ -32,36 +38,60 @@ function stripExistingSocialMeta(html: string) {
     .replace(/<meta[^>]+property=["']og:[^"']+["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']twitter:[^"']+["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']description["'][^>]*>\s*/gi, "")
+    .replace(/<link[^>]+rel=["']canonical["'][^>]*>\s*/gi, "")
     .replace(/<title>.*?<\/title>\s*/gis, "");
 }
 
-/**
- * Try to convert some common image URLs to a smaller version.
- * This only helps if your storage/CDN supports these params.
- * If it doesn't, it still returns a valid URL (original).
- */
-function preferSmallerImage(url: string) {
-  if (!url) return url;
+function makeCompressedShareImage(input: string) {
+  const imageUrl = (input || "").trim();
+  if (!imageUrl) return DEFAULT_IMAGE;
+  if (imageUrl === DEFAULT_IMAGE) return DEFAULT_IMAGE;
+  if (!/^https?:\/\//i.test(imageUrl)) return DEFAULT_IMAGE;
+  // WhatsApp previews are more reliable with moderate-size images.
+  return `https://wsrv.nl/?url=${encodeURIComponent(imageUrl)}&w=1200&h=630&fit=cover&output=jpg&q=72`;
+}
 
-  try {
-    const u = new URL(url);
+function injectMeta(html: string, meta: string) {
+  const cleaned = stripExistingSocialMeta(html);
+  if (cleaned.includes("</head>")) return cleaned.replace("</head>", `${meta}\n</head>`);
+  return `${meta}\n${cleaned}`;
+}
 
-    // If it's already a jpg/jpeg/webp, good. If not, still okay.
-    // Add common "size" query for some CDNs. If ignored, harmless.
-    // (WhatsApp likes smaller files; keeping it simple)
-    if (!u.searchParams.has("w")) u.searchParams.set("w", "1200");
-    if (!u.searchParams.has("h")) u.searchParams.set("h", "630");
+function buildMeta({
+  title,
+  description,
+  image,
+  pageUrl,
+  type,
+}: {
+  title: string;
+  description: string;
+  image: string;
+  pageUrl: string;
+  type: "website" | "article";
+}) {
+  return `
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(description)}" />
 
-    // Some CDNs accept quality
-    if (!u.searchParams.has("q")) u.searchParams.set("q", "70");
+<meta property="og:type" content="${type}" />
+<meta property="og:site_name" content="Celeone TV" />
+<meta property="og:title" content="${escapeHtml(title)}" />
+<meta property="og:description" content="${escapeHtml(description)}" />
+<meta property="og:image" content="${escapeHtml(image)}" />
+<meta property="og:image:secure_url" content="${escapeHtml(image)}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:url" content="${escapeHtml(pageUrl)}" />
 
-    // Some accept format
-    if (!u.searchParams.has("fm")) u.searchParams.set("fm", "jpg");
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${escapeHtml(title)}" />
+<meta name="twitter:description" content="${escapeHtml(description)}" />
+<meta name="twitter:image" content="${escapeHtml(image)}" />
 
-    return u.toString();
-  } catch {
-    return url;
-  }
+<link rel="canonical" href="${escapeHtml(pageUrl)}" />
+  `.trim();
 }
 
 export default {
@@ -69,7 +99,6 @@ export default {
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
 
-    // 1) HEAD fast-path (prevents 522 / scraper failures)
     if (method === "HEAD") {
       return new Response(null, {
         status: 200,
@@ -84,7 +113,6 @@ export default {
       return new Response(null, { status: 204 });
     }
 
-    // 2) Serve assets
     let baseRes: Response;
     try {
       if (env.ASSETS && typeof env.ASSETS.fetch === "function") {
@@ -96,86 +124,75 @@ export default {
       return new Response("Assets fetch failed", { status: 500 });
     }
 
-    // 3) Only inject for /posts/:id
-    const m = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
-    if (!m) return baseRes;
     if (!isHtml(baseRes)) return baseRes;
 
+    // Homepage SEO for WhatsApp preview.
+    if (url.pathname === "/" || url.pathname === "") {
+      const html = await baseRes.text();
+      const meta = buildMeta({
+        title: HOME_TITLE,
+        description: HOME_DESCRIPTION,
+        image: DEFAULT_IMAGE,
+        pageUrl: `${SITE_URL}/`,
+        type: "website",
+      });
+      const body = injectMeta(html, meta);
+      const headers = new Headers(baseRes.headers);
+      headers.set("content-type", "text/html; charset=UTF-8");
+      headers.set("cache-control", "no-store");
+      return new Response(body, { status: baseRes.status, headers });
+    }
+
+    // Post SEO for WhatsApp preview.
+    const m = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
+    if (!m) return baseRes;
+
     const postId = m[1];
-
-    // Defaults
     let title = "Celeone TV";
-    let description = "Découvrez les contenus sur Celeone TV.";
-    let image = "https://celeonetv.com/logo.png";
+    let description = "Decouvrez les contenus sur Celeone TV.";
+    let image = DEFAULT_IMAGE;
 
-    // 4) Firestore fetch
     try {
       const projectId = env.FIREBASE_PROJECT_ID;
       if (projectId) {
         const firebaseURL = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/posts/${postId}`;
-        const fr = await fetchWithTimeout(firebaseURL, 2000);
-
+        const fr = await fetchWithTimeout(firebaseURL, 2500);
         if (fr.ok) {
           const data: any = await fr.json();
           const fields = data?.fields || {};
-
-          // ✅ Prefer explicit share fields (YOU create these as optimized)
           const shareTitle = fields.shareTitle?.stringValue;
           const shareDesc = fields.shareDescription?.stringValue;
           const shareImage = fields.shareImage?.stringValue;
+          const fallbackTitle = fields.title?.stringValue;
+          const fallbackDesc = fields.content?.stringValue;
+          const fallbackImage = fields.image?.stringValue;
 
-          // Fallback to regular fields
-          const t = shareTitle || fields.title?.stringValue;
-          const c = shareDesc || fields.content?.stringValue;
-          const img = shareImage || fields.image?.stringValue;
+          const resolvedTitle = shareTitle || fallbackTitle;
+          const resolvedDesc = shareDesc || fallbackDesc;
+          const resolvedImage = shareImage || fallbackImage;
 
-          if (t) title = String(t);
-          if (c) description = String(c).trim().replace(/\s+/g, " ").slice(0, 180);
-          if (img) image = preferSmallerImage(String(img));
+          if (resolvedTitle) title = String(resolvedTitle);
+          if (resolvedDesc) description = String(resolvedDesc).trim().replace(/\s+/g, " ").slice(0, 220);
+          if (resolvedImage) image = makeCompressedShareImage(String(resolvedImage));
         }
       }
     } catch {
-      // keep defaults
+      // Keep defaults on fetch failure.
     }
 
-    const pageUrl = `https://celeonetv.com/posts/${postId}`;
-
-    // 5) Inject meta
-    let html = await baseRes.text();
-    html = stripExistingSocialMeta(html);
-
-    const meta = `
-<title>${escapeHtml(title)}</title>
-<meta name="description" content="${escapeHtml(description)}" />
-
-<meta property="og:type" content="article" />
-<meta property="og:site_name" content="Celeone TV" />
-<meta property="og:title" content="${escapeHtml(title)}" />
-<meta property="og:description" content="${escapeHtml(description)}" />
-<meta property="og:image" content="${escapeHtml(image)}" />
-<meta property="og:image:secure_url" content="${escapeHtml(image)}" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:url" content="${escapeHtml(pageUrl)}" />
-
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="${escapeHtml(title)}" />
-<meta name="twitter:description" content="${escapeHtml(description)}" />
-<meta name="twitter:image" content="${escapeHtml(image)}" />
-
-<link rel="canonical" href="${escapeHtml(pageUrl)}" />
-`.trim();
-
-    if (html.includes("</head>")) {
-      html = html.replace("</head>", `${meta}\n</head>`);
-    } else {
-      html = `${meta}\n${html}`;
-    }
-
+    const pageUrl = `${SITE_URL}/posts/${postId}`;
+    const html = await baseRes.text();
+    const meta = buildMeta({
+      title,
+      description,
+      image,
+      pageUrl,
+      type: "article",
+    });
+    const body = injectMeta(html, meta);
     const headers = new Headers(baseRes.headers);
     headers.set("content-type", "text/html; charset=UTF-8");
     headers.set("cache-control", "no-store");
-
-    return new Response(html, { status: baseRes.status, headers });
+    return new Response(body, { status: baseRes.status, headers });
   },
 };
