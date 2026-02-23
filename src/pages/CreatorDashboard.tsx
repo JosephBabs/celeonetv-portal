@@ -14,7 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import HlsVideo from "../components/HlsVideo";
 import { APP } from "../lib/config";
-import { uploadToCeleoneCdn, type CdnUploadKind } from "../lib/cdnUpload";
+import { uploadToCeleoneCdn } from "../lib/cdnUpload";
 import { db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
 import { useAuthUser } from "../lib/useAuthUser";
@@ -25,17 +25,30 @@ export default function CreatorDashboard() {
   const [channels, setChannels] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [videos, setVideos] = useState<any[]>([]);
-  const [podcasts, setPodcasts] = useState<any[]>([]);
+  const [songs, setSongs] = useState<any[]>([]);
 
-  const [videoForm, setVideoForm] = useState({ title: "", description: "", mediaUrl: "" });
-  const [podcastForm, setPodcastForm] = useState({ title: "", description: "", mediaUrl: "" });
+  const [videoForm, setVideoForm] = useState({
+    title: "",
+    description: "",
+    videoUrl: "",
+    coverUrl: "",
+  });
+  const [songForm, setSongForm] = useState({
+    title: "",
+    artist: "",
+    album: "",
+    description: "",
+    audioUrl: "",
+    coverUrl: "",
+  });
+
   const [savingVideo, setSavingVideo] = useState(false);
-  const [savingPodcast, setSavingPodcast] = useState(false);
+  const [savingSong, setSavingSong] = useState(false);
 
   useEffect(() => {
     setPageMeta({
       title: "Creator Panel | Celeone TV",
-      description: "Manage your channels, podcasts, and video content.",
+      description: "Manage your channels, songs, and film videos.",
     });
   }, []);
 
@@ -66,7 +79,7 @@ export default function CreatorDashboard() {
     const requestQ = query(collection(db, "channel_requests"), where("userId", "==", user.uid));
     const channelsQ = query(collection(db, "channels"), where("ownerId", "==", ownerId));
     const videoQ = query(collection(db, "videos"), where("ownerId", "==", ownerId));
-    const podcastQ = query(collection(db, "podcasts"), where("ownerId", "==", ownerId));
+    const songsQ = query(collection(db, "songs"), where("ownerId", "==", ownerId));
 
     const unSubRequests = onSnapshot(requestQ, (snap) => {
       setRequests(
@@ -75,6 +88,7 @@ export default function CreatorDashboard() {
           .sort((a: any, b: any) => getTime(b.createdAt) - getTime(a.createdAt))
       );
     });
+
     const unSubChannels = onSnapshot(
       channelsQ,
       (snap) => {
@@ -85,7 +99,6 @@ export default function CreatorDashboard() {
         );
       },
       async () => {
-        // fallback for legacy channels linked by auth uid
         if (ownerId !== user.uid) {
           const fallbackSnap = await getDocs(query(collection(db, "channels"), where("ownerId", "==", user.uid)));
           setChannels(
@@ -98,6 +111,7 @@ export default function CreatorDashboard() {
         }
       }
     );
+
     const unSubVideos = onSnapshot(videoQ, (snap) => {
       setVideos(
         snap.docs
@@ -105,17 +119,18 @@ export default function CreatorDashboard() {
           .sort((a: any, b: any) => getTime(b.createdAt) - getTime(a.createdAt))
       );
     });
-    const unSubPodcasts = onSnapshot(
-      podcastQ,
+
+    const unSubSongs = onSnapshot(
+      songsQ,
       (snap) => {
-        setPodcasts(
+        setSongs(
           snap.docs
             .map((d) => ({ id: d.id, ...d.data() }))
             .sort((a: any, b: any) => getTime(b.createdAt) - getTime(a.createdAt))
         );
       },
       () => {
-        setPodcasts([]);
+        setSongs([]);
       }
     );
 
@@ -123,7 +138,7 @@ export default function CreatorDashboard() {
       unSubRequests();
       unSubChannels();
       unSubVideos();
-      unSubPodcasts();
+      unSubSongs();
     };
   }, [ownerId, user]);
 
@@ -151,7 +166,8 @@ export default function CreatorDashboard() {
 
   const saveVideo = async () => {
     if (!user) return;
-    if (!videoForm.title.trim()) return alert("Video title is required.");
+    if (!videoForm.title.trim()) return alert("Film title is required.");
+    if (!videoForm.videoUrl.trim()) return alert("Film video URL is required.");
     setSavingVideo(true);
     try {
       await addDoc(collection(db, "videos"), {
@@ -159,43 +175,49 @@ export default function CreatorDashboard() {
         channelName: approvedChannel?.channelName || "",
         title: videoForm.title.trim(),
         description: videoForm.description.trim(),
-        mediaUrl: videoForm.mediaUrl.trim(),
+        videoUrl: videoForm.videoUrl.trim(),
+        mediaUrl: videoForm.videoUrl.trim(),
+        coverUrl: videoForm.coverUrl.trim(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      setVideoForm({ title: "", description: "", mediaUrl: "" });
+      setVideoForm({ title: "", description: "", videoUrl: "", coverUrl: "" });
     } catch (error) {
       console.error(error);
-      alert("Failed to save video.");
+      alert("Failed to save film video.");
     } finally {
       setSavingVideo(false);
     }
   };
 
-  const savePodcast = async () => {
+  const saveSong = async () => {
     if (!user) return;
-    if (!podcastForm.title.trim()) return alert("Podcast title is required.");
-    setSavingPodcast(true);
+    if (!songForm.title.trim()) return alert("Song title is required.");
+    if (!songForm.audioUrl.trim()) return alert("Song audio URL is required.");
+    setSavingSong(true);
     try {
-      await addDoc(collection(db, "podcasts"), {
+      await addDoc(collection(db, "songs"), {
         ownerId: ownerId || user.uid,
-        channelName: approvedChannel?.channelName || "",
-        title: podcastForm.title.trim(),
-        description: podcastForm.description.trim(),
-        mediaUrl: podcastForm.mediaUrl.trim(),
+        artist: songForm.artist.trim() || user.email || "Unknown artist",
+        album: songForm.album.trim(),
+        title: songForm.title.trim(),
+        description: songForm.description.trim(),
+        audioUrl: songForm.audioUrl.trim(),
+        mediaUrl: songForm.audioUrl.trim(),
+        coverUrl: songForm.coverUrl.trim(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      setPodcastForm({ title: "", description: "", mediaUrl: "" });
+      setSongForm({ title: "", artist: "", album: "", description: "", audioUrl: "", coverUrl: "" });
     } catch (error) {
       console.error(error);
-      alert("Failed to save podcast.");
+      alert("Failed to save song.");
     } finally {
-      setSavingPodcast(false);
+      setSavingSong(false);
     }
   };
 
-  const removeMedia = async (collectionName: "videos" | "podcasts", id: string) => {
+  const removeMedia = async (collectionName: "videos" | "songs", id: string) => {
     if (!confirm("Delete this item?")) return;
     await deleteDoc(doc(db, collectionName, id));
   };
@@ -235,8 +257,8 @@ export default function CreatorDashboard() {
         <div className="mt-5 grid gap-3 md:grid-cols-4">
           <Stat label="Requests" value={String(requests.length)} />
           <Stat label="My Channels" value={String(channels.length)} />
-          <Stat label="Videos" value={String(videos.length)} />
-          <Stat label="Podcasts" value={String(podcasts.length)} />
+          <Stat label="Film Videos" value={String(videos.length)} />
+          <Stat label="Songs" value={String(songs.length)} />
         </div>
       </section>
 
@@ -263,34 +285,22 @@ export default function CreatorDashboard() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <MediaForm
-          title="Publish Video"
-          state={videoForm}
-          saving={savingVideo}
-          uploadKind="vfilm"
-          onChange={setVideoForm}
-          onSubmit={saveVideo}
-        />
-        <MediaForm
-          title="Publish Podcast"
-          state={podcastForm}
-          saving={savingPodcast}
-          uploadKind="song"
-          onChange={setPodcastForm}
-          onSubmit={savePodcast}
-        />
+        <VideoForm state={videoForm} saving={savingVideo} onChange={setVideoForm} onSubmit={saveVideo} />
+        <SongForm state={songForm} saving={savingSong} onChange={setSongForm} onSubmit={saveSong} />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
         <MediaList
-          title="My Videos"
+          title="My Film Videos"
           items={videos}
+          urlField="videoUrl"
           onDelete={(id) => removeMedia("videos", id)}
         />
         <MediaList
-          title="My Podcasts"
-          items={podcasts}
-          onDelete={(id) => removeMedia("podcasts", id)}
+          title="My Songs"
+          items={songs}
+          urlField="audioUrl"
+          onDelete={(id) => removeMedia("songs", id)}
         />
       </section>
     </div>
@@ -315,62 +325,92 @@ function Card({ label, value, mono }: { label: string; value: string; mono?: boo
   );
 }
 
-function MediaForm({
-  title,
+function VideoForm({
   state,
   saving,
-  uploadKind,
   onChange,
   onSubmit,
 }: {
-  title: string;
-  state: { title: string; description: string; mediaUrl: string };
+  state: { title: string; description: string; videoUrl: string; coverUrl: string };
   saving: boolean;
-  uploadKind: CdnUploadKind;
-  onChange: (v: { title: string; description: string; mediaUrl: string }) => void;
+  onChange: (v: { title: string; description: string; videoUrl: string; coverUrl: string }) => void;
   onSubmit: () => void;
 }) {
-  const [uploading, setUploading] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6">
-      <div className="text-lg font-black">{title}</div>
+      <div className="text-lg font-black">Publish Film Video</div>
       <div className="mt-4 grid gap-3">
         <input
           value={state.title}
           onChange={(e) => onChange({ ...state, title: e.target.value })}
-          placeholder="Title"
+          placeholder="Film title"
           className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
         />
+
         <input
-          value={state.mediaUrl}
-          onChange={(e) => onChange({ ...state, mediaUrl: e.target.value })}
-          placeholder="Media URL"
+          value={state.videoUrl}
+          onChange={(e) => onChange({ ...state, videoUrl: e.target.value })}
+          placeholder="Video URL"
           className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
         />
         <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-800 hover:bg-slate-100">
-          <span>{uploading ? "Uploading..." : "Upload Media"}</span>
+          <span>{uploadingVideo ? "Uploading..." : "Upload Film Video"}</span>
           <input
             type="file"
             className="hidden"
-            disabled={uploading}
+            disabled={uploadingVideo}
             onChange={async (e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              setUploading(true);
+              setUploadingVideo(true);
               try {
-                const url = await uploadToCeleoneCdn(file, uploadKind);
-                onChange({ ...state, mediaUrl: url });
+                const url = await uploadToCeleoneCdn(file, "vfilm");
+                onChange({ ...state, videoUrl: url });
               } catch (err: any) {
                 console.error(err);
                 alert(err?.message || "Upload failed.");
               } finally {
-                setUploading(false);
+                setUploadingVideo(false);
                 e.currentTarget.value = "";
               }
             }}
           />
         </label>
+
+        <input
+          value={state.coverUrl}
+          onChange={(e) => onChange({ ...state, coverUrl: e.target.value })}
+          placeholder="Cover image URL"
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        />
+        <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-800 hover:bg-slate-100">
+          <span>{uploadingCover ? "Uploading..." : "Upload Cover"}</span>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            disabled={uploadingCover}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setUploadingCover(true);
+              try {
+                const url = await uploadToCeleoneCdn(file, "vfilm");
+                onChange({ ...state, coverUrl: url });
+              } catch (err: any) {
+                console.error(err);
+                alert(err?.message || "Upload failed.");
+              } finally {
+                setUploadingCover(false);
+                e.currentTarget.value = "";
+              }
+            }}
+          />
+        </label>
+
         <textarea
           value={state.description}
           onChange={(e) => onChange({ ...state, description: e.target.value })}
@@ -383,7 +423,124 @@ function MediaForm({
         onClick={onSubmit}
         className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
       >
-        {saving ? "Saving..." : `Save ${title.includes("Video") ? "Video" : "Podcast"}`}
+        {saving ? "Saving..." : "Create Film Video"}
+      </button>
+    </div>
+  );
+}
+
+function SongForm({
+  state,
+  saving,
+  onChange,
+  onSubmit,
+}: {
+  state: { title: string; artist: string; album: string; description: string; audioUrl: string; coverUrl: string };
+  saving: boolean;
+  onChange: (v: { title: string; artist: string; album: string; description: string; audioUrl: string; coverUrl: string }) => void;
+  onSubmit: () => void;
+}) {
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6">
+      <div className="text-lg font-black">Publish Song</div>
+      <div className="mt-4 grid gap-3">
+        <input
+          value={state.title}
+          onChange={(e) => onChange({ ...state, title: e.target.value })}
+          placeholder="Song title"
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        />
+        <input
+          value={state.artist}
+          onChange={(e) => onChange({ ...state, artist: e.target.value })}
+          placeholder="Artist"
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        />
+        <input
+          value={state.album}
+          onChange={(e) => onChange({ ...state, album: e.target.value })}
+          placeholder="Album"
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        />
+
+        <input
+          value={state.audioUrl}
+          onChange={(e) => onChange({ ...state, audioUrl: e.target.value })}
+          placeholder="Audio URL"
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        />
+        <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-800 hover:bg-slate-100">
+          <span>{uploadingAudio ? "Uploading..." : "Upload Song Audio"}</span>
+          <input
+            type="file"
+            accept="audio/*"
+            className="hidden"
+            disabled={uploadingAudio}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setUploadingAudio(true);
+              try {
+                const url = await uploadToCeleoneCdn(file, "song");
+                onChange({ ...state, audioUrl: url });
+              } catch (err: any) {
+                console.error(err);
+                alert(err?.message || "Upload failed.");
+              } finally {
+                setUploadingAudio(false);
+                e.currentTarget.value = "";
+              }
+            }}
+          />
+        </label>
+
+        <input
+          value={state.coverUrl}
+          onChange={(e) => onChange({ ...state, coverUrl: e.target.value })}
+          placeholder="Cover image URL"
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        />
+        <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-800 hover:bg-slate-100">
+          <span>{uploadingCover ? "Uploading..." : "Upload Cover"}</span>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            disabled={uploadingCover}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setUploadingCover(true);
+              try {
+                const url = await uploadToCeleoneCdn(file, "song");
+                onChange({ ...state, coverUrl: url });
+              } catch (err: any) {
+                console.error(err);
+                alert(err?.message || "Upload failed.");
+              } finally {
+                setUploadingCover(false);
+                e.currentTarget.value = "";
+              }
+            }}
+          />
+        </label>
+
+        <textarea
+          value={state.description}
+          onChange={(e) => onChange({ ...state, description: e.target.value })}
+          placeholder="Description"
+          className="min-h-[120px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        />
+      </div>
+      <button
+        disabled={saving}
+        onClick={onSubmit}
+        className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
+      >
+        {saving ? "Saving..." : "Create Song"}
       </button>
     </div>
   );
@@ -392,10 +549,12 @@ function MediaForm({
 function MediaList({
   title,
   items,
+  urlField,
   onDelete,
 }: {
   title: string;
   items: any[];
+  urlField: "audioUrl" | "videoUrl";
   onDelete: (id: string) => void;
 }) {
   return (
@@ -405,25 +564,29 @@ function MediaList({
         <div className="text-sm font-bold text-slate-500">{items.length}</div>
       </div>
       <div className="mt-4 space-y-3">
-        {items.map((item) => (
-          <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
-            <div className="text-base font-black text-slate-900">{item.title || "Untitled"}</div>
-            <div className="mt-1 line-clamp-2 text-sm text-slate-600">{item.description || ""}</div>
-            {item.mediaUrl ? (
-              <a href={item.mediaUrl} target="_blank" className="mt-2 block text-sm font-extrabold text-teal-700" rel="noreferrer">
-                Open media link
-              </a>
-            ) : null}
-            <div className="mt-3">
-              <button
-                onClick={() => onDelete(item.id)}
-                className="rounded-2xl bg-rose-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-rose-700"
-              >
-                Delete
-              </button>
+        {items.map((item) => {
+          const media = item[urlField] || item.mediaUrl;
+          return (
+            <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
+              <div className="text-base font-black text-slate-900">{item.title || "Untitled"}</div>
+              {item.artist ? <div className="mt-1 text-xs font-bold text-slate-600">{item.artist}</div> : null}
+              <div className="mt-1 line-clamp-2 text-sm text-slate-600">{item.description || ""}</div>
+              {media ? (
+                <a href={media} target="_blank" className="mt-2 block text-sm font-extrabold text-teal-700" rel="noreferrer">
+                  Open media link
+                </a>
+              ) : null}
+              <div className="mt-3">
+                <button
+                  onClick={() => onDelete(item.id)}
+                  className="rounded-2xl bg-rose-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-rose-700"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {items.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">No content yet.</div>
         ) : null}

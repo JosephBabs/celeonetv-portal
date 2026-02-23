@@ -175,6 +175,53 @@ export default function AdminDashboard() {
   const [periodDays, setPeriodDays] = useState(30);
   const [songMonetizeThreshold, setSongMonetizeThreshold] = useState(100);
   const [videoMonetizeThreshold, setVideoMonetizeThreshold] = useState(100);
+  const [creatingSong, setCreatingSong] = useState(false);
+  const [creatingVideoItem, setCreatingVideoItem] = useState(false);
+  const [newSong, setNewSong] = useState({
+    title: "",
+    artist: "",
+    album: "",
+    description: "",
+    coverUrl: "",
+    audioUrl: "",
+    ownerId: "",
+  });
+  const [newVideoItem, setNewVideoItem] = useState({
+    title: "",
+    channelName: "",
+    artistId: "",
+    coverUrl: "",
+    link: "",
+    isPremium: false,
+    type: "movie" as "movie" | "series" | "musicVideo",
+    description: "",
+    duration: "",
+    uploadTime: "",
+    captionsUrl: "",
+  });
+  const [episodeDraft, setEpisodeDraft] = useState({
+    title: "",
+    coverUrl: "",
+    link: "",
+    duration: "",
+    episodeNumber: 1,
+    seasonNumber: 1,
+  });
+  const [newEpisodes, setNewEpisodes] = useState<any[]>([]);
+  const [uploadingSongAudio, setUploadingSongAudio] = useState(false);
+  const [uploadingSongCover, setUploadingSongCover] = useState(false);
+  const [uploadingVideoLink, setUploadingVideoLink] = useState(false);
+  const [uploadingVideoCover, setUploadingVideoCover] = useState(false);
+  const [uploadingEpisodeLink, setUploadingEpisodeLink] = useState(false);
+  const [uploadingEpisodeCover, setUploadingEpisodeCover] = useState(false);
+  const [manageEpisodeDraft, setManageEpisodeDraft] = useState({
+    title: "",
+    coverUrl: "",
+    link: "",
+    duration: "",
+    episodeNumber: 1,
+    seasonNumber: 1,
+  });
 
   // package form
   const [pName, setPName] = useState("");
@@ -445,6 +492,171 @@ export default function AdminDashboard() {
     } catch (e) {
       console.error("Delete item error:", e);
       alert("Failed to delete.");
+    }
+  };
+
+  const uploadAsset = async (file: File, kind: CdnUploadKind) => {
+    const url = await uploadToCeleoneCdn(file, kind);
+    return String(url || "").trim();
+  };
+
+  const addEpisodeDraft = () => {
+    if (!episodeDraft.title.trim()) return alert("Episode title is required.");
+    if (!episodeDraft.link.trim()) return alert("Episode link is required.");
+    const ep = {
+      id: `ep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      title: episodeDraft.title.trim(),
+      coverUrl: episodeDraft.coverUrl.trim(),
+      link: episodeDraft.link.trim(),
+      duration: episodeDraft.duration.trim(),
+      episodeNumber: Number(episodeDraft.episodeNumber || 1),
+      seasonNumber: Number(episodeDraft.seasonNumber || 1),
+      createdAt: Date.now(),
+    };
+    setNewEpisodes((prev) => [...prev, ep]);
+    setEpisodeDraft({
+      title: "",
+      coverUrl: "",
+      link: "",
+      duration: "",
+      episodeNumber: ep.episodeNumber + 1,
+      seasonNumber: ep.seasonNumber,
+    });
+  };
+
+  const createSong = async () => {
+    if (!newSong.title.trim()) return alert("Song title is required.");
+    if (!newSong.audioUrl.trim()) return alert("Song audio URL is required.");
+    setCreatingSong(true);
+    try {
+      await addDoc(collection(db, "songs"), {
+        title: newSong.title.trim(),
+        artist: newSong.artist.trim(),
+        album: newSong.album.trim(),
+        description: newSong.description.trim(),
+        coverUrl: newSong.coverUrl.trim(),
+        audioUrl: newSong.audioUrl.trim(),
+        mediaUrl: newSong.audioUrl.trim(),
+        ownerId: newSong.ownerId.trim(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      setNewSong({
+        title: "",
+        artist: "",
+        album: "",
+        description: "",
+        coverUrl: "",
+        audioUrl: "",
+        ownerId: "",
+      });
+      await fetchCounts();
+      await loadManageItems("songs");
+      alert("Song created.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to create song.");
+    } finally {
+      setCreatingSong(false);
+    }
+  };
+
+  const createVideoItem = async () => {
+    if (!newVideoItem.title.trim()) return alert("Video title is required.");
+    if (!newVideoItem.link.trim()) return alert("Video link is required.");
+    if (newVideoItem.type === "series" && newEpisodes.length === 0) {
+      return alert("Add at least one episode for series.");
+    }
+    setCreatingVideoItem(true);
+    try {
+      await addDoc(collection(db, "videos"), {
+        title: newVideoItem.title.trim(),
+        channelName: newVideoItem.channelName.trim(),
+        artistId: newVideoItem.artistId.trim(),
+        coverUrl: newVideoItem.coverUrl.trim(),
+        link: newVideoItem.link.trim(),
+        mediaUrl: newVideoItem.link.trim(),
+        videoUrl: newVideoItem.link.trim(),
+        isPremium: Boolean(newVideoItem.isPremium),
+        type: newVideoItem.type,
+        description: newVideoItem.description.trim(),
+        duration: newVideoItem.duration.trim(),
+        uploadTime: newVideoItem.uploadTime.trim(),
+        captionsUrl: newVideoItem.captionsUrl.trim(),
+        episodes: newVideoItem.type === "series" ? newEpisodes : [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      setNewVideoItem({
+        title: "",
+        channelName: "",
+        artistId: "",
+        coverUrl: "",
+        link: "",
+        isPremium: false,
+        type: "movie",
+        description: "",
+        duration: "",
+        uploadTime: "",
+        captionsUrl: "",
+      });
+      setNewEpisodes([]);
+      setEpisodeDraft({
+        title: "",
+        coverUrl: "",
+        link: "",
+        duration: "",
+        episodeNumber: 1,
+        seasonNumber: 1,
+      });
+      await fetchCounts();
+      await loadManageItems("videos");
+      alert("Video item created.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to create video item.");
+    } finally {
+      setCreatingVideoItem(false);
+    }
+  };
+
+  const addEpisodeToSelectedSeries = async () => {
+    if (manageKey !== "videos" || !selectedItem?.id) return;
+    if (String(selectedItem?.type || "") !== "series") return;
+    if (!manageEpisodeDraft.title.trim()) return alert("Episode title is required.");
+    if (!manageEpisodeDraft.link.trim()) return alert("Episode link is required.");
+    const nextEpisode = {
+      id: `ep-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      title: manageEpisodeDraft.title.trim(),
+      coverUrl: manageEpisodeDraft.coverUrl.trim(),
+      link: manageEpisodeDraft.link.trim(),
+      duration: manageEpisodeDraft.duration.trim(),
+      episodeNumber: Number(manageEpisodeDraft.episodeNumber || 1),
+      seasonNumber: Number(manageEpisodeDraft.seasonNumber || 1),
+      createdAt: Date.now(),
+    };
+    const existing = Array.isArray(selectedItem.episodes) ? selectedItem.episodes : [];
+    const episodes = [...existing, nextEpisode];
+    try {
+      await updateDoc(doc(db, "videos", selectedItem.id), {
+        episodes,
+        updatedAt: serverTimestamp(),
+      });
+      setSelectedItem((prev: any) => ({ ...prev, episodes }));
+      setEditDraft((prev: any) => ({ ...prev, episodes }));
+      setManageEpisodeDraft({
+        title: "",
+        coverUrl: "",
+        link: "",
+        duration: "",
+        episodeNumber: nextEpisode.episodeNumber + 1,
+        seasonNumber: nextEpisode.seasonNumber,
+      });
+      await loadManageItems("videos");
+      alert("Episode added.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to add episode.");
     }
   };
 
@@ -770,6 +982,379 @@ export default function AdminDashboard() {
         <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-xs font-semibold text-slate-700">
           Policy: fee {Math.round(revenueModel.policy.paymentInfraFeePct * 100)}% + operations reserve {Math.round(revenueModel.policy.operationsReservePct * 100)}%.
           Creator pool target {Math.round(revenueModel.policy.targetCreatorPoolPct * 100)}%, with guaranteed company minimum profit floor {Math.round(revenueModel.policy.minCompanyProfitPct * 100)}%.
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="text-lg font-black">Create Songs And Movies</div>
+        <div className="mt-1 text-sm text-slate-600">
+          Create new song or video item. For series, add episodes before saving.
+        </div>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="text-sm font-black text-slate-900">New Song</div>
+            <div className="mt-3 grid gap-3">
+              <input
+                value={newSong.title}
+                onChange={(e) => setNewSong((v) => ({ ...v, title: e.target.value }))}
+                placeholder="Title"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <input
+                value={newSong.artist}
+                onChange={(e) => setNewSong((v) => ({ ...v, artist: e.target.value }))}
+                placeholder="Artist"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <input
+                value={newSong.album}
+                onChange={(e) => setNewSong((v) => ({ ...v, album: e.target.value }))}
+                placeholder="Album"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <input
+                value={newSong.ownerId}
+                onChange={(e) => setNewSong((v) => ({ ...v, ownerId: e.target.value }))}
+                placeholder="Owner ID (optional)"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <textarea
+                value={newSong.description}
+                onChange={(e) => setNewSong((v) => ({ ...v, description: e.target.value }))}
+                placeholder="Description"
+                className="min-h-[100px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <input
+                value={newSong.audioUrl}
+                onChange={(e) => setNewSong((v) => ({ ...v, audioUrl: e.target.value }))}
+                placeholder="Audio URL"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
+                <span>{uploadingSongAudio ? "Uploading..." : "Upload Song Audio"}</span>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  className="hidden"
+                  disabled={uploadingSongAudio}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingSongAudio(true);
+                    try {
+                      const url = await uploadAsset(file, "song");
+                      setNewSong((v) => ({ ...v, audioUrl: url }));
+                    } catch (err: any) {
+                      console.error(err);
+                      alert(err?.message || "Upload failed.");
+                    } finally {
+                      setUploadingSongAudio(false);
+                      e.currentTarget.value = "";
+                    }
+                  }}
+                />
+              </label>
+              <input
+                value={newSong.coverUrl}
+                onChange={(e) => setNewSong((v) => ({ ...v, coverUrl: e.target.value }))}
+                placeholder="Cover URL"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
+                <span>{uploadingSongCover ? "Uploading..." : "Upload Cover"}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingSongCover}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingSongCover(true);
+                    try {
+                      const url = await uploadAsset(file, "song");
+                      setNewSong((v) => ({ ...v, coverUrl: url }));
+                    } catch (err: any) {
+                      console.error(err);
+                      alert(err?.message || "Upload failed.");
+                    } finally {
+                      setUploadingSongCover(false);
+                      e.currentTarget.value = "";
+                    }
+                  }}
+                />
+              </label>
+              <button
+                onClick={createSong}
+                disabled={creatingSong}
+                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
+              >
+                {creatingSong ? "Creating..." : "Create Song"}
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="text-sm font-black text-slate-900">New Video Item</div>
+            <div className="mt-3 grid gap-3">
+              <input
+                value={newVideoItem.title}
+                onChange={(e) => setNewVideoItem((v) => ({ ...v, title: e.target.value }))}
+                placeholder="Title"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  value={newVideoItem.type}
+                  onChange={(e) =>
+                    setNewVideoItem((v) => ({ ...v, type: e.target.value as "movie" | "series" | "musicVideo" }))
+                  }
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                >
+                  <option value="movie">movie</option>
+                  <option value="series">series</option>
+                  <option value="musicVideo">musicVideo</option>
+                </select>
+                <label className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-3 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={newVideoItem.isPremium}
+                    onChange={(e) => setNewVideoItem((v) => ({ ...v, isPremium: e.target.checked }))}
+                  />
+                  Premium
+                </label>
+              </div>
+              <input
+                value={newVideoItem.channelName}
+                onChange={(e) => setNewVideoItem((v) => ({ ...v, channelName: e.target.value }))}
+                placeholder="Channel Name"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <input
+                value={newVideoItem.artistId}
+                onChange={(e) => setNewVideoItem((v) => ({ ...v, artistId: e.target.value }))}
+                placeholder="Artist ID / Creator ID"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <textarea
+                value={newVideoItem.description}
+                onChange={(e) => setNewVideoItem((v) => ({ ...v, description: e.target.value }))}
+                placeholder="Description"
+                className="min-h-[100px] w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <input
+                value={newVideoItem.link}
+                onChange={(e) => setNewVideoItem((v) => ({ ...v, link: e.target.value }))}
+                placeholder="Video link"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
+                <span>{uploadingVideoLink ? "Uploading..." : "Upload Video File"}</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  disabled={uploadingVideoLink}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingVideoLink(true);
+                    try {
+                      const url = await uploadAsset(file, "vfilm");
+                      setNewVideoItem((v) => ({ ...v, link: url }));
+                    } catch (err: any) {
+                      console.error(err);
+                      alert(err?.message || "Upload failed.");
+                    } finally {
+                      setUploadingVideoLink(false);
+                      e.currentTarget.value = "";
+                    }
+                  }}
+                />
+              </label>
+              <input
+                value={newVideoItem.coverUrl}
+                onChange={(e) => setNewVideoItem((v) => ({ ...v, coverUrl: e.target.value }))}
+                placeholder="Cover URL"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
+                <span>{uploadingVideoCover ? "Uploading..." : "Upload Cover"}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingVideoCover}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploadingVideoCover(true);
+                    try {
+                      const url = await uploadAsset(file, "vfilm");
+                      setNewVideoItem((v) => ({ ...v, coverUrl: url }));
+                    } catch (err: any) {
+                      console.error(err);
+                      alert(err?.message || "Upload failed.");
+                    } finally {
+                      setUploadingVideoCover(false);
+                      e.currentTarget.value = "";
+                    }
+                  }}
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  value={newVideoItem.duration}
+                  onChange={(e) => setNewVideoItem((v) => ({ ...v, duration: e.target.value }))}
+                  placeholder="Duration"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                />
+                <input
+                  value={newVideoItem.uploadTime}
+                  onChange={(e) => setNewVideoItem((v) => ({ ...v, uploadTime: e.target.value }))}
+                  placeholder="Upload Time"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                />
+              </div>
+              <input
+                value={newVideoItem.captionsUrl}
+                onChange={(e) => setNewVideoItem((v) => ({ ...v, captionsUrl: e.target.value }))}
+                placeholder="Captions URL"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              />
+
+              {newVideoItem.type === "series" ? (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="text-xs font-black uppercase tracking-wide text-slate-600">Series Episodes</div>
+                  <div className="mt-2 grid gap-2">
+                    <input
+                      value={episodeDraft.title}
+                      onChange={(e) => setEpisodeDraft((v) => ({ ...v, title: e.target.value }))}
+                      placeholder="Episode title"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                    />
+                    <input
+                      value={episodeDraft.link}
+                      onChange={(e) => setEpisodeDraft((v) => ({ ...v, link: e.target.value }))}
+                      placeholder="Episode link"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-700">
+                        <span>{uploadingEpisodeLink ? "Uploading..." : "Upload Episode File"}</span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          disabled={uploadingEpisodeLink}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setUploadingEpisodeLink(true);
+                            try {
+                              const url = await uploadAsset(file, "vfilm");
+                              setEpisodeDraft((v) => ({ ...v, link: url }));
+                            } catch (err: any) {
+                              console.error(err);
+                              alert(err?.message || "Upload failed.");
+                            } finally {
+                              setUploadingEpisodeLink(false);
+                              e.currentTarget.value = "";
+                            }
+                          }}
+                        />
+                      </label>
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-700">
+                        <span>{uploadingEpisodeCover ? "Uploading..." : "Upload Episode Cover"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingEpisodeCover}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setUploadingEpisodeCover(true);
+                            try {
+                              const url = await uploadAsset(file, "vfilm");
+                              setEpisodeDraft((v) => ({ ...v, coverUrl: url }));
+                            } catch (err: any) {
+                              console.error(err);
+                              alert(err?.message || "Upload failed.");
+                            } finally {
+                              setUploadingEpisodeCover(false);
+                              e.currentTarget.value = "";
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        value={episodeDraft.coverUrl}
+                        onChange={(e) => setEpisodeDraft((v) => ({ ...v, coverUrl: e.target.value }))}
+                        placeholder="Episode cover URL"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                      />
+                      <input
+                        value={episodeDraft.duration}
+                        onChange={(e) => setEpisodeDraft((v) => ({ ...v, duration: e.target.value }))}
+                        placeholder="Duration"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        value={episodeDraft.seasonNumber}
+                        onChange={(e) => setEpisodeDraft((v) => ({ ...v, seasonNumber: Math.max(1, Number(e.target.value) || 1) }))}
+                        placeholder="Season #"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                      />
+                      <input
+                        type="number"
+                        min={1}
+                        value={episodeDraft.episodeNumber}
+                        onChange={(e) => setEpisodeDraft((v) => ({ ...v, episodeNumber: Math.max(1, Number(e.target.value) || 1) }))}
+                        placeholder="Episode #"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addEpisodeDraft}
+                      className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white hover:bg-slate-800"
+                    >
+                      Add Episode
+                    </button>
+                    <div className="space-y-2">
+                      {newEpisodes.map((ep, idx) => (
+                        <div key={ep.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs">
+                          <div className="truncate font-bold text-slate-800">
+                            S{ep.seasonNumber}E{ep.episodeNumber} • {ep.title}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setNewEpisodes((prev) => prev.filter((_, i) => i !== idx))}
+                            className="rounded-lg bg-rose-100 px-2 py-1 font-extrabold text-rose-700 hover:bg-rose-200"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              <button
+                onClick={createVideoItem}
+                disabled={creatingVideoItem}
+                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
+              >
+                {creatingVideoItem ? "Creating..." : "Create Video Item"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1170,6 +1755,110 @@ export default function AdminDashboard() {
                       </button>
                     </div>
                   </div>
+
+                  {manageKey === "videos" && String(selectedItem?.type || "") === "series" ? (
+                    <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <div className="text-xs font-black uppercase tracking-wide text-slate-600">Add Episode To Series</div>
+                      <div className="mt-2 grid gap-2 md:grid-cols-2">
+                        <input
+                          value={manageEpisodeDraft.title}
+                          onChange={(e) => setManageEpisodeDraft((v) => ({ ...v, title: e.target.value }))}
+                          placeholder="Episode title"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                        />
+                        <input
+                          value={manageEpisodeDraft.link}
+                          onChange={(e) => setManageEpisodeDraft((v) => ({ ...v, link: e.target.value }))}
+                          placeholder="Episode link"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                        />
+                        <input
+                          value={manageEpisodeDraft.coverUrl}
+                          onChange={(e) => setManageEpisodeDraft((v) => ({ ...v, coverUrl: e.target.value }))}
+                          placeholder="Episode cover URL"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                        />
+                        <input
+                          value={manageEpisodeDraft.duration}
+                          onChange={(e) => setManageEpisodeDraft((v) => ({ ...v, duration: e.target.value }))}
+                          placeholder="Duration"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                        />
+                        <input
+                          type="number"
+                          min={1}
+                          value={manageEpisodeDraft.seasonNumber}
+                          onChange={(e) => setManageEpisodeDraft((v) => ({ ...v, seasonNumber: Math.max(1, Number(e.target.value) || 1) }))}
+                          placeholder="Season #"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                        />
+                        <input
+                          type="number"
+                          min={1}
+                          value={manageEpisodeDraft.episodeNumber}
+                          onChange={(e) => setManageEpisodeDraft((v) => ({ ...v, episodeNumber: Math.max(1, Number(e.target.value) || 1) }))}
+                          placeholder="Episode #"
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+                        />
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
+                          <span>{uploadingEpisodeLink ? "Uploading..." : "Upload Episode File"}</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            disabled={uploadingEpisodeLink}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setUploadingEpisodeLink(true);
+                              try {
+                                const url = await uploadAsset(file, "vfilm");
+                                setManageEpisodeDraft((v) => ({ ...v, link: url }));
+                              } catch (err: any) {
+                                console.error(err);
+                                alert(err?.message || "Upload failed.");
+                              } finally {
+                                setUploadingEpisodeLink(false);
+                                e.currentTarget.value = "";
+                              }
+                            }}
+                          />
+                        </label>
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-100">
+                          <span>{uploadingEpisodeCover ? "Uploading..." : "Upload Episode Cover"}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingEpisodeCover}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setUploadingEpisodeCover(true);
+                              try {
+                                const url = await uploadAsset(file, "vfilm");
+                                setManageEpisodeDraft((v) => ({ ...v, coverUrl: url }));
+                              } catch (err: any) {
+                                console.error(err);
+                                alert(err?.message || "Upload failed.");
+                              } finally {
+                                setUploadingEpisodeCover(false);
+                                e.currentTarget.value = "";
+                              }
+                            }}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={addEpisodeToSelectedSeries}
+                          className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white hover:bg-slate-800"
+                        >
+                          Add Episode
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
 
                   {/* Toggle edit mode */}
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-slate-50 p-3">
