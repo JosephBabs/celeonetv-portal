@@ -26,6 +26,17 @@ export default function LanguageSwitcher() {
   const [active, setActive] = useState("fr");
 
   useEffect(() => {
+    const forceHideGoogleBanner = () => {
+      const frames = document.querySelectorAll("iframe.goog-te-banner-frame");
+      frames.forEach((f) => {
+        (f as HTMLElement).style.display = "none";
+        (f as HTMLElement).style.visibility = "hidden";
+        (f as HTMLElement).style.height = "0";
+      });
+      document.body.style.top = "0px";
+      document.documentElement.style.top = "0px";
+    };
+
     const ensureWidget = () => {
       if (!window.google?.translate?.TranslateElement) return;
       if (document.getElementById("google_translate_element")?.childElementCount) return;
@@ -37,6 +48,7 @@ export default function LanguageSwitcher() {
         },
         "google_translate_element"
       );
+      forceHideGoogleBanner();
     };
 
     window.googleTranslateElementInit = ensureWidget;
@@ -50,6 +62,16 @@ export default function LanguageSwitcher() {
     } else {
       ensureWidget();
     }
+
+    const obs = new MutationObserver(() => forceHideGoogleBanner());
+    obs.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
+    const t = window.setInterval(forceHideGoogleBanner, 1200);
+    forceHideGoogleBanner();
+
+    return () => {
+      obs.disconnect();
+      window.clearInterval(t);
+    };
   }, []);
 
   const languageButtons = useMemo(
