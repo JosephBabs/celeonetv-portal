@@ -7,6 +7,27 @@ import { APP } from "../lib/config";
 import { db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
 
+function normalize(v: unknown) {
+  return String(v || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+function hasStream(channel: any) {
+  return Boolean(
+    channel?.streamLink ||
+      channel?.hlsUrl ||
+      channel?.streamUrl ||
+      channel?.playbackUrl ||
+      channel?.m3u8 ||
+      channel?.url ||
+      channel?.streamKey
+  );
+}
+
 function getStreamUrl(channel: any) {
   if (!channel) return null;
   const direct =
@@ -32,37 +53,61 @@ export default function ChannelLive() {
 
   useEffect(() => {
     const run = async () => {
-      if (!channelName) return;
       setLoading(true);
       try {
-        const q1 = query(collection(db, "channels"), where("channelName", "==", channelName), limit(1));
-        const s1 = await getDocs(q1);
-        if (!s1.empty) {
-          setChannel({ id: s1.docs[0].id, ...s1.docs[0].data() });
+        const routeKey = normalize(channelName);
+
+        // Pull channels once and resolve locally across multiple fields.
+        const channelsSnap = await getDocs(query(collection(db, "channels"), limit(100)));
+        const channels = channelsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+        const directMatch = channels.find((c: any) => {
+          const candidates = [
+            normalize(c.channelName),
+            normalize(c.name),
+            normalize(c.displayName),
+            normalize(c.slug),
+            normalize(c.id),
+          ].filter(Boolean);
+          return candidates.includes(routeKey);
+        });
+
+        if (directMatch && hasStream(directMatch)) {
+          setChannel(directMatch);
           return;
         }
 
-        const q2 = query(
-          collection(db, "channel_requests"),
-          where("channelName", "==", channelName),
-          where("status", "==", "approved"),
-          limit(1)
-        );
-        const s2 = await getDocs(q2);
-        if (!s2.empty) {
-          setChannel({ id: s2.docs[0].id, ...s2.docs[0].data() });
+        // Legacy fallback from approved requests.
+        if (channelName) {
+          const q2 = query(
+            collection(db, "channel_requests"),
+            where("channelName", "==", channelName),
+            where("status", "==", "approved"),
+            limit(1)
+          );
+          const s2 = await getDocs(q2);
+          if (!s2.empty) {
+            const req = { id: s2.docs[0].id, ...s2.docs[0].data() };
+            if (hasStream(req)) {
+              setChannel(req);
+              return;
+            }
+          }
+        }
+
+        // Preferred fallback for `/channel/live` or unknown slug:
+        // 1) Cele One TV from channels, 2) first streamable channel.
+        const celeOne = channels.find((c: any) => {
+          const label = `${c.displayName || ""} ${c.name || ""} ${c.channelName || ""}`.toLowerCase();
+          return (label.includes("cele one tv") || label.includes("celeone tv")) && hasStream(c);
+        });
+        if (celeOne) {
+          setChannel(celeOne);
           return;
         }
 
-        // Fallback for Cele One TV from collections if route not resolved by slug.
-        const fallbackSnap = await getDocs(query(collection(db, "channels"), limit(50)));
-        const celeOne = fallbackSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .find((c: any) => {
-            const label = `${c.displayName || ""} ${c.name || ""} ${c.channelName || ""}`.toLowerCase();
-            return label.includes("cele one tv") || label.includes("celeone tv");
-          });
-        setChannel(celeOne || null);
+        const firstStreamable = channels.find((c: any) => hasStream(c)) || null;
+        setChannel(firstStreamable);
       } finally {
         setLoading(false);
       }
@@ -83,12 +128,12 @@ export default function ChannelLive() {
 
   if (loading) return <div className="py-10 text-center text-slate-600">Loading live channel...</div>;
 
-  if (!channel) {
+  if (!channel || !hls) {
     return (
       <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-6">
         <div className="text-2xl font-black">Channel not found</div>
         <div className="mt-2 text-slate-600">
-          The route <span className="font-bold">/{channelName}/live</span> does not currently map to a channel.
+          The route <span className="font-bold">/{channelName}/live</span> does not currently map to a streamable channel.
         </div>
         <Link to="/" className="mt-4 inline-block rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white">
           Back Home
@@ -111,19 +156,13 @@ export default function ChannelLive() {
 
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-black">
         <div className="aspect-video">
-          {hls ? (
-            <HlsVideo src={hls} />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-white/85">
-              This channel is not currently streaming.
-            </div>
-          )}
+          <HlsVideo src={hls} />
         </div>
       </section>
 
       <section className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-5 md:grid-cols-2">
         <Info label="Share URL" value={channel?.channelName ? `${APP.streaming.publicLiveBase}/${channel.channelName}/live` : window.location.href} />
-        <Info label="Stream Source" value={hls || "No stream URL detected"} mono />
+        <Info label="Stream Source" value={hls} mono />
       </section>
     </div>
   );
