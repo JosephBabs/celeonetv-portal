@@ -13,6 +13,7 @@ import AdminRoute from "../routes/AdminRoute";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import CreateChatroom from "../pages/CreateChatroom";
+import Documentation from "../pages/Documentation";
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
       { path: "/creator/request", element: <CreatorRequest /> },
       { path: "/creator", element: <CreatorDashboard /> },
       { path: "/chatrooms/create", element: <CreateChatroom /> },
+      { path: "/documentation", element: <Documentation /> },
       { path: "/login", element: <Login /> },
       { path: "/logout", element: <Login /> },
       { path: "/register", element: <Register /> },
