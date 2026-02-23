@@ -85,6 +85,8 @@ export default function AdminManagePage() {
   const [draft, setDraft] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [language, setLanguage] = useState("all");
 
   useEffect(() => {
     if (!cfg) {
@@ -134,6 +136,8 @@ export default function AdminManagePage() {
     setSelected(null);
     setDraft(null);
     setItems([]);
+    setSearch("");
+    setLanguage("all");
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cfg?.collection]);
@@ -207,6 +211,28 @@ export default function AdminManagePage() {
     []
   );
 
+  const filteredItems = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return items.filter((it) => {
+      if (cfg?.collection === "cantiques" && language !== "all") {
+        const lang = String(it.language || it.lang || "").toLowerCase();
+        if (lang !== language) return false;
+      }
+
+      if (!q) return true;
+      const title = String(it.title || "").toLowerCase();
+      const content = String(it.content || it.lyrics || it.text || "").toLowerCase();
+      const number = String(it.number || it.hymnNumber || it.numero || "").toLowerCase();
+      const author = String(it.author || "").toLowerCase();
+      return (
+        title.includes(q) ||
+        content.includes(q) ||
+        number.includes(q) ||
+        author.includes(q)
+      );
+    });
+  }, [cfg?.collection, items, language, search]);
+
   if (!cfg) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-white p-6">
@@ -254,14 +280,38 @@ export default function AdminManagePage() {
 
       <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
         <div className="rounded-3xl border border-slate-200 bg-white p-4">
-          <div className="text-sm font-black text-slate-700">Documents</div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-black text-slate-700">Documents</div>
+            <div className="text-xs font-bold text-slate-500">{filteredItems.length}</div>
+          </div>
+          <div className="mt-3 space-y-2">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={cfg.collection === "cantiques" ? "Search hymn number or text" : "Search documents"}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+            />
+            {cfg.collection === "cantiques" ? (
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              >
+                <option value="all">all languages</option>
+                <option value="goun">goun</option>
+                <option value="francais">francais</option>
+                <option value="yoruba">yoruba</option>
+                <option value="anglais">anglais</option>
+              </select>
+            ) : null}
+          </div>
           {loading ? (
             <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm font-semibold text-slate-600">
               Loading...
             </div>
           ) : (
             <div className="mt-3 space-y-2">
-              {items.map((it) => (
+              {filteredItems.map((it) => (
                 <button
                   key={it.id}
                   onClick={() => {
@@ -282,7 +332,7 @@ export default function AdminManagePage() {
                   </div>
                 </button>
               ))}
-              {items.length === 0 ? (
+              {filteredItems.length === 0 ? (
                 <div className="rounded-2xl bg-slate-50 p-3 text-sm font-semibold text-slate-600">
                   No records found.
                 </div>
@@ -347,10 +397,19 @@ export default function AdminManagePage() {
                   .filter(([k]) => k !== "id")
                   .map(([k, v]) => {
                     const isComplex = typeof v === "object" && v !== null;
+                    const isHymnTextField =
+                      cfg.collection === "cantiques" &&
+                      ["content", "lyrics", "text", "verse"].includes(k.toLowerCase());
                     return (
                       <div key={k} className="rounded-2xl border border-slate-200 p-3">
                         <div className="text-xs font-black uppercase tracking-wide text-slate-600">{k}</div>
-                        {isComplex ? (
+                        {isHymnTextField ? (
+                          <textarea
+                            value={String(v ?? "")}
+                            onChange={(e) => setDraft((prev: any) => ({ ...prev, [k]: e.target.value }))}
+                            className="mt-2 min-h-[240px] w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium outline-none focus:ring-2 focus:ring-teal-200"
+                          />
+                        ) : isComplex ? (
                           <textarea
                             value={safeStringify(v)}
                             onChange={(e) => {

@@ -9,8 +9,10 @@ import CreatorRequest from "../pages/CreatorRequest";
 import CreatorDashboard from "../pages/CreatorDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminManagePage from "../pages/AdminManagePage";
+import AdminRoute from "../routes/AdminRoute";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import CreateChatroom from "../pages/CreateChatroom";
 
 export const router = createBrowserRouter([
   {
@@ -27,14 +29,29 @@ export const router = createBrowserRouter([
       // Creator
       { path: "/creator/request", element: <CreatorRequest /> },
       { path: "/creator", element: <CreatorDashboard /> },
+      { path: "/chatrooms/create", element: <CreateChatroom /> },
       { path: "/login", element: <Login /> },
       { path: "/logout", element: <Login /> },
       { path: "/register", element: <Register /> },
 
 
       // Admin
-      { path: "/admin", element: <AdminDashboard /> },
-      { path: "/admin/:section", element: <AdminManagePage /> },
+      {
+        path: "/admin",
+        element: (
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/:section",
+        element: (
+          <AdminRoute>
+            <AdminManagePage />
+          </AdminRoute>
+        ),
+      },
     ],
   },
 ]);

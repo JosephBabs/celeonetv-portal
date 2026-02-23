@@ -10,6 +10,32 @@ export default function Post() {
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState<any>(null);
 
+  const openPostInApp = () => {
+    if (!postId) return;
+
+    const packageName = "com.celeoneapp";
+    const playStoreUrl = `https://play.google.com/store/apps/details?id=${packageName}`;
+    const appSchemeUrl = `celeone://posts/${postId}`;
+    const intentUrl = `intent://posts/${postId}#Intent;scheme=celeone;package=${packageName};S.browser_fallback_url=${encodeURIComponent(
+      playStoreUrl
+    )};end`;
+    const ua = navigator.userAgent.toLowerCase();
+    const isAndroid = /android/.test(ua);
+
+    if (isAndroid) {
+      window.location.href = intentUrl;
+      return;
+    }
+
+    const startedAt = Date.now();
+    window.location.href = appSchemeUrl;
+    window.setTimeout(() => {
+      if (Date.now() - startedAt < 1800) {
+        window.location.href = playStoreUrl;
+      }
+    }, 1200);
+  };
+
   useEffect(() => {
     const run = async () => {
       if (!postId) return;
@@ -56,7 +82,7 @@ export default function Post() {
           For the best deep-link experience, open this post in the Celeone mobile app.
         </div>
         <button
-          onClick={() => alert("Deep link will be wired next.")}
+          onClick={openPostInApp}
           className="mt-3 rounded-2xl bg-teal-600 px-4 py-3 font-extrabold text-white hover:bg-teal-700"
         >
           Open in app
