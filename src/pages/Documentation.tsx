@@ -4,7 +4,7 @@ import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
 export default function Documentation() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -19,9 +19,19 @@ export default function Documentation() {
     const run = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/docs/CELEONE_PUBLIC_GUIDE.md", { cache: "no-store" });
-        const raw = await res.text();
-        setText(raw);
+        const byLang: Record<string, string> = {
+          fr: "/docs/CELEONE_PUBLIC_GUIDE.md",
+          en: "/docs/CELEONE_PUBLIC_GUIDE.en.md",
+          es: "/docs/CELEONE_PUBLIC_GUIDE.es.md",
+        };
+        const preferred = byLang[lang] || byLang.fr;
+        const res = await fetch(preferred, { cache: "no-store" });
+        if (res.ok) {
+          setText(await res.text());
+          return;
+        }
+        const fallback = await fetch("/docs/CELEONE_PUBLIC_GUIDE.md", { cache: "no-store" });
+        setText(await fallback.text());
       } catch {
         setText(t("docs.unavailable", "Documentation is currently unavailable."));
       } finally {
@@ -29,7 +39,7 @@ export default function Documentation() {
       }
     };
     run();
-  }, [t]);
+  }, [lang, t]);
 
   const rendered = useMemo(() => renderMarkdown(text), [text]);
 
