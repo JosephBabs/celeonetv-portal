@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ï»¿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import { addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -179,22 +179,22 @@ export default function Jeunesse() {
             </div>
           ) : null}
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <Input value={reg.firstName} onChange={(v) => setReg((s) => ({ ...s, firstName: v }))} placeholder="First name*" />
-            <Input value={reg.lastName} onChange={(v) => setReg((s) => ({ ...s, lastName: v }))} placeholder="Last name*" />
-            <Input value={reg.age} onChange={(v) => setReg((s) => ({ ...s, age: v }))} placeholder="Age*" />
-            <Input value={reg.currentClass} onChange={(v) => setReg((s) => ({ ...s, currentClass: v }))} placeholder="Current class*" />
-            <Input value={reg.academicYear} onChange={(v) => setReg((s) => ({ ...s, academicYear: v }))} placeholder="Academic year*" />
-            <Input value={reg.parishName} onChange={(v) => setReg((s) => ({ ...s, parishName: v }))} placeholder="Parish name*" />
-            <Input value={reg.parishShepherdNames} onChange={(v) => setReg((s) => ({ ...s, parishShepherdNames: v }))} placeholder="Parish shepherd names" />
-            <Input value={reg.mainTeacherNames} onChange={(v) => setReg((s) => ({ ...s, mainTeacherNames: v }))} placeholder="Main teacher names" />
-            <Input value={reg.shepherdPhone} onChange={(v) => setReg((s) => ({ ...s, shepherdPhone: v }))} placeholder="Shepherd phone" />
-            <Input value={reg.teacherPhone} onChange={(v) => setReg((s) => ({ ...s, teacherPhone: v }))} placeholder="Teacher phone" />
-            <Input value={reg.contactEmail} onChange={(v) => setReg((s) => ({ ...s, contactEmail: v }))} placeholder="Contact email*" />
-            <Input value={reg.country} onChange={(v) => setReg((s) => ({ ...s, country: v }))} placeholder="Country*" />
-            <Input value={reg.province} onChange={(v) => setReg((s) => ({ ...s, province: v }))} placeholder="Province" />
-            <Input value={reg.city} onChange={(v) => setReg((s) => ({ ...s, city: v }))} placeholder="City*" />
-            <Input value={reg.region} onChange={(v) => setReg((s) => ({ ...s, region: v }))} placeholder="Region" />
-            <Input value={reg.subRegion} onChange={(v) => setReg((s) => ({ ...s, subRegion: v }))} placeholder="Sub-region" />
+            <Input value={reg.firstName} onChange={(v) => setReg((s) => ({ ...s, firstName: v }))} placeholder={t("jeunesse.ph.first_name", "First name*")} />
+            <Input value={reg.lastName} onChange={(v) => setReg((s) => ({ ...s, lastName: v }))} placeholder={t("jeunesse.ph.last_name", "Last name*")} />
+            <Input value={reg.age} onChange={(v) => setReg((s) => ({ ...s, age: v }))} placeholder={t("jeunesse.ph.age", "Age*")} />
+            <Input value={reg.currentClass} onChange={(v) => setReg((s) => ({ ...s, currentClass: v }))} placeholder={t("jeunesse.ph.current_class", "Current class*")} />
+            <Input value={reg.academicYear} onChange={(v) => setReg((s) => ({ ...s, academicYear: v }))} placeholder={t("jeunesse.ph.academic_year", "Academic year*")} />
+            <Input value={reg.parishName} onChange={(v) => setReg((s) => ({ ...s, parishName: v }))} placeholder={t("jeunesse.ph.parish_name", "Parish name*")} />
+            <Input value={reg.parishShepherdNames} onChange={(v) => setReg((s) => ({ ...s, parishShepherdNames: v }))} placeholder={t("jeunesse.ph.parish_shepherd", "Parish shepherd names")} />
+            <Input value={reg.mainTeacherNames} onChange={(v) => setReg((s) => ({ ...s, mainTeacherNames: v }))} placeholder={t("jeunesse.ph.main_teacher", "Main teacher names")} />
+            <Input value={reg.shepherdPhone} onChange={(v) => setReg((s) => ({ ...s, shepherdPhone: v }))} placeholder={t("jeunesse.ph.shepherd_phone", "Shepherd phone")} />
+            <Input value={reg.teacherPhone} onChange={(v) => setReg((s) => ({ ...s, teacherPhone: v }))} placeholder={t("jeunesse.ph.teacher_phone", "Teacher phone")} />
+            <Input value={reg.contactEmail} onChange={(v) => setReg((s) => ({ ...s, contactEmail: v }))} placeholder={t("jeunesse.ph.contact_email", "Contact email*")} />
+            <Input value={reg.country} onChange={(v) => setReg((s) => ({ ...s, country: v }))} placeholder={t("jeunesse.ph.country", "Country*")} />
+            <Input value={reg.province} onChange={(v) => setReg((s) => ({ ...s, province: v }))} placeholder={t("jeunesse.ph.province", "Province")} />
+            <Input value={reg.city} onChange={(v) => setReg((s) => ({ ...s, city: v }))} placeholder={t("jeunesse.ph.city", "City*")} />
+            <Input value={reg.region} onChange={(v) => setReg((s) => ({ ...s, region: v }))} placeholder={t("jeunesse.ph.region", "Region")} />
+            <Input value={reg.subRegion} onChange={(v) => setReg((s) => ({ ...s, subRegion: v }))} placeholder={t("jeunesse.ph.sub_region", "Sub-region")} />
           </div>
           <div className="mt-4 flex justify-end">
             <button onClick={registerChild} disabled={loading} className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60">{loading ? t("jeunesse.submitting", "Submitting...") : t("jeunesse.submit", "Submit Registration")}</button>
@@ -220,8 +220,8 @@ export default function Jeunesse() {
                   <div className="font-black text-slate-900">{String(r.phase || "phase").toUpperCase()}</div>
                   <div className={`rounded-full px-3 py-1 text-xs font-black ${r.passed || r.status === "passed" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>{r.status || (r.passed ? "passed" : "failed")}</div>
                 </div>
-                <div className="mt-2 text-sm text-slate-700">{t("jeunesse.avg", "Average")}: {r.average ?? "—"}</div>
-                <div className="text-sm text-slate-700">{t("jeunesse.notes", "Notes")}: {r.notes || "—"}</div>
+                <div className="mt-2 text-sm text-slate-700">{t("jeunesse.avg", "Average")}: {r.average ?? "-"}</div>
+                <div className="text-sm text-slate-700">{t("jeunesse.notes", "Notes")}: {r.notes || "-"}</div>
               </div>
             ))}
             {resultRows.length === 0 ? <div className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">{t("jeunesse.no_results", "No result displayed.")}</div> : null}
