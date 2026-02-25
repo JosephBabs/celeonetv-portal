@@ -1,34 +1,9 @@
 
 @import "tailwindcss";
 
-.goog-te-banner-frame.skiptranslate {
-  display: none !important;
-}
-
-iframe.goog-te-banner-frame {
-  display: none !important;
-  visibility: hidden !important;
-  height: 0 !important;
-}
-
-body {
-  top: 0 !important;
-}
-
-html {
-  top: 0 !important;
-}
-
 .html-editor:empty:before {
   content: attr(data-placeholder);
   color: #94a3b8;
-}
-
-#goog-gt-tt,
-.goog-te-balloon-frame,
-.goog-tooltip,
-.goog-text-highlight {
-  display: none !important;
 }
 
 /* @tailwind base;

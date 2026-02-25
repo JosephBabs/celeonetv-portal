@@ -2,16 +2,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
 type Tab = "register" | "results";
 
 function genIdentifier() {
-  return (
-    "J" +
-    Date.now().toString(36).slice(-6).toUpperCase() +
-    Math.random().toString(36).slice(2, 6).toUpperCase()
-  );
+  return "J" + Date.now().toString(36).slice(-6).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
 }
 
 const phaseOrder: Record<string, number> = {
@@ -22,6 +19,7 @@ const phaseOrder: Record<string, number> = {
 };
 
 export default function Jeunesse() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>("register");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -51,10 +49,10 @@ export default function Jeunesse() {
 
   useEffect(() => {
     setPageMeta({
-      title: "Amis de Jesus | Jeunesse",
-      description: "Register children online and verify Amis de Jesus concours results.",
+      title: t("jeunesse.meta_title", "Amis de Jesus | Jeunesse"),
+      description: t("jeunesse.meta_desc", "Register children online and verify concours results."),
     });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     (async () => {
@@ -76,21 +74,11 @@ export default function Jeunesse() {
   }, [settings]);
 
   const registerChild = async () => {
-    const required = [
-      "firstName",
-      "lastName",
-      "age",
-      "currentClass",
-      "academicYear",
-      "parishName",
-      "contactEmail",
-      "country",
-      "city",
-    ];
+    const required = ["firstName", "lastName", "age", "currentClass", "academicYear", "parishName", "contactEmail", "country", "city"];
 
     for (const key of required) {
       if (!String((reg as any)[key] || "").trim()) {
-        alert("Please fill all required fields.");
+        alert(t("jeunesse.required", "Please fill all required fields."));
         return;
       }
     }
@@ -139,7 +127,7 @@ export default function Jeunesse() {
         subRegion: "",
       });
     } catch (e: any) {
-      alert(e?.message || "Failed to register.");
+      alert(e?.message || t("jeunesse.failed_register", "Failed to register."));
     } finally {
       setLoading(false);
     }
@@ -147,29 +135,25 @@ export default function Jeunesse() {
 
   const verifyResults = async () => {
     const idf = identifier.trim();
-    if (!idf) return alert("Enter identifier.");
+    if (!idf) return alert(t("jeunesse.enter_identifier", "Enter identifier."));
 
     setChecking(true);
     setResultRows([]);
     try {
       let rows: any[] = [];
       try {
-        const snap = await getDocs(
-          query(collection(db, "jeunesse_results"), where("identifier", "==", idf), where("year", "==", year))
-        );
+        const snap = await getDocs(query(collection(db, "jeunesse_results"), where("identifier", "==", idf), where("year", "==", year)));
         rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       } catch {
         const snap = await getDocs(query(collection(db, "jeunesse_results"), where("identifier", "==", idf)));
-        rows = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((r: any) => String(r.year || "") === year);
+        rows = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r: any) => String(r.year || "") === year);
       }
 
       rows.sort((a, b) => (phaseOrder[a.phase] ?? 99) - (phaseOrder[b.phase] ?? 99));
       setResultRows(rows);
-      if (rows.length === 0) alert("No results found for this identifier/year.");
+      if (rows.length === 0) alert(t("jeunesse.not_found", "No results found for this identifier/year."));
     } catch (e: any) {
-      alert(e?.message || "Failed to check results.");
+      alert(e?.message || t("jeunesse.failed_verify", "Failed to check results."));
     } finally {
       setChecking(false);
     }
@@ -178,20 +162,20 @@ export default function Jeunesse() {
   return (
     <div className="space-y-5">
       <div className="rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="text-2xl font-black">Amis de Jesus - Jeunesse</div>
-        <div className="mt-1 text-slate-600">Online child registration and concours results verification.</div>
+        <div className="text-2xl font-black">{t("jeunesse.title", "Amis de Jesus - Jeunesse")}</div>
+        <div className="mt-1 text-slate-600">{t("jeunesse.subtitle", "Online child registration and concours results verification.")}</div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <button onClick={() => setTab("register")} className={`rounded-2xl px-4 py-2 text-sm font-extrabold ${tab === "register" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"}`}>Registration</button>
-          <button onClick={() => setTab("results")} className={`rounded-2xl px-4 py-2 text-sm font-extrabold ${tab === "results" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"}`}>Verify Results</button>
+          <button onClick={() => setTab("register")} className={`rounded-2xl px-4 py-2 text-sm font-extrabold ${tab === "register" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"}`}>{t("jeunesse.tab_register", "Registration")}</button>
+          <button onClick={() => setTab("results")} className={`rounded-2xl px-4 py-2 text-sm font-extrabold ${tab === "results" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"}`}>{t("jeunesse.tab_results", "Verify Results")}</button>
         </div>
       </div>
 
       {tab === "register" ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-6">
-          <div className="text-lg font-black">Child Registration</div>
+          <div className="text-lg font-black">{t("jeunesse.reg_title", "Child Registration")}</div>
           {savedIdentifier ? (
             <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
-              Registration successful. Child identifier: <span className="font-black">{savedIdentifier}</span>
+              {t("jeunesse.reg_success", "Registration successful. Child identifier:")} <span className="font-black">{savedIdentifier}</span>
             </div>
           ) : null}
           <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -213,36 +197,20 @@ export default function Jeunesse() {
             <Input value={reg.subRegion} onChange={(v) => setReg((s) => ({ ...s, subRegion: v }))} placeholder="Sub-region" />
           </div>
           <div className="mt-4 flex justify-end">
-            <button
-              onClick={registerChild}
-              disabled={loading}
-              className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
-            >
-              {loading ? "Submitting..." : "Submit Registration"}
-            </button>
+            <button onClick={registerChild} disabled={loading} className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60">{loading ? t("jeunesse.submitting", "Submitting...") : t("jeunesse.submit", "Submit Registration")}</button>
           </div>
         </div>
       ) : (
         <div className="rounded-3xl border border-slate-200 bg-white p-6">
-          <div className="text-lg font-black">Concours Results Verification</div>
+          <div className="text-lg font-black">{t("jeunesse.verify_title", "Concours Results Verification")}</div>
           <div className="mt-4 grid gap-3 md:grid-cols-[1fr_160px_auto]">
-            <Input value={identifier} onChange={setIdentifier} placeholder="Enter child identifier" />
-            <select
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-            >
+            <Input value={identifier} onChange={setIdentifier} placeholder={t("jeunesse.identifier_placeholder", "Enter child identifier")} />
+            <select value={year} onChange={(e) => setYear(e.target.value)} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200">
               {years.map((y) => (
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
-            <button
-              onClick={verifyResults}
-              disabled={checking}
-              className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
-            >
-              {checking ? "Checking..." : "Verify"}
-            </button>
+            <button onClick={verifyResults} disabled={checking} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60">{checking ? t("jeunesse.checking", "Checking...") : t("jeunesse.verify", "Verify")}</button>
           </div>
 
           <div className="mt-4 space-y-2">
@@ -250,19 +218,13 @@ export default function Jeunesse() {
               <div key={r.id} className="rounded-2xl border border-slate-200 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="font-black text-slate-900">{String(r.phase || "phase").toUpperCase()}</div>
-                  <div className={`rounded-full px-3 py-1 text-xs font-black ${r.passed || r.status === "passed" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>
-                    {r.status || (r.passed ? "passed" : "failed")}
-                  </div>
+                  <div className={`rounded-full px-3 py-1 text-xs font-black ${r.passed || r.status === "passed" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>{r.status || (r.passed ? "passed" : "failed")}</div>
                 </div>
-                <div className="mt-2 text-sm text-slate-700">Average: {r.average ?? "â€”"}</div>
-                <div className="text-sm text-slate-700">Notes: {r.notes || "â€”"}</div>
+                <div className="mt-2 text-sm text-slate-700">{t("jeunesse.avg", "Average")}: {r.average ?? "—"}</div>
+                <div className="text-sm text-slate-700">{t("jeunesse.notes", "Notes")}: {r.notes || "—"}</div>
               </div>
             ))}
-            {resultRows.length === 0 ? (
-              <div className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">
-                No result displayed.
-              </div>
-            ) : null}
+            {resultRows.length === 0 ? <div className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">{t("jeunesse.no_results", "No result displayed.")}</div> : null}
           </div>
         </div>
       )}
@@ -270,21 +232,6 @@ export default function Jeunesse() {
   );
 }
 
-function Input({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-}) {
-  return (
-    <input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
-    />
-  );
+function Input({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200" />;
 }

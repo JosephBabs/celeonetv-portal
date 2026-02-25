@@ -1,17 +1,19 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
 export default function Documentation() {
+  const { t } = useI18n();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setPageMeta({
-      title: "Documentation | CeleOne",
-      description: "Read complete platform documentation, policies, modules, and governance guidelines.",
+      title: t("docs.meta_title", "Documentation | CeleOne"),
+      description: t("docs.meta_desc", "Read complete platform documentation."),
     });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const run = async () => {
@@ -21,25 +23,23 @@ export default function Documentation() {
         const raw = await res.text();
         setText(raw);
       } catch {
-        setText("Documentation is currently unavailable.");
+        setText(t("docs.unavailable", "Documentation is currently unavailable."));
       } finally {
         setLoading(false);
       }
     };
     run();
-  }, []);
+  }, [t]);
 
   const rendered = useMemo(() => renderMarkdown(text), [text]);
 
-  if (loading) return <div className="py-10 text-center text-slate-600">Loading documentation...</div>;
+  if (loading) return <div className="py-10 text-center text-slate-600">{t("docs.loading", "Loading documentation...")}</div>;
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
       <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-700 p-6 text-white">
-        <div className="text-3xl font-black">Guide Public CeleOne</div>
-        <div className="mt-2 text-white/80">
-          Tout ce que les utilisateurs doivent savoir sur l'application, ses services et ses regles.
-        </div>
+        <div className="text-3xl font-black">{t("docs.title", "CeleOne Public Guide")}</div>
+        <div className="mt-2 text-white/80">{t("docs.subtitle", "Everything users should know.")}</div>
       </div>
 
       <article className="rounded-3xl border border-slate-200 bg-white p-6">{rendered}</article>
@@ -58,43 +58,23 @@ function renderMarkdown(raw: string) {
       return;
     }
     if (l.startsWith("### ")) {
-      items.push(
-        <h3 key={i} className="mt-4 text-lg font-black text-slate-900">
-          {l.replace(/^###\s*/, "")}
-        </h3>
-      );
+      items.push(<h3 key={i} className="mt-4 text-lg font-black text-slate-900">{l.replace(/^###\s*/, "")}</h3>);
       return;
     }
     if (l.startsWith("## ")) {
-      items.push(
-        <h2 key={i} className="mt-6 text-2xl font-black text-slate-900">
-          {l.replace(/^##\s*/, "")}
-        </h2>
-      );
+      items.push(<h2 key={i} className="mt-6 text-2xl font-black text-slate-900">{l.replace(/^##\s*/, "")}</h2>);
       return;
     }
     if (l.startsWith("# ")) {
-      items.push(
-        <h1 key={i} className="mt-2 text-3xl font-black text-slate-900">
-          {l.replace(/^#\s*/, "")}
-        </h1>
-      );
+      items.push(<h1 key={i} className="mt-2 text-3xl font-black text-slate-900">{l.replace(/^#\s*/, "")}</h1>);
       return;
     }
     if (l.startsWith("- ")) {
-      items.push(
-        <div key={i} className="ml-2 text-sm text-slate-700">
-          • {l.replace(/^-+\s*/, "")}
-        </div>
-      );
+      items.push(<div key={i} className="ml-2 text-sm text-slate-700">- {l.replace(/^-+\s*/, "")}</div>);
       return;
     }
 
-    items.push(
-      <p key={i} className="text-sm leading-7 text-slate-700">
-        {line}
-      </p>
-    );
+    items.push(<p key={i} className="text-sm leading-7 text-slate-700">{line}</p>);
   });
 
   return items;
