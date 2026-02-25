@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Env {
   FIREBASE_PROJECT_ID?: string;
   ASSETS?: { fetch: (req: Request) => Promise<Response> };
@@ -8,7 +8,28 @@ const SITE_URL = "https://celeonetv.com";
 const DEFAULT_IMAGE = `${SITE_URL}/logo.jpeg`;
 const HOME_TITLE = "CeleOne | Plateforme Sociale Mobile Chretienne Celeste";
 const HOME_DESCRIPTION =
-  "Cèlè One rassemble actualités, reformes, décisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace securisé.";
+  "CeleOne rassemble actualites, reformes, decisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace securise.";
+
+const ROUTE_META: Array<
+  [
+    RegExp,
+    {
+      title: string;
+      description: string;
+      type?: "website" | "article";
+    }
+  ]
+> = [
+  [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your creator channel request on Celeone TV." }],
+  [/^\/creator\/?$/, { title: "Creator Panel | Celeone TV", description: "Manage your channel requests, songs, videos and live setup." }],
+  [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create and launch a new community chatroom on Celeone TV." }],
+  [/^\/jeunesse\/?$/, { title: "Amis de Jesus | Jeunesse", description: "Register children online and verify concours results." }],
+  [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Read complete public documentation and platform policies." }],
+  [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in to your Celeone TV account." }],
+  [/^\/register\/?$/, { title: "Register | Celeone TV", description: "Create your Celeone TV account." }],
+  [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "Admin dashboards and moderation tools." }],
+  [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage collections, workflows and settings." }],
+];
 
 function escapeHtml(s: string) {
   return (s || "")
@@ -48,7 +69,6 @@ function makeCompressedShareImage(input: string) {
   if (!imageUrl) return DEFAULT_IMAGE;
   if (imageUrl === DEFAULT_IMAGE) return DEFAULT_IMAGE;
   if (!/^https?:\/\//i.test(imageUrl)) return DEFAULT_IMAGE;
-  // WhatsApp previews are more reliable with moderate-size images.
   return `https://wsrv.nl/?url=${encodeURIComponent(imageUrl)}&w=1200&h=630&fit=cover&output=jpg&q=72`;
 }
 
@@ -95,6 +115,25 @@ function buildMeta({
   `.trim();
 }
 
+function titleFromChannelSlug(pathname: string) {
+  const m = pathname.match(/^\/([^/]+)\/live\/?$/);
+  if (!m) return null;
+  const slug = m[1];
+  const pretty = slug
+    .split("-")
+    .filter(Boolean)
+    .map((p) => p[0]?.toUpperCase() + p.slice(1))
+    .join(" ");
+  return pretty || "Live Channel";
+}
+
+function htmlResponse(baseRes: Response, body: string) {
+  const headers = new Headers(baseRes.headers);
+  headers.set("content-type", "text/html; charset=UTF-8");
+  headers.set("cache-control", "no-store");
+  return new Response(body, { status: baseRes.status, headers });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -110,24 +149,18 @@ export default {
       });
     }
 
-    if (method === "OPTIONS") {
-      return new Response(null, { status: 204 });
-    }
+    if (method === "OPTIONS") return new Response(null, { status: 204 });
 
     let baseRes: Response;
     try {
-      if (env.ASSETS && typeof env.ASSETS.fetch === "function") {
-        baseRes = await env.ASSETS.fetch(request);
-      } else {
-        baseRes = await fetch(request);
-      }
+      if (env.ASSETS && typeof env.ASSETS.fetch === "function") baseRes = await env.ASSETS.fetch(request);
+      else baseRes = await fetch(request);
     } catch {
       return new Response("Assets fetch failed", { status: 500 });
     }
 
     if (!isHtml(baseRes)) return baseRes;
 
-    // Homepage SEO for WhatsApp preview.
     if (url.pathname === "/" || url.pathname === "") {
       const html = await baseRes.text();
       const meta = buildMeta({
@@ -137,63 +170,84 @@ export default {
         pageUrl: `${SITE_URL}/`,
         type: "website",
       });
-      const body = injectMeta(html, meta);
-      const headers = new Headers(baseRes.headers);
-      headers.set("content-type", "text/html; charset=UTF-8");
-      headers.set("cache-control", "no-store");
-      return new Response(body, { status: baseRes.status, headers });
+      return htmlResponse(baseRes, injectMeta(html, meta));
     }
 
-    // Post SEO for WhatsApp preview.
-    const m = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
-    if (!m) return baseRes;
+    const postMatch = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
+    if (postMatch) {
+      const postId = postMatch[1];
+      let title = "Celeone TV";
+      let description = "Decouvrez les contenus sur Celeone TV.";
+      let image = DEFAULT_IMAGE;
 
-    const postId = m[1];
-    let title = "Celeone TV";
-    let description = "Decouvrez les contenus sur Celeone TV.";
-    let image = DEFAULT_IMAGE;
+      try {
+        const projectId = env.FIREBASE_PROJECT_ID;
+        if (projectId) {
+          const firebaseURL = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/posts/${postId}`;
+          const fr = await fetchWithTimeout(firebaseURL, 2500);
+          if (fr.ok) {
+            const data: any = await fr.json();
+            const fields = data?.fields || {};
+            const shareTitle = fields.shareTitle?.stringValue;
+            const shareDesc = fields.shareDescription?.stringValue;
+            const shareImage = fields.shareImage?.stringValue;
+            const fallbackTitle = fields.title?.stringValue;
+            const fallbackDesc = fields.content?.stringValue;
+            const fallbackImage = fields.image?.stringValue;
 
-    try {
-      const projectId = env.FIREBASE_PROJECT_ID;
-      if (projectId) {
-        const firebaseURL = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/posts/${postId}`;
-        const fr = await fetchWithTimeout(firebaseURL, 2500);
-        if (fr.ok) {
-          const data: any = await fr.json();
-          const fields = data?.fields || {};
-          const shareTitle = fields.shareTitle?.stringValue;
-          const shareDesc = fields.shareDescription?.stringValue;
-          const shareImage = fields.shareImage?.stringValue;
-          const fallbackTitle = fields.title?.stringValue;
-          const fallbackDesc = fields.content?.stringValue;
-          const fallbackImage = fields.image?.stringValue;
+            const resolvedTitle = shareTitle || fallbackTitle;
+            const resolvedDesc = shareDesc || fallbackDesc;
+            const resolvedImage = shareImage || fallbackImage;
 
-          const resolvedTitle = shareTitle || fallbackTitle;
-          const resolvedDesc = shareDesc || fallbackDesc;
-          const resolvedImage = shareImage || fallbackImage;
-
-          if (resolvedTitle) title = String(resolvedTitle);
-          if (resolvedDesc) description = String(resolvedDesc).trim().replace(/\s+/g, " ").slice(0, 220);
-          if (resolvedImage) image = makeCompressedShareImage(String(resolvedImage));
+            if (resolvedTitle) title = String(resolvedTitle);
+            if (resolvedDesc) description = String(resolvedDesc).trim().replace(/\s+/g, " ").slice(0, 220);
+            if (resolvedImage) image = makeCompressedShareImage(String(resolvedImage));
+          }
         }
+      } catch {
+        // Keep defaults on fetch failure.
       }
-    } catch {
-      // Keep defaults on fetch failure.
+
+      const html = await baseRes.text();
+      const meta = buildMeta({
+        title,
+        description,
+        image,
+        pageUrl: `${SITE_URL}/posts/${postId}`,
+        type: "article",
+      });
+      return htmlResponse(baseRes, injectMeta(html, meta));
     }
 
-    const pageUrl = `${SITE_URL}/posts/${postId}`;
-    const html = await baseRes.text();
-    const meta = buildMeta({
-      title,
-      description,
-      image,
-      pageUrl,
-      type: "article",
-    });
-    const body = injectMeta(html, meta);
-    const headers = new Headers(baseRes.headers);
-    headers.set("content-type", "text/html; charset=UTF-8");
-    headers.set("cache-control", "no-store");
-    return new Response(body, { status: baseRes.status, headers });
+    const known = ROUTE_META.find(([re]) => re.test(url.pathname));
+    if (known) {
+      const html = await baseRes.text();
+      const cfg = known[1];
+      const meta = buildMeta({
+        title: cfg.title,
+        description: cfg.description,
+        image: DEFAULT_IMAGE,
+        pageUrl: `${SITE_URL}${url.pathname}`,
+        type: cfg.type || "website",
+      });
+      return htmlResponse(baseRes, injectMeta(html, meta));
+    }
+
+    const chTitle = titleFromChannelSlug(url.pathname);
+    if (chTitle) {
+      const html = await baseRes.text();
+      const title = `${chTitle} Live | Celeone TV`;
+      const description = `Watch ${chTitle} live on Celeone TV.`;
+      const meta = buildMeta({
+        title,
+        description,
+        image: DEFAULT_IMAGE,
+        pageUrl: `${SITE_URL}${url.pathname}`,
+        type: "website",
+      });
+      return htmlResponse(baseRes, injectMeta(html, meta));
+    }
+
+    return baseRes;
   },
 };
