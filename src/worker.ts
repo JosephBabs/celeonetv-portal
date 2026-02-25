@@ -20,16 +20,22 @@ const ROUTE_META: Array<
     }
   ]
 > = [
-  [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your creator channel request on Celeone TV." }],
-  [/^\/creator\/?$/, { title: "Creator Panel | Celeone TV", description: "Manage your channel requests, songs, videos and live setup." }],
-  [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create and launch a new community chatroom on Celeone TV." }],
-  [/^\/jeunesse\/?$/, { title: "Amis de Jesus | Jeunesse", description: "Register children online and verify concours results." }],
-  [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Read complete public documentation and platform policies." }],
-  [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in to your Celeone TV account." }],
-  [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out of your Celeone TV account." }],
-  [/^\/register\/?$/, { title: "Register | Celeone TV", description: "Create your Celeone TV account." }],
-  [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "Admin dashboards and moderation tools." }],
-  [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage collections, workflows and settings." }],
+  [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your TV, web TV, radio, podcast, or media channel request to join Celeone." }],
+  [/^\/creator\/?$/, { title: "Creator Panel | Celeone TV", description: "Manage your channel content, podcasts, videos, and live setup as a creator." }],
+  [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create a moderated Christian community chatroom for focused discussions." }],
+  [/^\/jeunesse\/?$/, { title: "Amis de Jesus | Jeunesse", description: "Register children for Amis de Jesus concours and verify results online." }],
+  [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
+  [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools." }],
+  [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out from your Celeone account securely." }],
+  [/^\/register\/?$/, { title: "Register | Celeone TV", description: "Create your Celeone account to access posts, chatrooms, channels, and community tools." }],
+  [/^\/admin\/functions\/?$/, { title: "Admin Functions | Celeone TV", description: "Review and process platform function requests submitted by users." }],
+  [/^\/admin\/cantiques\/?$/, { title: "Admin Cantiques | Celeone TV", description: "Create, edit, and organize hymns with language and number filters." }],
+  [/^\/admin\/posts\/?$/, { title: "Admin Posts | Celeone TV", description: "Create and edit posts with rich content and social sharing metadata." }],
+  [/^\/admin\/documents\/?$/, { title: "Admin Documents | Celeone TV", description: "Manage official ECC documents and publish structured HTML content." }],
+  [/^\/admin\/channel-requests\/?$/, { title: "Admin Channel Requests | Celeone TV", description: "Approve or reject creator channel requests for live streaming access." }],
+  [/^\/admin\/chatrooms\/?$/, { title: "Admin Chatrooms | Celeone TV", description: "Moderate and configure community chatrooms across the platform." }],
+  [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "View revenue, subscriptions, creators, and moderation operations in one dashboard." }],
+  [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage portal collections, workflows, and publishing settings." }],
 ];
 
 function escapeHtml(s: string) {
