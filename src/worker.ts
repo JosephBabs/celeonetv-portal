@@ -26,6 +26,7 @@ const ROUTE_META: Array<
   [/^\/jeunesse\/?$/, { title: "Amis de Jesus | Jeunesse", description: "Register children online and verify concours results." }],
   [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Read complete public documentation and platform policies." }],
   [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in to your Celeone TV account." }],
+  [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out of your Celeone TV account." }],
   [/^\/register\/?$/, { title: "Register | Celeone TV", description: "Create your Celeone TV account." }],
   [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "Admin dashboards and moderation tools." }],
   [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage collections, workflows and settings." }],
@@ -248,6 +249,14 @@ export default {
       return htmlResponse(baseRes, injectMeta(html, meta));
     }
 
-    return baseRes;
+    const html = await baseRes.text();
+    const fallbackMeta = buildMeta({
+      title: "Celeone TV Portal",
+      description: HOME_DESCRIPTION,
+      image: DEFAULT_IMAGE,
+      pageUrl: `${SITE_URL}${url.pathname}`,
+      type: "website",
+    });
+    return htmlResponse(baseRes, injectMeta(html, fallbackMeta));
   },
 };
