@@ -1,5 +1,5 @@
-import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import TopNav from "../components/TopNav";
 import Footer from "../components/Footer";
 import LanguageSwitcher from "../components/LanguageSwitcher";
@@ -67,12 +67,21 @@ export default function AppShell() {
       return;
     }
 
+    if (/^\/admin\/spiritual-program\/?$/.test(pathname)) {
+      setPageMeta({
+        title: "Admin Spiritual Program | CeleOne",
+        description: "Manage spiritual years, months, weeks, services, hymn programs, and special celebrations.",
+      });
+      return;
+    }
+
     const routeMeta: Array<[RegExp, { title: string; description: string }]> = [
       [/^\/$/, { title: "Celeone TV Portal", description: "Discover Christian community news, official reforms, documents, live TV, and secure social exchanges." }],
       [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your TV, web TV, radio, podcast, or media channel request to join Celeone." }],
       [/^\/creator\/?$/, { title: "Creator Dashboard | Celeone TV", description: "Manage your channel content, podcasts, videos, and streaming setup as a creator." }],
       [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create a moderated Christian community chatroom for focused discussions." }],
       [/^\/jeunesse\/?$/, { title: "Amis de Jesus | Jeunesse", description: "Register children for Amis de Jesus concours and verify results online." }],
+      [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly themes, services, Bible lessons, special celebrations, and hymn programs." }],
       [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
       [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "Manage all portal collections and moderation workflows." }],
       [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage functions, cantiques, posts, channel requests and chatrooms." }],

@@ -15,6 +15,8 @@ import Register from "../pages/Register";
 import CreateChatroom from "../pages/CreateChatroom";
 import Documentation from "../pages/Documentation";
 import Jeunesse from "../pages/Jeunesse";
+import SpiritualProgram from "../pages/SpiritualProgram";
+import AdminSpiritualProgram from "../pages/AdminSpiritualProgram";
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +35,7 @@ export const router = createBrowserRouter([
       { path: "/creator", element: <CreatorDashboard /> },
       { path: "/chatrooms/create", element: <CreateChatroom /> },
       { path: "/documentation", element: <Documentation /> },
+      { path: "/spiritual-program", element: <SpiritualProgram /> },
       { path: "/jeunesse", element: <Jeunesse /> },
       { path: "/login", element: <Login /> },
       { path: "/logout", element: <Login /> },
@@ -53,6 +56,14 @@ export const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AdminManagePage />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/spiritual-program",
+        element: (
+          <AdminRoute>
+            <AdminSpiritualProgram />
           </AdminRoute>
         ),
       },

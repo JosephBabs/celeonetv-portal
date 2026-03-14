@@ -219,3 +219,31 @@ Monthly:
 - multilingual editorial review workflow
 - official document signatures/hashes for authenticity verification
 
+
+
+## 12. Spiritual Program Portal
+The web portal now includes a spiritual-program module aligned with the mobile app.
+
+Collections used:
+- spiritual_years
+- spiritual_months
+- spiritual_weeks
+- spiritual_services
+- hymn_programs
+- special_celebrations
+- service_schedules
+- spiritual_bookmarks
+
+Public web flow:
+- browse current week
+- browse by year and month
+- read weekly Bible theme and scripture references
+- review service schedule and special celebrations
+- read hymn programs attached to a week
+
+Admin web flow:
+- dedicated admin page at /admin/spiritual-program
+- create year, month, week, service, hymn program, celebration, and regular schedule
+- mark one current week as active
+- delete nested records when needed
+- publish or unpublish celebrations

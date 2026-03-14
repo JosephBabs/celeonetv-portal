@@ -52,7 +52,8 @@ type ManageKey =
   | "cantiques"
   | "channels"
   | "songs"
-  | "videos";
+  | "videos"
+  | "spiritual_program";
 
 const COLLECTION_META: Record<
   ManageKey,
@@ -74,6 +75,7 @@ const COLLECTION_META: Record<
   channels: { label: "TV Channels", icon: "📺", primary: "name", secondary: "ownerId", orderField: "createdAt" },
   songs: { label: "Songs", icon: "🎧", primary: "title", secondary: "artist", orderField: "createdAt" },
   videos: { label: "Videos", icon: "🎬", primary: "title", secondary: "channelName", orderField: "createdAt" },
+  spiritual_program: { label: "Spiritual Program", icon: "SP", primary: "title", secondary: "startDate", orderField: "updatedAt" },
 };
 
 const PAGE_SIZE = 50;
@@ -102,6 +104,7 @@ export default function AdminDashboard() {
     videos: 0,
     subscriptionPackages: 0,
     activeUserSubscriptions: 0,
+    spiritualProgram: 0,
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [loadingCounts, setLoadingCounts] = useState(true);
@@ -124,6 +127,11 @@ export default function AdminDashboard() {
         videosSnap,
         subscriptionPackagesSnap,
         userSubscriptionsSnap,
+        spiritualYearsSnap,
+        spiritualWeeksSnap,
+        spiritualServicesSnap,
+        hymnProgramsSnap,
+        celebrationsSnap,
       ] = await Promise.all([
         getDocs(collection(db, "user_data")),
         getDocs(collection(db, "chatrooms")),
@@ -137,6 +145,11 @@ export default function AdminDashboard() {
         getDocs(collection(db, "videos")),
         getDocs(collection(db, "subscription_packages")),
         getDocs(collection(db, "user_subscriptions")),
+        getDocs(collection(db, "spiritual_years")),
+        getDocs(collection(db, "spiritual_weeks")),
+        getDocs(collection(db, "spiritual_services")),
+        getDocs(collection(db, "hymn_programs")),
+        getDocs(collection(db, "special_celebrations")),
       ]);
 
       setCounts({
@@ -152,6 +165,7 @@ export default function AdminDashboard() {
         videos: videosSnap.size,
         subscriptionPackages: subscriptionPackagesSnap.size,
         activeUserSubscriptions: userSubscriptionsSnap.docs.filter((d) => d.data()?.status === "active").length,
+        spiritualProgram: spiritualYearsSnap.size + spiritualWeeksSnap.size + spiritualServicesSnap.size + hymnProgramsSnap.size + celebrationsSnap.size,
       });
 
       setLastUpdated(new Date());
@@ -937,6 +951,7 @@ export default function AdminDashboard() {
       { key: "channels" as ManageKey, label: "TV Channels", value: counts.tvChannels, icon: "📺" },
       { key: "songs" as ManageKey, label: "Songs", value: counts.filmsAndSongs, icon: "🎧" },
       { key: "videos" as ManageKey, label: "Videos", value: counts.videos, icon: "🎬" },
+      { key: "spiritual_program" as ManageKey, label: "Spiritual Program", value: counts.spiritualProgram, icon: "SP" },
     ],
     [counts]
   );
@@ -947,6 +962,7 @@ export default function AdminDashboard() {
     posts: "/admin/posts",
     documents: "/admin/documents",
     chatrooms: "/admin/chatrooms",
+    spiritual_program: "/admin/spiritual-program",
   };
 
   return (
@@ -1184,7 +1200,13 @@ export default function AdminDashboard() {
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
-                  onClick={() => openManage(s.key)}
+                  onClick={() => {
+                    if (s.key === "spiritual_program") {
+                      nav("/admin/spiritual-program");
+                      return;
+                    }
+                    openManage(s.key);
+                  }}
                   className="rounded-2xl bg-slate-900 px-3 py-2 text-xs font-extrabold text-white hover:bg-slate-800"
                 >
                   Manage
@@ -2127,5 +2149,4 @@ function formatEpoch(value: any) {
   if (!Number.isFinite(n)) return "—";
   return new Date(n).toLocaleString();
 }
-
 

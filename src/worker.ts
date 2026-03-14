@@ -5,7 +5,7 @@ export interface Env {
 }
 
 const SITE_URL = "https://celeonetv.com";
-const DEFAULT_IMAGE = `${SITE_URL}/logo.jpeg`;
+const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
 const HOME_TITLE = "CeleOne | Plateforme Sociale Mobile Chretienne Celeste";
 const HOME_DESCRIPTION =
   "CeleOne rassemble actualites, reformes, decisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace securise.";
@@ -24,6 +24,7 @@ const ROUTE_META: Array<
   [/^\/creator\/?$/, { title: "Creator Panel | Celeone TV", description: "Manage your channel content, podcasts, videos, and live setup as a creator." }],
   [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create a moderated Christian community chatroom for focused discussions." }],
   [/^\/jeunesse\/?$/, { title: "Amis de Jesus | Jeunesse", description: "Register children for Amis de Jesus concours and verify results online." }],
+  [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly themes, services, Bible lessons, special celebrations, and hymn programs." }],
   [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
   [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools." }],
   [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out from your Celeone account securely." }],
@@ -34,6 +35,7 @@ const ROUTE_META: Array<
   [/^\/admin\/documents\/?$/, { title: "Admin Documents | Celeone TV", description: "Manage official ECC documents and publish structured HTML content." }],
   [/^\/admin\/channel-requests\/?$/, { title: "Admin Channel Requests | Celeone TV", description: "Approve or reject creator channel requests for live streaming access." }],
   [/^\/admin\/chatrooms\/?$/, { title: "Admin Chatrooms | Celeone TV", description: "Moderate and configure community chatrooms across the platform." }],
+  [/^\/admin\/spiritual-program\/?$/, { title: "Admin Spiritual Program | CeleOne", description: "Manage spiritual years, months, weeks, services, hymn programs, and special celebrations." }],
   [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "View revenue, subscriptions, creators, and moderation operations in one dashboard." }],
   [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage portal collections, workflows, and publishing settings." }],
 ];

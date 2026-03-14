@@ -85,3 +85,34 @@ If you need support:
 - use official platform support channels
 - report inappropriate content
 - contact the team for questions about results, documents, or live channels
+
+
+## Spiritual Program and Weekly Themes
+CeleOne now includes a structured spiritual-program portal organized by:
+- year
+- month
+- week
+- services
+- hymn programs
+- special celebrations
+
+Public users can:
+- read the current weekly theme
+- browse Bible lessons and scripture references
+- review weekly service breakdowns
+- view hymn programs for the week
+- check special celebrations such as Easter, Pentecost, Christmas, harvest services, and crossover programs
+- browse archives by year and week
+
+## Admin spiritual-program workflow
+Authorized admins can manage the spiritual calendar from the web portal admin area.
+
+Admin capabilities include:
+- create and manage spiritual years
+- create months inside a year
+- publish weekly themes
+- add services for Wednesday, Friday, Sunday morning, Sunday evening, first Thursday, and special services
+- attach hymn programs to a week
+- create special celebrations
+- define regular service schedules
+- mark one current week as active

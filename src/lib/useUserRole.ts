@@ -24,7 +24,8 @@ export function useUserRole() {
         const snap = await getDoc(doc(db, "user_data", user.uid));
         const data = snap.exists() ? snap.data() : {};
         const resolvedRole = String(data?.role || "user");
-        const resolvedAdmin = Boolean(data?.isAdmin) || resolvedRole.toLowerCase() === "admin";
+        const adminRoles = new Set(["admin", "super_admin"]);
+        const resolvedAdmin = Boolean(data?.isAdmin) || adminRoles.has(resolvedRole.toLowerCase());
         setRole(resolvedRole);
         setIsAdmin(resolvedAdmin);
       } catch {

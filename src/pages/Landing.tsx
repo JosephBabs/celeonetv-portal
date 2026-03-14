@@ -44,6 +44,9 @@ export default function Landing() {
               <Link to="/creator/request" className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-slate-900 hover:bg-slate-100">
                 {t("landing.cta_tv", "Create TV Channel")}
               </Link>
+              <Link to="/spiritual-program" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
+                {t("landing.cta_spiritual", "Open Spiritual Program")}
+              </Link>
               <Link to="/chatrooms/create" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
                 {t("landing.cta_chat", "Create Chatroom")}
               </Link>
@@ -58,6 +61,7 @@ export default function Landing() {
             <div className="mt-4 grid gap-3">
               <InfoCard title={t("landing.five_lang_title", "In five languages")} value={t("landing.five_lang_value", "French, English, Yoruba, Fon, Spanish")} />
               <InfoCard title={t("landing.docs_title", "ECC Documents")} value={t("landing.docs_value", "ECC public documents")} />
+              <InfoCard title={t("landing.spiritual_title", "Spiritual Program")} value={t("landing.spiritual_value", "Weekly themes, services, Bible lessons and hymn programs.")} />
               <InfoCard title={t("landing.live_title", "Live transmission")} value={t("landing.live_value", "TV/Web TV and radio can stream")} />
             </div>
           </div>

@@ -11,7 +11,8 @@
     "admin": "Admin",
     "logout": "Cerrar sesion",
     "login": "Iniciar sesion",
-    "signup": "Registrarse"
+    "signup": "Registrarse",
+    "spiritual_program": "Programa espiritual"
   },
   "landing": {
     "meta_title": "CeleOne | Plataforma Social Movil Cristiana Celestial",
@@ -40,7 +41,10 @@
     "channels_desc": "Los canales de TV pueden solicitar posicion y transmitir directamente en CeleOne.",
     "channels_cta": "Solicitar streaming",
     "channel_default_desc": "Canal en vivo disponible en CeleOne.",
-    "channels_empty": "No hay canales por ahora."
+    "channels_empty": "No hay canales por ahora.",
+    "cta_spiritual": "Abrir programa espiritual",
+    "spiritual_title": "Programa espiritual",
+    "spiritual_value": "Temas semanales, cultos, lecciones biblicas y programas de himnos."
   },
   "jeunesse": {
     "meta_title": "Amigos de Jesus | Juventud",
@@ -65,5 +69,32 @@
     "failed_register": "Error al registrar.",
     "failed_verify": "Error al verificar resultados.",
     "enter_identifier": "Ingrese identificador."
+  },
+  "spiritual": {
+    "meta_title": "Programa espiritual | CeleOne",
+    "meta_desc": "Lee temas semanales, cultos, lecciones biblicas, celebraciones especiales y programas de himnos.",
+    "badge": "CALENDARIO ESPIRITUAL",
+    "title": "Temas semanales y programas de himnos",
+    "subtitle": "Explora el programa espiritual anual de la iglesia por ano, mes, semana, cultos y celebraciones especiales.",
+    "read_docs": "Leer documentacion",
+    "admin_link": "Abrir flujo admin",
+    "current_week": "Semana actual",
+    "week": "Semana",
+    "no_hymn": "Todavia no hay programa de himnos adjunto.",
+    "empty_current": "Todavia no se ha publicado una semana activa.",
+    "years": "Anos",
+    "weeks": "Semanas",
+    "services": "Cultos",
+    "celebrations": "Celebraciones",
+    "browse": "Explorar programa espiritual",
+    "browse_desc": "Busca temas, referencias biblicas y programas semanales archivados.",
+    "search": "Buscar por tema o referencia biblica",
+    "all_years": "Todos los anos",
+    "loading": "Cargando programa espiritual...",
+    "empty_weeks": "No se encontraron programas semanales.",
+    "special_celebrations": "Celebraciones especiales",
+    "regular_schedule": "Horario regular",
+    "active": "Activo",
+    "scripture_refs": "Referencia biblica"
   }
 }

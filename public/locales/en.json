@@ -11,7 +11,8 @@
     "admin": "Admin",
     "logout": "Logout",
     "login": "Login",
-    "signup": "Sign Up"
+    "signup": "Sign Up",
+    "spiritual_program": "Spiritual Program"
   },
   "landing": {
     "meta_title": "CeleOne | Celestial Christian Mobile Social Platform",
@@ -40,7 +41,10 @@
     "channels_desc": "TV channels can request placement and stream directly in CeleOne.",
     "channels_cta": "Request streaming",
     "channel_default_desc": "Live channel available on CeleOne.",
-    "channels_empty": "No channels found for now."
+    "channels_empty": "No channels found for now.",
+    "cta_spiritual": "Open Spiritual Program",
+    "spiritual_title": "Spiritual Program",
+    "spiritual_value": "Weekly themes, services, Bible lessons and hymn programs."
   },
   "jeunesse": {
     "meta_title": "Amis de Jesus | Jeunesse",
@@ -65,5 +69,32 @@
     "failed_register": "Failed to register.",
     "failed_verify": "Failed to check results.",
     "enter_identifier": "Enter identifier."
+  },
+  "spiritual": {
+    "meta_title": "Spiritual Program | CeleOne",
+    "meta_desc": "Read weekly themes, services, Bible lessons, special celebrations, and hymn programs.",
+    "badge": "SPIRITUAL CALENDAR",
+    "title": "Weekly Themes and Hymn Programs",
+    "subtitle": "Browse the annual church spiritual program by year, month, week, services, and special celebrations.",
+    "read_docs": "Read documentation",
+    "admin_link": "Open admin workflow",
+    "current_week": "Current Week",
+    "week": "Week",
+    "no_hymn": "No hymn program attached yet.",
+    "empty_current": "No active week has been published yet.",
+    "years": "Years",
+    "weeks": "Weeks",
+    "services": "Services",
+    "celebrations": "Celebrations",
+    "browse": "Browse Spiritual Program",
+    "browse_desc": "Search themes, Bible references, and past weekly programs.",
+    "search": "Search by theme or scripture",
+    "all_years": "All years",
+    "loading": "Loading spiritual program...",
+    "empty_weeks": "No weekly programs found.",
+    "special_celebrations": "Special Celebrations",
+    "regular_schedule": "Regular Schedule",
+    "active": "Active",
+    "scripture_refs": "Scripture"
   }
 }

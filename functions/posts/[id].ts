@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const SITE_URL = "https://celeonetv.com";
-const DEFAULT_IMAGE = `${SITE_URL}/logo.jpeg`;
+const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
 
 const escapeHtml = (s: string) =>
   (s || "")
@@ -22,7 +22,7 @@ const compressShareImage = (url: string) => {
   const clean = (url || "").trim();
   if (!clean) return DEFAULT_IMAGE;
   if (!/^https?:\/\//i.test(clean)) return DEFAULT_IMAGE;
-  if (clean.includes("logo.jpeg")) return clean;
+  if (clean.includes("logo.png")) return clean;
   return `https://wsrv.nl/?url=${encodeURIComponent(clean)}&w=1200&h=630&fit=cover&output=jpg&q=72`;
 };
 

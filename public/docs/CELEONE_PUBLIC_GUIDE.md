@@ -86,3 +86,34 @@ Si vous avez besoin d'assistance:
 - signalez les contenus inappropries
 - contactez l'equipe pour toute question sur les resultats, documents ou chaines live
 
+
+
+## Programme spirituel et themes hebdomadaires
+CeleOne inclut maintenant un portail de programme spirituel structure par:
+- annee
+- mois
+- semaine
+- cultes
+- programmes de cantiques
+- celebrations speciales
+
+Les utilisateurs peuvent:
+- lire le theme hebdomadaire actuel
+- parcourir les enseignements bibliques et references
+- consulter les details des cultes de la semaine
+- voir le programme de cantiques
+- verifier les celebrations speciales comme Paques, Pentecote, Noel, moisson et crossover
+- parcourir les archives par annee et semaine
+
+## Workflow admin du programme spirituel
+Les administrateurs autorises peuvent gerer le calendrier spirituel depuis l'espace admin du portail web.
+
+Capacites admin:
+- creer et gerer les annees spirituelles
+- creer les mois d'une annee
+- publier les themes hebdomadaires
+- ajouter les cultes du mercredi, vendredi, dimanche matin, dimanche soir, premier jeudi et services speciaux
+- attacher un programme de cantiques a une semaine
+- creer les celebrations speciales
+- definir les horaires reguliers de culte
+- marquer une seule semaine courante comme active

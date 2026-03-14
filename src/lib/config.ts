@@ -2,6 +2,9 @@ export const APP = {
   brand: {
     name: "Celeone",
     primary: "#14B8A6", // teal
+    logoWordmark: "/logo.png",
+    logoIcon: "/favicon.png",
+    logoShare: "https://celeonetv.com/logo.png",
   },
   streaming: {
     rtmpBase: "rtmp://live.celeonetv.com/live",

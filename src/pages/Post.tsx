@@ -54,7 +54,7 @@ export default function Post() {
     if (!post) return;
     const title = post.shareTitle || post.title || "Celeone TV";
     const description = (post.shareDescription || post.content || "").toString().trim().slice(0, 180);
-    const image = post.shareImage || post.image || "https://celeonetv.com/logo.jpeg";
+    const image = post.shareImage || post.image || "https://celeonetv.com/logo.png";
     setPageMeta({
       title,
       description,

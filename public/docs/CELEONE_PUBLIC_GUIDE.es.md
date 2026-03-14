@@ -85,3 +85,34 @@ Si necesitas soporte:
 - usa canales oficiales de soporte de la plataforma
 - reporta contenidos inapropiados
 - contacta al equipo para preguntas sobre resultados, documentos o canales en vivo
+
+
+## Programa espiritual y temas semanales
+CeleOne ahora incluye un portal de programa espiritual estructurado por:
+- ano
+- mes
+- semana
+- cultos
+- programas de himnos
+- celebraciones especiales
+
+Los usuarios pueden:
+- leer el tema semanal actual
+- explorar lecciones biblicas y referencias
+- revisar el detalle de los cultos de la semana
+- ver el programa de himnos
+- consultar celebraciones especiales como Pascua, Pentecostes, Navidad, cosecha y crossover
+- recorrer archivos por ano y semana
+
+## Flujo admin del programa espiritual
+Los administradores autorizados pueden gestionar el calendario espiritual desde el area admin del portal web.
+
+Capacidades admin:
+- crear y gestionar anos espirituales
+- crear meses dentro de un ano
+- publicar temas semanales
+- agregar cultos de miercoles, viernes, domingo por la manana, domingo por la noche, primer jueves y servicios especiales
+- adjuntar programas de himnos a una semana
+- crear celebraciones especiales
+- definir horarios regulares de culto
+- marcar solo una semana actual como activa

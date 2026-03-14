@@ -2,6 +2,7 @@ import { signOut } from "firebase/auth";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../lib/firebase";
+import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { useAuthUser } from "../lib/useAuthUser";
 import { useUserRole } from "../lib/useUserRole";
@@ -18,11 +19,17 @@ export default function TopNav() {
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto max-w-6xl px-4 py-3">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2" onClick={closeMobile}>
-            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 font-black text-white">
-              C1
-            </div>
-            <div className="font-black tracking-tight text-slate-900">Cele One</div>
+          <Link to="/" className="flex items-center gap-3" onClick={closeMobile}>
+            <img
+              src={APP.brand.logoIcon}
+              alt="Celeone icon"
+              className="h-10 w-10 rounded-2xl object-cover"
+            />
+            <img
+              src={APP.brand.logoWordmark}
+              alt="Celeone"
+              className="h-10 w-auto object-contain"
+            />
           </Link>
 
           <button
@@ -62,6 +69,9 @@ function DesktopLinks({ user, isAdmin, t }: { user: unknown; isAdmin: boolean; t
       </Link>
       <Link to="/jeunesse" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.amis_de_jesus", "Amis de Jesus")}
+      </Link>
+      <Link to="/spiritual-program" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+        {t("nav.spiritual_program", "Spiritual Program")}
       </Link>
       <Link to="/documentation" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.documentation", "Documentation")}
@@ -118,6 +128,9 @@ function MobileLinks({
       </Link>
       <Link onClick={onClose} to="/jeunesse" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.amis_de_jesus", "Amis de Jesus")}
+      </Link>
+      <Link onClick={onClose} to="/spiritual-program" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+        {t("nav.spiritual_program", "Spiritual Program")}
       </Link>
       <Link onClick={onClose} to="/documentation" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.documentation", "Documentation")}
