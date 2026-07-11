@@ -219,3 +219,88 @@ Monthly:
 - multilingual editorial review workflow
 - official document signatures/hashes for authenticity verification
 
+## 12. Spiritual Program Portal
+The web portal now includes a spiritual-program module aligned with the mobile app.
+
+Collections used:
+- spiritual_years
+- spiritual_months
+- spiritual_weeks
+- spiritual_services
+- hymn_programs
+- special_celebrations
+- service_schedules
+- spiritual_bookmarks
+
+Public web flow:
+- browse current week
+- browse by year and month
+- read weekly Bible theme and scripture references
+- review service schedule and special celebrations
+- read hymn programs attached to a week
+
+Admin web flow:
+- dedicated admin page at /admin/spiritual-program
+- create year, month, week, service, hymn program, celebration, and regular schedule
+- mark one current week as active
+- delete nested records when needed
+- publish or unpublish celebrations
+
+## 13. Mobile App Module Coverage Addendum
+This section reconciles the platform description with the current `D:\celeOneApp` module inventory and related function reports. The earlier description covered the web-facing core, but the mobile app contains additional active and planned modules that must be represented in the project description.
+
+### 13.1 Messaging, Groups, Calls, and Notifications
+- private and group discussions
+- group information pages and chatroom administration
+- typing, presence, delivery/read receipts, reactions, replies, edit/delete metadata, and media messages
+- socket/local-first messaging target with local SQLite outbox, relay queues, reconnect drain, and push wake notifications
+- WebRTC call flow using socket signaling, direct P2P media when possible, and TURN fallback
+- notifications and quick reply handling
+
+### 13.2 Discovery, Social, and Recommendations
+- global search across pages, functions, and tools
+- social/community pages and post details
+- interaction tracking and optional personalized feed ranking
+- optional Redis/Firestore feed cache and optional BigQuery analytics export
+- recommendation diversification to reduce repeated creators or topics
+
+### 13.3 Media and Device Experience
+- live TV, radio, media streaming, playlists, films, series, worship, gospel music, and cantiques
+- player controls for quality, speed, subtitles, audio options, watchlist, downloads, sharing, reactions, and reporting playback issues
+- Smart TV pairing, linked device state, and cast-to-TV controls
+
+### 13.4 GPS, Parish, and Church Services
+- parish map, nearby parishes, GPS guidance, visit planner, and visit history
+- church directory, service times, worship schedules, shepherd directory, dioceses/districts, worldwide branches, and official contacts
+- admin management of parishes, church services, and GPS coordinates
+
+### 13.5 Heritage and Spiritual Formation
+- church history, founder biography, historical timeline, key moments, world expansion, archive photos, and historical videos
+- theme of the week and spiritual calendar
+- feast days, weekly programs, services, hymn programs, celebrations, and schedules
+
+### 13.6 Member Services, Academy, and Donations
+- digital member card, member verification, counsel/accompaniment requests, profile, settings, subscriptions, and help
+- academy courses, doctrine courses, Sunday school, evangelism/practical training, video lessons, exams, and certificates
+- donation projects, receipts, and donation history
+
+### 13.7 Jeunesse, Gamification, and Alerts
+- Jeunesse / Amis de Jesus registration, concours settings, result search, weekly quiz, quiz history, and admin Jeunesse tools
+- quiz ranking, badges, youth leaderboard, and participation rewards
+- urgent announcements, regional alerts, crisis information, and urgent prayer notifications
+
+### 13.8 Professional Skills and Collaboration
+- verified professional profiles
+- professional categories and skill groups
+- collaboration/support tickets
+- admin management for skills, groups, categories, and tickets
+
+### 13.9 Admin Coverage
+The app-side admin modules include:
+- dashboard, posts, events, streaming, documents, cantiques, drawer pages, users, profiles, pending requests, platform requests, packages, subscriptions, TV channels, chatrooms, reports, statistics, parishes, church services, heritage, calendar, academy, alerts, donations, Jeunesse, professional skills, and theme of week administration.
+
+### 13.10 Current Web Exposure Notes
+- Public links to the creator panel, chatroom creation, and Jeunesse pages may be hidden on the web portal while the platform keeps their mobile/admin data workflows available.
+- Documentation should distinguish between platform capabilities, mobile app capabilities, admin-only capabilities, and public web routes.
+- The revenue model PDF/PPT in `D:\celeOneApp\reports` should be summarized in a separate business appendix if investor or governance documentation is needed.
+- Messaging migration details should remain in a technical architecture appendix because that area changes faster than the public product description.
