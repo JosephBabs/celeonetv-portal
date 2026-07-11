@@ -749,11 +749,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const openJeunesseAdmin = async () => {
-    setModalOpen("JEUNESSE_ADMIN");
-    await loadJeunesseAdminData(jeunesseYear);
-  };
-
   const saveJeunessePeriods = async () => {
     try {
       const year = String(jeunesseYear || new Date().getFullYear());
@@ -1369,21 +1364,6 @@ export default function AdminDashboard() {
               Open Subscriptions
             </button>
           </div>
-        </div>
-      </div>
-
-      <div className="rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="text-lg font-black">Jeunesse (Amis de Jesus)</div>
-            <div className="mt-1 text-sm text-slate-600">Manage online registrations, exam dates and results.</div>
-          </div>
-          <button
-            onClick={openJeunesseAdmin}
-            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white hover:bg-slate-800"
-          >
-            Open Jeunesse Admin
-          </button>
         </div>
       </div>
 
@@ -2149,4 +2129,3 @@ function formatEpoch(value: any) {
   if (!Number.isFinite(n)) return "—";
   return new Date(n).toLocaleString();
 }
-

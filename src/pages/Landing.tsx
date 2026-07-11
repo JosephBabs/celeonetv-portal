@@ -47,12 +47,6 @@ export default function Landing() {
               <Link to="/spiritual-program" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
                 {t("landing.cta_spiritual", "Open Spiritual Program")}
               </Link>
-              <Link to="/chatrooms/create" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
-                {t("landing.cta_chat", "Create Chatroom")}
-              </Link>
-              <Link to="/creator" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
-                {t("landing.cta_panel", "Open My Panel")}
-              </Link>
             </div>
           </div>
 

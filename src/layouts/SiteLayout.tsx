@@ -11,12 +11,6 @@ export default function SiteLayout() {
 
           <div className="flex items-center gap-2">
             <Link
-              to="/creator"
-              className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-extrabold text-slate-800 hover:bg-slate-200"
-            >
-              Creator
-            </Link>
-            <Link
               to="/admin"
               className="rounded-xl bg-teal-600 px-3 py-2 text-sm font-extrabold text-white hover:bg-teal-700"
             >

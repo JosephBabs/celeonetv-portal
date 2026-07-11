@@ -24,7 +24,7 @@ export default function Register() {
     setSaving(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      navigate("/creator");
+      navigate("/");
     } catch (error) {
       console.error(error);
       alert(t("register.failed", "Unable to create account."));

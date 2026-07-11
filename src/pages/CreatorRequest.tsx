@@ -40,7 +40,7 @@ export default function CreatorRequest() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      nav("/creator");
+      nav("/");
     } catch (e: any) {
       console.error(e);
       alert(t("creator_request.failed", "Unable to submit request."));

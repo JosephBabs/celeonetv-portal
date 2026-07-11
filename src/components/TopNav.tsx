@@ -61,15 +61,6 @@ function DesktopLinks({ user, isAdmin, t }: { user: unknown; isAdmin: boolean; t
       <Link to="/creator/request" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.create_tv", "Create TV Channel")}
       </Link>
-      <Link to="/creator" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
-        {t("nav.my_panel", "My Panel")}
-      </Link>
-      <Link to="/chatrooms/create" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
-        {t("nav.create_chatroom", "Create Chatroom")}
-      </Link>
-      <Link to="/jeunesse" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
-        {t("nav.amis_de_jesus", "Amis de Jesus")}
-      </Link>
       <Link to="/spiritual-program" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.spiritual_program", "Spiritual Program")}
       </Link>
@@ -119,15 +110,6 @@ function MobileLinks({
     <>
       <Link onClick={onClose} to="/creator/request" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.create_tv", "Create TV Channel")}
-      </Link>
-      <Link onClick={onClose} to="/creator" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
-        {t("nav.my_panel", "My Panel")}
-      </Link>
-      <Link onClick={onClose} to="/chatrooms/create" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
-        {t("nav.create_chatroom", "Create Chatroom")}
-      </Link>
-      <Link onClick={onClose} to="/jeunesse" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
-        {t("nav.amis_de_jesus", "Amis de Jesus")}
       </Link>
       <Link onClick={onClose} to="/spiritual-program" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.spiritual_program", "Spiritual Program")}

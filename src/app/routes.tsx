@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import AppShell from "./AppShell";
 
 import Landing from "../pages/Landing";
@@ -6,15 +6,12 @@ import ChannelLive from "../pages/ChannelLive";
 import Post from "../pages/Post";
 
 import CreatorRequest from "../pages/CreatorRequest";
-import CreatorDashboard from "../pages/CreatorDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminManagePage from "../pages/AdminManagePage";
 import AdminRoute from "../routes/AdminRoute";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
-import CreateChatroom from "../pages/CreateChatroom";
 import Documentation from "../pages/Documentation";
-import Jeunesse from "../pages/Jeunesse";
 import SpiritualProgram from "../pages/SpiritualProgram";
 import AdminSpiritualProgram from "../pages/AdminSpiritualProgram";
 
@@ -32,11 +29,11 @@ export const router = createBrowserRouter([
 
       // Creator
       { path: "/creator/request", element: <CreatorRequest /> },
-      { path: "/creator", element: <CreatorDashboard /> },
-      { path: "/chatrooms/create", element: <CreateChatroom /> },
+      { path: "/creator", element: <Navigate to="/" replace /> },
+      { path: "/chatrooms/create", element: <Navigate to="/" replace /> },
       { path: "/documentation", element: <Documentation /> },
       { path: "/spiritual-program", element: <SpiritualProgram /> },
-      { path: "/jeunesse", element: <Jeunesse /> },
+      { path: "/jeunesse", element: <Navigate to="/" replace /> },
       { path: "/login", element: <Login /> },
       { path: "/logout", element: <Login /> },
       { path: "/register", element: <Register /> },
