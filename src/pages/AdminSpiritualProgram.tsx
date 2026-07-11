@@ -21,6 +21,9 @@ const emptyBundle: ProgramBundle = {
   hymnPrograms: [],
   celebrations: [],
   schedules: [],
+  themeWeeks: [],
+  eventDays: [],
+  hymns: [],
 };
 
 export default function AdminSpiritualProgram() {

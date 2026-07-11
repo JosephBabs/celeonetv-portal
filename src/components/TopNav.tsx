@@ -19,16 +19,11 @@ export default function TopNav() {
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto max-w-6xl px-4 py-3">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3" onClick={closeMobile}>
-            <img
-              src={APP.brand.logoIcon}
-              alt="Celeone icon"
-              className="h-10 w-10 rounded-2xl object-cover"
-            />
+          <Link to="/" className="flex items-center" onClick={closeMobile}>
             <img
               src={APP.brand.logoWordmark}
               alt="Celeone"
-              className="h-10 w-auto object-contain"
+              className="h-12 w-auto max-w-[180px] object-contain"
             />
           </Link>
 

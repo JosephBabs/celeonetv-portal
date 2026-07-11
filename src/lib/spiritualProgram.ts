@@ -121,6 +121,96 @@ export type ServiceScheduleItem = {
   isRegular?: boolean;
 };
 
+export type LocalizedText = {
+  fr?: string;
+  en?: string;
+  goun?: string;
+  yo?: string;
+  fon?: string;
+  es?: string;
+};
+
+export type WeeklyTheme = {
+  id: string;
+  year?: number;
+  monthNumber?: number;
+  monthName?: string;
+  weekNumber?: number;
+  title?: string;
+  theme?: string;
+  titleTranslations?: LocalizedText;
+  description?: string;
+  content?: string;
+  descriptionTranslations?: LocalizedText;
+  bibleTheme?: string;
+  bibleReference?: string;
+  reference?: string;
+  bibleThemeTranslations?: LocalizedText;
+  verses?: string[];
+  scriptureReferences?: string[];
+  startDate?: string;
+  endDate?: string;
+  weekStart?: string;
+  weekEnd?: string;
+  status?: PublishStatus | "archived" | "active";
+  isActive?: boolean;
+  isPublished?: boolean;
+  generatedKey?: string;
+};
+
+export type WeeklyThemeEventDay = {
+  id: string;
+  weekId: string;
+  title?: string;
+  titleTranslations?: LocalizedText;
+  dayKey?: string;
+  dayOfWeek?: string;
+  date?: string;
+  time?: string;
+  serviceDate?: string;
+  serviceTime?: string;
+  serviceType?: "normal_weekly_service" | "first_thursday" | "special_celebration" | "manual_extra_service" | string;
+  bibleTheme?: string;
+  bibleLesson?: string;
+  bibleReadingText?: string;
+  memoryVerse?: string;
+  sermonNote?: string;
+  bibleThemeTranslations?: LocalizedText;
+  verses?: string[];
+  scriptureReferences?: string[];
+  hymns?: string[];
+  specialCelebrationId?: string;
+  status?: PublishStatus | "archived" | "active";
+  generatedKey?: string;
+};
+
+export type WeeklyThemeHymn = {
+  id: string;
+  weekId: string;
+  dayKey?: string;
+  date?: string;
+  hymnNumber?: number;
+  title?: string;
+  time?: string;
+  notes?: string;
+};
+
+export type ResolvedThemeWeek = WeeklyTheme & {
+  year: number;
+  monthNumber: number;
+  monthName: string;
+  weekNumber: number;
+  title: string;
+  description: string;
+  bibleTheme: string;
+  verses: string[];
+  scriptureReferences: string[];
+  startDate: string;
+  endDate: string;
+  eventDays: WeeklyThemeEventDay[];
+  hymns: WeeklyThemeHymn[];
+};
+
 export type ResolvedWeek = SpiritualWeek & {
   year?: SpiritualYear | null;
   month?: SpiritualMonth | null;
@@ -136,13 +226,139 @@ export type ProgramBundle = {
   hymnPrograms: HymnProgram[];
   celebrations: SpiritualCelebration[];
   schedules: ServiceScheduleItem[];
+  themeWeeks: WeeklyTheme[];
+  eventDays: WeeklyThemeEventDay[];
+  hymns: WeeklyThemeHymn[];
 };
 
 const mapDocs = <T,>(snap: Awaited<ReturnType<typeof getDocs>>): T[] =>
   snap.docs.map((item) => ({ id: item.id, ...(item.data() as Record<string, unknown>) } as T));
 
+const toYmd = (value: Date = new Date()) => {
+  const year = value.getFullYear();
+  const month = `${value.getMonth() + 1}`.padStart(2, "0");
+  const day = `${value.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeDateText = (value: unknown): string => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? "" : toYmd(value);
+  if (typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : toYmd(date);
+  }
+  if (typeof value === "object" && value !== null) {
+    const candidate = value as { toDate?: () => Date; seconds?: number };
+    if (typeof candidate.toDate === "function") return toYmd(candidate.toDate());
+    if (typeof candidate.seconds === "number") return toYmd(new Date(candidate.seconds * 1000));
+  }
+  return "";
+};
+
+export const getLocalizedText = (value: unknown, translations?: LocalizedText, locale = "fr") => {
+  const normalized = locale.toLowerCase();
+  const fallback =
+    typeof value === "string"
+      ? value
+      : typeof value === "object" && value
+        ? (value as LocalizedText).fr || (value as LocalizedText).en || (value as LocalizedText).goun || ""
+        : "";
+  if (normalized.startsWith("fr") && translations?.fr?.trim()) return translations.fr.trim();
+  if (normalized.startsWith("en") && translations?.en?.trim()) return translations.en.trim();
+  if (normalized.startsWith("es") && translations?.es?.trim()) return translations.es.trim();
+  if (normalized.startsWith("go") && translations?.goun?.trim()) return translations.goun.trim();
+  return translations?.fr?.trim() || translations?.en?.trim() || translations?.goun?.trim() || fallback || "";
+};
+
+const sortThemeWeeks = <T extends WeeklyTheme>(items: T[]) =>
+  [...items].sort(
+    (a, b) =>
+      Number(b.year || 0) - Number(a.year || 0) ||
+      Number(a.weekNumber || 0) - Number(b.weekNumber || 0) ||
+      normalizeDateText(a.startDate || a.weekStart).localeCompare(normalizeDateText(b.startDate || b.weekStart))
+  );
+
+const sortEventDays = <T extends WeeklyThemeEventDay>(items: T[]) =>
+  [...items]
+    .map((item) => ({
+      ...item,
+      date: normalizeDateText(item.date || item.serviceDate),
+      dayKey: item.dayKey || item.dayOfWeek || "",
+      time: item.time || item.serviceTime || "",
+    }))
+    .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.time || "").localeCompare(String(b.time || ""))) as T[];
+
+const sortHymns = <T extends WeeklyThemeHymn>(items: T[]) =>
+  [...items]
+    .map((item) => ({
+      ...item,
+      date: normalizeDateText(item.date),
+      dayKey: item.dayKey || "",
+    }))
+    .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || Number(a.hymnNumber || 0) - Number(b.hymnNumber || 0)) as T[];
+
+const mergeThemeWeekSources = (primaryWeeks: WeeklyTheme[], legacyWeeks: WeeklyTheme[]) => {
+  const byKey = new Map<string, WeeklyTheme>();
+
+  primaryWeeks.forEach((week) => {
+    const key = week.generatedKey || week.id || `${week.year}-W${String(week.weekNumber || "").padStart(2, "0")}`;
+    byKey.set(key, { ...week, id: key });
+  });
+
+  legacyWeeks.forEach((week) => {
+    const key = week.generatedKey || week.id || `${week.year}-W${String(week.weekNumber || "").padStart(2, "0")}`;
+    byKey.set(key, { ...byKey.get(key), ...week, id: key, generatedKey: key });
+  });
+
+  return sortThemeWeeks(Array.from(byKey.values()));
+};
+
+const loadThemeWeekBundle = async () => {
+  try {
+    const [primarySnap, legacySnap, legacyServicesSnap] = await Promise.all([
+      getDocs(collection(db, "weekly_themes")),
+      getDocs(collection(db, "weeklyThemes")),
+      getDocs(collection(db, "weeklyServices")),
+    ]);
+
+    const themeWeeks = mergeThemeWeekSources(mapDocs<WeeklyTheme>(primarySnap), mapDocs<WeeklyTheme>(legacySnap));
+    const nestedDayGroups = await Promise.all(
+      themeWeeks.map(async (week) => {
+        const snap = await getDocs(collection(db, "weekly_themes", week.id, "event_days"));
+        return mapDocs<WeeklyThemeEventDay>(snap).map((item) => ({ ...item, weekId: week.id }));
+      })
+    );
+    const nestedHymnGroups = await Promise.all(
+      themeWeeks.map(async (week) => {
+        const snap = await getDocs(collection(db, "weekly_themes", week.id, "hymns"));
+        return mapDocs<WeeklyThemeHymn>(snap).map((item) => ({ ...item, weekId: week.id }));
+      })
+    );
+
+    const nestedEventDays = nestedDayGroups.flat();
+    const nestedKeys = new Set(nestedEventDays.map((item) => `${item.weekId}-${item.generatedKey || item.id}`));
+    const legacyEventDays = mapDocs<WeeklyThemeEventDay>(legacyServicesSnap)
+      .map((item) => ({
+        ...item,
+        weekId: item.weekId || (item as WeeklyThemeEventDay & { weeklyThemeId?: string }).weeklyThemeId || `${(item as WeeklyTheme & WeeklyThemeEventDay).year}-W${String((item as WeeklyTheme & WeeklyThemeEventDay).weekNumber || "").padStart(2, "0")}`,
+      }))
+      .filter((item) => !nestedKeys.has(`${item.weekId}-${item.generatedKey || item.id}`));
+
+    return {
+      themeWeeks,
+      eventDays: sortEventDays([...nestedEventDays, ...legacyEventDays]),
+      hymns: sortHymns(nestedHymnGroups.flat()),
+    };
+  } catch (error) {
+    console.error("Failed to load mobile theme-of-week bundle", error);
+    return { themeWeeks: [], eventDays: [], hymns: [] };
+  }
+};
+
 export const loadProgramBundle = async (): Promise<ProgramBundle> => {
-  const [yearsSnap, monthsSnap, weeksSnap, servicesSnap, hymnSnap, celebrationsSnap, schedulesSnap] = await Promise.all([
+  const [yearsSnap, monthsSnap, weeksSnap, servicesSnap, hymnSnap, celebrationsSnap, schedulesSnap, themeBundle] = await Promise.all([
     getDocs(collection(db, "spiritual_years")),
     getDocs(collection(db, "spiritual_months")),
     getDocs(collection(db, "spiritual_weeks")),
@@ -150,6 +366,7 @@ export const loadProgramBundle = async (): Promise<ProgramBundle> => {
     getDocs(collection(db, "hymn_programs")),
     getDocs(collection(db, "special_celebrations")),
     getDocs(collection(db, "service_schedules")),
+    loadThemeWeekBundle(),
   ]);
 
   return {
@@ -162,6 +379,9 @@ export const loadProgramBundle = async (): Promise<ProgramBundle> => {
       .map((item) => ({ ...item, category: item.category || item.type || "custom" }))
       .sort((a, b) => String(a.startDate || "").localeCompare(String(b.startDate || ""))),
     schedules: mapDocs<ServiceScheduleItem>(schedulesSnap).sort((a, b) => `${a.dayName || ""} ${a.time || ""}`.localeCompare(`${b.dayName || ""} ${b.time || ""}`)),
+    themeWeeks: themeBundle.themeWeeks,
+    eventDays: themeBundle.eventDays,
+    hymns: themeBundle.hymns,
   };
 };
 
@@ -179,6 +399,46 @@ export const getCurrentWeek = (weeks: ResolvedWeek[]) => {
   return (
     weeks.find((week) => week.isActive) ||
     weeks.find((week) => Boolean(week.isPublished) && week.startDate <= today && week.endDate >= today) ||
+    null
+  );
+};
+
+const normalizeThemeWeek = (week: WeeklyTheme): ResolvedThemeWeek => ({
+  ...week,
+  year: Number(week.year || new Date().getFullYear()),
+  monthNumber: Number(week.monthNumber || 0),
+  monthName: week.monthName || "",
+  weekNumber: Number(week.weekNumber || 0),
+  title: week.title || week.theme || "Theme non defini",
+  description: week.description || week.content || "",
+  bibleTheme: week.bibleTheme || week.bibleReference || week.reference || "",
+  verses: week.verses || [],
+  scriptureReferences: week.scriptureReferences || [],
+  startDate: normalizeDateText(week.startDate || week.weekStart),
+  endDate: normalizeDateText(week.endDate || week.weekEnd || week.startDate || week.weekStart),
+  eventDays: [],
+  hymns: [],
+});
+
+export const resolveThemeWeeks = (bundle: ProgramBundle): ResolvedThemeWeek[] =>
+  sortThemeWeeks(bundle.themeWeeks.map(normalizeThemeWeek)).map((week) => ({
+    ...week,
+    eventDays: sortEventDays(bundle.eventDays.filter((item) => item.weekId === week.id)),
+    hymns: sortHymns(bundle.hymns.filter((item) => item.weekId === week.id)),
+  }));
+
+export const isThemeWeekVisible = (week: ResolvedThemeWeek | WeeklyTheme) => {
+  const status = String(week.status || "").toLowerCase();
+  if (status === "archived" || status === "draft") return false;
+  return status === "published" || status === "active" || week.isPublished === true || week.isActive === true;
+};
+
+export const getCurrentThemeWeek = (weeks: ResolvedThemeWeek[]) => {
+  const today = toYmd(new Date());
+  return (
+    weeks.find((week) => week.startDate <= today && week.endDate >= today && isThemeWeekVisible(week)) ||
+    weeks.find((week) => week.startDate <= today && week.endDate >= today) ||
+    weeks.find((week) => week.isActive) ||
     null
   );
 };
