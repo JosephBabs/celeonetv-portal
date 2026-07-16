@@ -1,6 +1,9 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Env {
   FIREBASE_PROJECT_ID?: string;
+  OPENAI_API_KEY?: string;
+  LIBRETRANSLATE_URL?: string;
+  LIBRETRANSLATE_API_KEY?: string;
   ASSETS?: { fetch: (req: Request) => Promise<Response> };
 }
 
@@ -51,11 +54,11 @@ function isHtml(res: Response) {
   return ct.includes("text/html");
 }
 
-async function fetchWithTimeout(url: string, ms: number) {
+async function fetchWithTimeout(url: string, ms: number, init: RequestInit = {}) {
   const ac = new AbortController();
   const t = setTimeout(() => ac.abort(), ms);
   try {
-    return await fetch(url, { signal: ac.signal });
+    return await fetch(url, { ...init, signal: ac.signal });
   } finally {
     clearTimeout(t);
   }
@@ -140,10 +143,116 @@ function htmlResponse(baseRes: Response, body: string) {
   return new Response(body, { status: baseRes.status, headers });
 }
 
+function jsonResponse(data: unknown, init: ResponseInit = {}) {
+  const headers = new Headers(init.headers);
+  headers.set("content-type", "application/json; charset=UTF-8");
+  headers.set("access-control-allow-origin", "*");
+  headers.set("access-control-allow-methods", "POST, OPTIONS");
+  headers.set("access-control-allow-headers", "content-type, authorization");
+  return new Response(JSON.stringify(data), { ...init, headers });
+}
+
+async function sha256Hex(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function cleanLang(value: unknown, fallback = "en") {
+  const raw = String(value || fallback).trim().toLowerCase().split(/[-_]/)[0];
+  return ["en", "fr", "es", "yo", "fon", "gou"].includes(raw) ? raw : fallback;
+}
+
+async function translateWithOpenAI(env: Env, text: string, target: string, source: string) {
+  if (!env.OPENAI_API_KEY) return "";
+  const res = await fetchWithTimeout("https://api.openai.com/v1/responses", 20000, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4.1-mini",
+      input: [
+        {
+          role: "system",
+          content:
+            "Translate the user text fully and naturally. Preserve meaning, names, Bible references, URLs, hashtags, line breaks, and simple HTML tags. Return only the translated text.",
+        },
+        {
+          role: "user",
+          content: `Source language: ${source || "auto"}\nTarget language: ${target}\n\n${text}`,
+        },
+      ],
+      temperature: 0,
+    }),
+  } as RequestInit);
+  if (!res.ok) return "";
+  const data: any = await res.json();
+  return String(data?.output_text || data?.output?.[0]?.content?.[0]?.text || "").trim();
+}
+
+async function translateWithLibre(env: Env, text: string, target: string, source: string) {
+  if (!env.LIBRETRANSLATE_URL) return "";
+  const res = await fetchWithTimeout(`${env.LIBRETRANSLATE_URL.replace(/\/$/, "")}/translate`, 20000, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      q: text,
+      source: source || "auto",
+      target,
+      format: /<[^>]+>/.test(text) ? "html" : "text",
+      api_key: env.LIBRETRANSLATE_API_KEY || undefined,
+    }),
+  } as RequestInit);
+  if (!res.ok) return "";
+  const data: any = await res.json();
+  return String(data?.translatedText || "").trim();
+}
+
+async function handleTranslate(request: Request, env: Env) {
+  if (request.method.toUpperCase() === "OPTIONS") return jsonResponse({ ok: true });
+  if (request.method.toUpperCase() !== "POST") return jsonResponse({ error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+
+  let body: any = {};
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse({ error: "BAD_JSON" }, { status: 400 });
+  }
+
+  const text = String(body.text || "").slice(0, 12000);
+  const target = cleanLang(body.target || body.targetLang || "en", "en");
+  const source = cleanLang(body.source || body.sourceLang || "auto", "auto");
+  if (!text.trim()) return jsonResponse({ translatedText: "", source, target, cached: false });
+  if (source === target) return jsonResponse({ translatedText: text, source, target, cached: true });
+
+  const cacheKey = new Request(`${new URL(request.url).origin}/api/translate-cache/${await sha256Hex(`${source}:${target}:${text}`)}`);
+  const edgeCache = (caches as any).default as Cache | undefined;
+  const cached = edgeCache ? await edgeCache.match(cacheKey) : null;
+  if (cached) return cached;
+
+  const translatedText =
+    (await translateWithOpenAI(env, text, target, source).catch(() => "")) ||
+    (await translateWithLibre(env, text, target, source).catch(() => ""));
+
+  if (!translatedText) {
+    return jsonResponse({ error: "TRANSLATION_PROVIDER_NOT_CONFIGURED", translatedText: "", source, target }, { status: 503 });
+  }
+
+  const response = jsonResponse({ translatedText, source, target, cached: false }, {
+    headers: { "cache-control": "public, max-age=2592000" },
+  });
+  await edgeCache?.put(cacheKey, response.clone());
+  return response;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
+
+    if (url.pathname === "/api/translate") return handleTranslate(request, env);
 
     if (method === "HEAD") {
       return new Response(null, {
