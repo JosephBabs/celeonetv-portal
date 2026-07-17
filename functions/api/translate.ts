@@ -121,7 +121,7 @@ export async function onRequestPost(context: any) {
   if (!text.trim()) return jsonResponse({ translatedText: "", source, target, cached: false });
   if (source === target) return jsonResponse({ translatedText: text, source, target, cached: true });
 
-  const cacheKey = new Request(`${new URL(context.request.url).origin}/api/translate-cache/${await sha256Hex(`${source}:${target}:${text}`)}`);
+  const cacheKey = new Request(`${new URL(context.request.url).origin}/api/translate-cache/${await sha256Hex(`v2:${source}:${target}:${text}`)}`);
   const edgeCache = (caches as any).default as Cache | undefined;
   const cached = edgeCache ? await edgeCache.match(cacheKey) : null;
   if (cached) return cached;
