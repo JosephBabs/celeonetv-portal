@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import { auth, db } from "../lib/firebase";
+import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
@@ -45,6 +46,7 @@ export default function PrelaunchRegistration() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [created, setCreated] = useState(false);
+  const [paymentReady, setPaymentReady] = useState(false);
 
   useEffect(() => {
     setPageMeta({
@@ -56,6 +58,13 @@ export default function PrelaunchRegistration() {
   const donationMode = intent === "donate";
   const displayName = useMemo(() => `${form.firstName} ${form.lastName}`.trim(), [form.firstName, form.lastName]);
 
+  const selectIntent = (next: Intent) => {
+    setIntent(next);
+    setError("");
+    setCreated(false);
+    setPaymentReady(false);
+  };
+
   const setField = (key: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -63,16 +72,18 @@ export default function PrelaunchRegistration() {
   const submit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
     setError("");
+    setCreated(false);
+    setPaymentReady(false);
 
-    if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
+    if (!form.firstName.trim() || !form.lastName.trim() || (!donationMode && !form.email.trim())) {
       setError(t("prelaunch.required", "Please fill all required fields."));
       return;
     }
-    if (!strongPassword(form.password)) {
+    if (!donationMode && !strongPassword(form.password)) {
       setError(t("prelaunch.weak_password", "Password must be at least 6 characters with one uppercase letter and one number."));
       return;
     }
-    if (form.password !== form.confirmPassword) {
+    if (!donationMode && form.password !== form.confirmPassword) {
       setError(t("prelaunch.password_mismatch", "Passwords do not match."));
       return;
     }
@@ -80,12 +91,41 @@ export default function PrelaunchRegistration() {
     setSaving(true);
     try {
       const email = form.email.trim().toLowerCase();
+      const amountValue = Number(form.amount || 0);
+      const donationAmount = donationMode && Number.isFinite(amountValue) && amountValue > 0 ? amountValue : null;
+
+      if (donationMode) {
+        await addDoc(collection(db, "portal_pre_registrations"), {
+          intent: "donate",
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          displayName,
+          email,
+          phone: form.phone.trim(),
+          country: form.country.trim(),
+          parish: form.parish.trim(),
+          donationInterest: true,
+          donationAmount,
+          donationCurrency: form.currency.trim().toUpperCase() || "USD",
+          message: form.message.trim(),
+          preferredLanguage: lang,
+          status: "payment_link_shown",
+          source: "celeonetv_portal_prelaunch_donation",
+          paymentUrl: APP.donations.paymentUrl,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+        });
+
+        setCreated(true);
+        setPaymentReady(true);
+        setForm(initialForm);
+        return;
+      }
+
       const credential = await createUserWithEmailAndPassword(auth, email, form.password);
       const uid = credential.user.uid;
       await updateProfile(credential.user, { displayName });
 
-      const amountValue = Number(form.amount || 0);
-      const donationAmount = donationMode && Number.isFinite(amountValue) && amountValue > 0 ? amountValue : null;
       const baseProfile = {
         uid,
         email,
@@ -137,7 +177,7 @@ export default function PrelaunchRegistration() {
           {
             ...baseProfile,
             message: form.message.trim(),
-            status: donationMode ? "donation_interest" : "reserved",
+            status: "reserved",
           },
           { merge: true },
         ),
@@ -170,14 +210,14 @@ export default function PrelaunchRegistration() {
           <div className="mt-6 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => setIntent("reserve")}
+              onClick={() => selectIntent("reserve")}
               className={`rounded-2xl px-5 py-3 text-sm font-extrabold ${intent === "reserve" ? "bg-white text-slate-950" : "border border-white/40 text-white hover:bg-white/10"}`}
             >
               {t("prelaunch.reserve_cta", "Reserve my place")}
             </button>
             <button
               type="button"
-              onClick={() => setIntent("donate")}
+              onClick={() => selectIntent("donate")}
               className={`rounded-2xl px-5 py-3 text-sm font-extrabold ${intent === "donate" ? "bg-amber-300 text-slate-950" : "border border-white/40 text-white hover:bg-white/10"}`}
             >
               {t("prelaunch.donate_cta", "Donate to support project")}
@@ -191,13 +231,13 @@ export default function PrelaunchRegistration() {
           active={intent === "reserve"}
           title={t("prelaunch.reserve_title", "Reserve my place")}
           desc={t("prelaunch.reserve_desc", "Create your account in advance and be ready when CeleOne opens.")}
-          action={() => setIntent("reserve")}
+          action={() => selectIntent("reserve")}
         />
         <OptionCard
           active={intent === "donate"}
           title={t("prelaunch.donate_title", "Donate to support project")}
-          desc={t("prelaunch.donate_desc", "Create your account and register your donation interest for follow-up.")}
-          action={() => setIntent("donate")}
+          desc={t("prelaunch.donate_desc", "Enter your donor details, see the payment link, and continue to payment.")}
+          action={() => selectIntent("donate")}
         />
       </section>
 
@@ -208,36 +248,45 @@ export default function PrelaunchRegistration() {
               {donationMode ? t("prelaunch.donate_badge", "Donation interest") : t("prelaunch.reserve_badge", "Reservation")}
             </div>
             <h2 className="mt-2 text-2xl font-black text-slate-900">
-              {donationMode ? t("prelaunch.form_title_donate", "Create account and support the project") : t("prelaunch.form_title_reserve", "Create prelaunch account")}
+              {donationMode ? t("prelaunch.form_title_donate", "Add donor details") : t("prelaunch.form_title_reserve", "Create prelaunch account")}
             </h2>
             <p className="mt-1 text-sm font-semibold text-slate-600">
-              {t("prelaunch.form_desc", "These details are saved in Firebase using the CeleOne user registration schema.")}
+              {donationMode
+                ? t("prelaunch.donor_form_desc", "Donors do not need to create an account. We save your donor details, then show the payment link.")
+                : t("prelaunch.form_desc", "These details are saved in Firebase using the CeleOne user registration schema.")}
             </p>
           </div>
-          <Link to="/login" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-50">
-            {t("prelaunch.have_account", "Already registered? Login")}
-          </Link>
+          {!donationMode ? (
+            <Link to="/login" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-50">
+              {t("prelaunch.have_account", "Already registered? Login")}
+            </Link>
+          ) : null}
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <Field label={t("prelaunch.first_name", "First name")} value={form.firstName} onChange={(v) => setField("firstName", v)} required />
-          <Field label={t("prelaunch.last_name", "Last name")} value={form.lastName} onChange={(v) => setField("lastName", v)} required />
-          <Field label={t("prelaunch.email", "Email")} value={form.email} onChange={(v) => setField("email", v)} type="email" required />
-          <Field label={t("prelaunch.phone", "Phone")} value={form.phone} onChange={(v) => setField("phone", v)} />
-          <Field label={t("prelaunch.country", "Country")} value={form.country} onChange={(v) => setField("country", v)} />
-          <Field label={t("prelaunch.parish", "Parish or community")} value={form.parish} onChange={(v) => setField("parish", v)} />
-          <Field label={t("prelaunch.password", "Password")} value={form.password} onChange={(v) => setField("password", v)} type="password" required />
-          <Field label={t("prelaunch.confirm_password", "Confirm password")} value={form.confirmPassword} onChange={(v) => setField("confirmPassword", v)} type="password" required />
+          <Field label={t("prelaunch.first_name", "First name")} placeholder={t("prelaunch.first_name_ph", "John")} value={form.firstName} onChange={(v) => setField("firstName", v)} required />
+          <Field label={t("prelaunch.last_name", "Last name")} placeholder={t("prelaunch.last_name_ph", "Doe")} value={form.lastName} onChange={(v) => setField("lastName", v)} required />
+          <Field label={t("prelaunch.email", "Email")} placeholder={t("prelaunch.email_ph", "name@example.com")} value={form.email} onChange={(v) => setField("email", v)} type="email" required={!donationMode} />
+          <Field label={t("prelaunch.phone", "Phone")} placeholder={t("prelaunch.phone_ph", "+229 00 00 00 00")} value={form.phone} onChange={(v) => setField("phone", v)} />
+          <Field label={t("prelaunch.country", "Country")} placeholder={t("prelaunch.country_ph", "Benin")} value={form.country} onChange={(v) => setField("country", v)} />
+          <Field label={t("prelaunch.parish", "Parish or community")} placeholder={t("prelaunch.parish_ph", "Your parish or community")} value={form.parish} onChange={(v) => setField("parish", v)} />
+          {!donationMode ? (
+            <>
+              <Field label={t("prelaunch.password", "Password")} placeholder={t("prelaunch.password_ph", "At least 6 characters, 1 uppercase, 1 number")} value={form.password} onChange={(v) => setField("password", v)} type="password" required />
+              <Field label={t("prelaunch.confirm_password", "Confirm password")} placeholder={t("prelaunch.confirm_password_ph", "Repeat your password")} value={form.confirmPassword} onChange={(v) => setField("confirmPassword", v)} type="password" required />
+            </>
+          ) : null}
           {donationMode ? (
             <>
-              <Field label={t("prelaunch.amount", "Donation amount")} value={form.amount} onChange={(v) => setField("amount", v)} type="number" />
-              <Field label={t("prelaunch.currency", "Currency")} value={form.currency} onChange={(v) => setField("currency", v)} />
+              <Field label={t("prelaunch.amount", "Donation amount")} placeholder={t("prelaunch.amount_ph", "50")} value={form.amount} onChange={(v) => setField("amount", v)} type="number" />
+              <Field label={t("prelaunch.currency", "Currency")} placeholder={t("prelaunch.currency_ph", "USD")} value={form.currency} onChange={(v) => setField("currency", v)} />
             </>
           ) : null}
           <label className="grid gap-2 md:col-span-2">
             <span className="text-sm font-extrabold text-slate-800">{t("prelaunch.message", "Message")}</span>
             <textarea
               value={form.message}
+              placeholder={donationMode ? t("prelaunch.donor_message_ph", "Optional note for the CeleOne project team") : t("prelaunch.message_ph", "Optional message")}
               onChange={(event) => setField("message", event.target.value)}
               className="min-h-28 rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200"
             />
@@ -245,10 +294,23 @@ export default function PrelaunchRegistration() {
         </div>
 
         {error ? <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{error}</div> : null}
-        {created ? <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">{t("prelaunch.success", "Your prelaunch account has been created and saved.")}</div> : null}
+        {created ? (
+          <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+            {donationMode ? t("prelaunch.donor_success", "Your donor details have been saved. Use the payment link below to complete your donation.") : t("prelaunch.success", "Your prelaunch account has been created and saved.")}
+          </div>
+        ) : null}
+        {paymentReady ? (
+          <div className="mt-4 rounded-3xl border border-amber-200 bg-amber-50 p-4">
+            <div className="text-sm font-black uppercase tracking-wide text-amber-800">{t("prelaunch.payment_title", "Payment link")}</div>
+            <p className="mt-1 text-sm font-semibold text-amber-900">{t("prelaunch.payment_desc", "Continue to our payment page to complete your support.")}</p>
+            <a href={APP.donations.paymentUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex rounded-2xl bg-amber-400 px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-300">
+              {t("prelaunch.open_payment", "Go to payment")}
+            </a>
+          </div>
+        ) : null}
 
         <button disabled={saving} className="mt-6 w-full rounded-2xl bg-slate-900 px-4 py-3 font-extrabold text-white hover:bg-slate-800 disabled:opacity-60 md:w-auto">
-          {saving ? t("prelaunch.saving", "Creating account...") : donationMode ? t("prelaunch.submit_donate", "Create account and submit support interest") : t("prelaunch.submit_reserve", "Create prelaunch account")}
+          {saving ? t("prelaunch.saving", "Saving...") : donationMode ? t("prelaunch.submit_donate", "Save details and show payment link") : t("prelaunch.submit_reserve", "Create prelaunch account")}
         </button>
       </form>
     </div>
@@ -272,12 +334,14 @@ function Field({
   label,
   value,
   onChange,
+  placeholder,
   type = "text",
   required = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   type?: string;
   required?: boolean;
 }) {
@@ -287,6 +351,7 @@ function Field({
       <input
         required={required}
         type={type}
+        placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200"

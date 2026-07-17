@@ -11,4 +11,7 @@ export const APP = {
     hlsBase: "https://live.celeonetv.com/hls",
     publicLiveBase: "https://live.celeonetv.com", // or celeonetv.com depending on your DNS
   },
+  donations: {
+    paymentUrl: import.meta.env.VITE_DONATION_PAYMENT_URL || "https://celeonetv.com/donate",
+  },
 };
