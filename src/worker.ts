@@ -165,8 +165,9 @@ function cleanLang(value: unknown, fallback = "en") {
 }
 
 async function translateWithOpenAI(env: Env, text: string, target: string, source: string) {
-  if (!env.OPENAI_API_KEY) return "";
+  if (!env.OPENAI_API_KEY) return { text: "", error: "missing_key" };
   const models = Array.from(new Set([env.OPENAI_MODEL || "gpt-4.1-mini", "gpt-4o-mini"]));
+  let lastError = "";
   for (const model of models) {
     const res = await fetchWithTimeout("https://api.openai.com/v1/responses", 20000, {
       method: "POST",
@@ -190,12 +191,21 @@ async function translateWithOpenAI(env: Env, text: string, target: string, sourc
         temperature: 0,
       }),
     } as RequestInit).catch(() => null);
-    if (!res?.ok) continue;
+    if (!res) {
+      lastError = "fetch_failed";
+      continue;
+    }
+    if (!res.ok) {
+      const errorData: any = await res.json().catch(() => ({}));
+      lastError = `${res.status}:${String(errorData?.error?.code || errorData?.error?.type || "openai_error")}`;
+      continue;
+    }
     const data: any = await res.json().catch(() => ({}));
     const translated = String(data?.output_text || data?.output?.[0]?.content?.[0]?.text || "").trim();
-    if (translated) return translated;
+    if (translated) return { text: translated, error: "" };
+    lastError = "empty_response";
   }
-  return "";
+  return { text: "", error: lastError || "unavailable" };
 }
 
 async function translateWithLibre(env: Env, text: string, target: string, source: string) {
@@ -249,8 +259,9 @@ async function handleTranslate(request: Request, env: Env) {
   const cached = edgeCache ? await edgeCache.match(cacheKey) : null;
   if (cached) return cached;
 
+  const openaiResult = await translateWithOpenAI(env, text, target, source).catch(() => ({ text: "", error: "exception" }));
   const translatedText =
-    (await translateWithOpenAI(env, text, target, source).catch(() => "")) ||
+    openaiResult.text ||
     (await translateWithLibre(env, text, target, source).catch(() => ""));
 
   if (!translatedText) {
@@ -263,6 +274,7 @@ async function handleTranslate(request: Request, env: Env) {
         openai: !!env.OPENAI_API_KEY,
         libreTranslate: !!env.LIBRETRANSLATE_URL,
       },
+      providerError: openaiResult.error || "no_provider_result",
     }, { status: 503 });
   }
 
