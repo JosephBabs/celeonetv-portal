@@ -207,15 +207,18 @@ const phraseTranslations: Partial<Record<TranslationLanguage, Partial<Record<Tra
   en: {
     fr: {
       "bienvenue dans le presse papiers gboard": "welcome to the Gboard clipboard",
+      "bienvenue dans le presse papiers gboard le texte que vous copiez est enregistre ici": "welcome to the Gboard clipboard. The text you copy is saved here",
       "bonjour tout le monde": "hello everyone",
       "conseil superieur de transition": "High Council of Transition",
       "dieu reste fidele": "God remains faithful",
       "eglise du christianisme celeste": "Celestial Church of Christ",
       "installation des 15 membres du conseil superieur de transition de l eglise du christianisme celeste": "installation of the 15 members of the Celestial Church of Christ High Council of Transition",
+      "installation des 15 membres du conseil superieur de transition de l eglise du christianisme celeste une etape decisive vers la reunification": "installation of the 15 members of the Celestial Church of Christ High Council of Transition: a decisive step toward reunification",
       "le texte que vous copiez est enregistre ici": "the text you copy is saved here",
       "le samedi 26 avril 2025": "on Saturday, April 26, 2025",
       "les quinze membres du conseil superieur de transition de l eglise du christianisme celeste ont ete officiellement installes": "the fifteen members of the Celestial Church of Christ High Council of Transition were officially installed",
       "au cours d une ceremonie solennelle a cotonou": "during a solemn ceremony in Cotonou",
+      "le samedi 26 avril 2025 les quinze membres du conseil superieur de transition de l eglise du christianisme celeste ont ete officiellement installes au cours d une ceremonie solennelle a cotonou": "on Saturday, April 26, 2025, the fifteen members of the Celestial Church of Christ High Council of Transition were officially installed during a solemn ceremony in Cotonou",
       "que tout ce que vous faites soit fait avec amour": "let all that you do be done in love",
       "une etape decisive vers la reunification": "a decisive step toward reunification",
       "un film inspirant qui parle de foi": "an inspiring film about faith",
@@ -303,6 +306,14 @@ function applyPhraseTranslations(text: string, targetLang: TranslationLanguage, 
     }, text);
 }
 
+function exactNormalizedPhraseTranslation(text: string, targetLang: TranslationLanguage, sourceLang: TranslationLanguage) {
+  const phrases = phraseTranslations[targetLang]?.[sourceLang];
+  if (!phrases) return "";
+  const normalizedText = normalizeComparable(text);
+  const match = Object.entries(phrases).find(([sourcePhrase]) => normalizeComparable(sourcePhrase) === normalizedText);
+  return match?.[1] || "";
+}
+
 function translationCoverage(original: string, translated: string) {
   const originalWords = normalizeComparable(original).match(/[\p{L}\p{N}']+/gu) || [];
   const translatedWords = normalizeComparable(translated).match(/[\p{L}\p{N}']+/gu) || [];
@@ -318,7 +329,7 @@ function shouldUseTranslation(original: string, translated: string) {
   if (translated === original) return false;
   const wordCount = (normalizeComparable(original).match(/[\p{L}\p{N}']+/gu) || []).length;
   if (wordCount <= 3) return true;
-  return translationCoverage(original, translated) >= 0.25;
+  return translationCoverage(original, translated) >= 0.72;
 }
 
 export function translatePlainTextEmbedded(text?: string | null, target?: string | null, source?: string | null) {
@@ -327,6 +338,9 @@ export function translatePlainTextEmbedded(text?: string | null, target?: string
   const sourceLang = source && source !== "auto" ? normalizeTranslationLanguage(source) : detectContentLanguage(original);
   if (!original.trim()) return { translatedText: "", sourceLang, targetLang, changed: false };
   if (targetLang === sourceLang) return { translatedText: original, sourceLang, targetLang, changed: false };
+
+  const exactPhrase = exactNormalizedPhraseTranslation(original, targetLang, sourceLang);
+  if (exactPhrase) return { translatedText: preserveCase(original, exactPhrase), sourceLang, targetLang, changed: true };
 
   const dictionary = phraseBook[targetLang] || {};
   const phraseTranslated = applyPhraseTranslations(original, targetLang, sourceLang);
