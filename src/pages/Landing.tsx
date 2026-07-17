@@ -47,6 +47,9 @@ export default function Landing() {
               <Link to="/spiritual-program" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
                 {t("landing.cta_spiritual", "Open Spiritual Program")}
               </Link>
+              <Link to="/prelaunch-registration" className="rounded-2xl bg-amber-300 px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-200">
+                {t("landing.cta_prelaunch", "Prelaunch registration")}
+              </Link>
             </div>
           </div>
 

@@ -11,6 +11,7 @@ import AdminManagePage from "../pages/AdminManagePage";
 import AdminRoute from "../routes/AdminRoute";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import PrelaunchRegistration from "../pages/PrelaunchRegistration";
 import Documentation from "../pages/Documentation";
 import SpiritualProgram from "../pages/SpiritualProgram";
 import AdminSpiritualProgram from "../pages/AdminSpiritualProgram";
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
       { path: "/login", element: <Login /> },
       { path: "/logout", element: <Login /> },
       { path: "/register", element: <Register /> },
+      { path: "/prelaunch-registration", element: <PrelaunchRegistration /> },
 
 
       // Admin
