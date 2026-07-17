@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { translatePlainTextEmbedded } from "../../src/lib/embeddedTranslator";
 
 type Env = {
   OPENAI_API_KEY?: string;
@@ -126,9 +127,11 @@ export async function onRequestPost(context: any) {
   if (cached) return cached;
 
   const openaiResult = await translateWithOpenAI(context.env || {}, text, target, source).catch(() => ({ text: "", error: "exception" }));
+  const embeddedResult = translatePlainTextEmbedded(text, target, source);
   const translatedText =
     openaiResult.text ||
-    (await translateWithLibre(context.env || {}, text, target, source).catch(() => ""));
+    (await translateWithLibre(context.env || {}, text, target, source).catch(() => "")) ||
+    embeddedResult.translatedText;
 
   if (!translatedText) {
     return jsonResponse({
@@ -144,7 +147,15 @@ export async function onRequestPost(context: any) {
     }, { status: 503 });
   }
 
-  const response = jsonResponse({ translatedText, source, target, cached: false }, {
+  const provider = openaiResult.text ? "openai" : translatedText === embeddedResult.translatedText ? "embedded" : "libretranslate";
+  const response = jsonResponse({
+    translatedText,
+    source: embeddedResult.sourceLang || source,
+    target,
+    cached: false,
+    provider,
+    providerError: provider === "embedded" ? openaiResult.error || "" : "",
+  }, {
     headers: { "cache-control": "public, max-age=2592000" },
   });
   await edgeCache?.put(cacheKey, response.clone());

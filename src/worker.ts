@@ -1,4 +1,6 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+import { translatePlainTextEmbedded } from "./lib/embeddedTranslator";
+
 export interface Env {
   FIREBASE_PROJECT_ID?: string;
   OPENAI_API_KEY?: string;
@@ -260,9 +262,11 @@ async function handleTranslate(request: Request, env: Env) {
   if (cached) return cached;
 
   const openaiResult = await translateWithOpenAI(env, text, target, source).catch(() => ({ text: "", error: "exception" }));
+  const embeddedResult = translatePlainTextEmbedded(text, target, source);
   const translatedText =
     openaiResult.text ||
-    (await translateWithLibre(env, text, target, source).catch(() => ""));
+    (await translateWithLibre(env, text, target, source).catch(() => "")) ||
+    embeddedResult.translatedText;
 
   if (!translatedText) {
     return jsonResponse({
@@ -278,7 +282,15 @@ async function handleTranslate(request: Request, env: Env) {
     }, { status: 503 });
   }
 
-  const response = jsonResponse({ translatedText, source, target, cached: false }, {
+  const provider = openaiResult.text ? "openai" : translatedText === embeddedResult.translatedText ? "embedded" : "libretranslate";
+  const response = jsonResponse({
+    translatedText,
+    source: embeddedResult.sourceLang || source,
+    target,
+    cached: false,
+    provider,
+    providerError: provider === "embedded" ? openaiResult.error || "" : "",
+  }, {
     headers: { "cache-control": "public, max-age=2592000" },
   });
   await edgeCache?.put(cacheKey, response.clone());
