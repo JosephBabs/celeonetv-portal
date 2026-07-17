@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { addDoc, collection, getDocs, limit, orderBy, query, serverTimestamp } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
-import { approveFounderApplication, founderLevelLabel, formatDate, rejectFounderApplication, updateFounderStatus } from "../lib/founders";
+import { Link } from "react-router-dom";
+import { adminFounderAction } from "../lib/founderCredentialsApi";
+import { founderLevelLabel, formatDate, rejectFounderApplication, updateFounderStatus } from "../lib/founders";
 import { db } from "../lib/firebase";
 import { useUserRole } from "../lib/useUserRole";
 import { setPageMeta } from "../lib/seo";
@@ -76,7 +77,7 @@ export default function AdminFounders() {
 
   const approve = async (applicationId: string) => {
     if (!confirm("Approve this Founder application and generate Founder ID?")) return;
-    await approveFounderApplication(applicationId, user?.uid || "");
+    await adminFounderAction({ action: "approve", applicationId });
     await load();
   };
 
@@ -194,6 +195,7 @@ function FoundersTable({ rows, onStatus }: { rows: any[]; onStatus: (id: string,
               <div className="mt-1 text-sm font-semibold text-slate-600">{founderLevelLabel(row.founderLevel)} - {row.status} - {formatDate(row.joinedAt)}</div>
             </div>
             <div className="flex flex-wrap gap-2">
+              <Link to={`/admin/founders/members/${row.id}/certificate`} className="rounded-2xl bg-[#2FA5A9] px-3 py-2 text-xs font-extrabold text-white">Certificate</Link>
               {["active", "suspended", "revoked", "inactive"].map((status) => (
                 <button key={status} onClick={() => confirm(`Set ${status}?`) && onStatus(row.id, status)} className="rounded-2xl bg-slate-100 px-3 py-2 text-xs font-extrabold text-slate-700">{status}</button>
               ))}

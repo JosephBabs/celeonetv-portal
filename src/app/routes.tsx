@@ -14,11 +14,13 @@ import Register from "../pages/Register";
 import PrelaunchRegistration from "../pages/PrelaunchRegistration";
 import Founders from "../pages/Founders";
 import FounderActivate from "../pages/FounderActivate";
+import FounderCertificate from "../pages/FounderCertificate";
 import FounderDashboard from "../pages/FounderDashboard";
 import FounderVerify from "../pages/FounderVerify";
 import FounderWall from "../pages/FounderWall";
 import FounderHubPage from "../pages/FounderHubPage";
 import AdminFounders from "../pages/AdminFounders";
+import AdminFounderCertificate from "../pages/AdminFounderCertificate";
 import Documentation from "../pages/Documentation";
 import SpiritualProgram from "../pages/SpiritualProgram";
 import AdminSpiritualProgram from "../pages/AdminSpiritualProgram";
@@ -50,6 +52,7 @@ export const router = createBrowserRouter([
       { path: "/prelaunch-registration", element: <PrelaunchRegistration /> },
       { path: "/founders", element: <Founders /> },
       { path: "/founders/activate", element: <FounderActivate /> },
+      { path: "/founders/certificate", element: <FounderCertificate /> },
       { path: "/founders/dashboard", element: <FounderDashboard /> },
       { path: "/founders/wall", element: <FounderWall /> },
       { path: "/founders/verify", element: <FounderVerify /> },
@@ -63,6 +66,14 @@ export const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AdminDashboard />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/founders/members/:founderId/certificate",
+        element: (
+          <AdminRoute>
+            <AdminFounderCertificate />
           </AdminRoute>
         ),
       },

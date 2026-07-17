@@ -2,7 +2,9 @@
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { FounderCertificateStatus } from "../components/founders/certificate/FounderCertificateStatus";
 import { db } from "../lib/firebase";
+import { getFounderCredentials, loadFounderAsset, retryFounderCredentialGeneration } from "../lib/founderCredentialsApi";
 import { formatDate, founderLevelLabel, getFounderByUserId, getLatestFounderApplication, maskReference, qrCodeUrl, verificationUrl } from "../lib/founders";
 import { useAuthUser } from "../lib/useAuthUser";
 import { setPageMeta } from "../lib/seo";
@@ -12,6 +14,9 @@ export default function FounderDashboard() {
   const [application, setApplication] = useState<any>(null);
   const [founder, setFounder] = useState<any>(null);
   const [benefits, setBenefits] = useState<any[]>([]);
+  const [credentialFounder, setCredentialFounder] = useState<any>(null);
+  const [certificateThumb, setCertificateThumb] = useState("");
+  const [qrPreview, setQrPreview] = useState("");
   const [busy, setBusy] = useState(true);
 
   useEffect(() => {
@@ -29,6 +34,16 @@ export default function FounderDashboard() {
       setApplication(app);
       setFounder(found);
       if (found) {
+        const credentialData = await getFounderCredentials().catch(() => null);
+        setCredentialFounder(credentialData?.founder || null);
+        if (credentialData?.founder) {
+          const [certificateImage, qrImage] = await Promise.all([
+            loadFounderAsset("certificatePreview").catch(() => ""),
+            loadFounderAsset("qrCode").catch(() => ""),
+          ]);
+          setCertificateThumb(certificateImage);
+          setQrPreview(qrImage);
+        }
         const snap = await getDocs(query(collection(db, "founderBenefits"), where("active", "==", true), limit(20))).catch(() => null);
         setBenefits(snap ? snap.docs.map((d) => ({ id: d.id, ...d.data() })) : []);
       }
@@ -111,6 +126,52 @@ export default function FounderDashboard() {
             <div className="mt-2 text-sm font-semibold text-slate-600">{benefits.length ? "Eligible" : "Aucune entree disponible pour le moment."}</div>
           </div>
         ))}
+      </section>
+
+      <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-xs font-black uppercase tracking-[0.18em] text-[#2FA5A9]">Mes identifiants fondateurs</div>
+              <h2 className="mt-2 text-2xl font-black text-slate-900">{credentialFounder?.displayName || founder.displayName}</h2>
+              <div className="mt-2"><FounderCertificateStatus status={credentialFounder?.certificateStatus || founder.status} /></div>
+            </div>
+            {qrPreview ? <img src={qrPreview} alt="QR de verification du certificat fondateur" className="h-24 w-24 rounded-2xl border border-slate-200 bg-white p-2" /> : null}
+          </div>
+
+          {credentialFounder?.credentialStatus === "generating" ? (
+            <div className="mt-5 rounded-3xl bg-slate-50 p-5">
+              <div className="text-lg font-black text-slate-900">Vos identifiants sont en cours de generation</div>
+              <p className="mt-2 text-sm font-semibold text-slate-600">Votre certificat et votre carte Founder seront disponibles des que le processus sera termine.</p>
+            </div>
+          ) : credentialFounder?.credentialGenerationError ? (
+            <div className="mt-5 rounded-3xl bg-rose-50 p-5">
+              <div className="text-lg font-black text-rose-900">La generation de vos identifiants a rencontre un probleme.</div>
+              <p className="mt-2 text-sm font-semibold text-rose-700">Notre equipe a ete informee. Vous pouvez reessayer ou contacter le support.</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button onClick={() => retryFounderCredentialGeneration().then(() => window.location.reload())} className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-extrabold text-white">Reessayer</button>
+                <a href="mailto:support@celeonetv.com" className="rounded-2xl border border-rose-200 px-4 py-3 text-sm font-extrabold text-rose-700">Contacter le support</a>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-5 grid gap-4 md:grid-cols-[0.9fr_1.1fr]">
+              <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
+                {certificateThumb ? <img src={certificateThumb} alt="Miniature du certificat fondateur" className="w-full" /> : <div className="aspect-[1.414/1] animate-pulse bg-slate-100" />}
+              </div>
+              <div className="grid gap-3 content-start">
+                <Info label="Founder ID" value={credentialFounder?.publicFounderId || founder.publicFounderId} />
+                <Info label="Founder level" value={founderLevelLabel(credentialFounder?.founderLevel || founder.founderLevel)} />
+                <Info label="Certificate number" value={String(credentialFounder?.certificateNumber || "-")} />
+                <Info label="Issue date" value={formatDate(credentialFounder?.issuedAt || founder.joinedAt)} />
+                <div className="flex flex-wrap gap-3">
+                  <Link to="/founders/certificate" className="rounded-2xl bg-[#2FA5A9] px-4 py-3 text-sm font-extrabold text-white">Voir le certificat</Link>
+                  <button onClick={() => certificateThumb && window.open(certificateThumb, "_blank", "noopener,noreferrer")} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700">Afficher le QR code</button>
+                  <button onClick={() => navigator.clipboard?.writeText(String(credentialFounder?.verificationUrl || verificationUrl(founder.publicFounderId)))} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700">Copier le lien de verification</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );

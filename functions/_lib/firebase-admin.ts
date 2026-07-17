@@ -23,7 +23,7 @@ async function accessToken(env: PortalEnv) {
     iss: email,
     sub: email,
     aud: "https://oauth2.googleapis.com/token",
-    scope: "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/firebase",
+    scope: "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/firebase https://www.googleapis.com/auth/devstorage.read_write",
     iat: now,
     exp: now + 3600,
   }));
@@ -44,6 +44,10 @@ async function accessToken(env: PortalEnv) {
 function projectId(env: PortalEnv) {
   if (!env.FIREBASE_PROJECT_ID) throw new Error("FIREBASE_PROJECT_ID_NOT_CONFIGURED");
   return env.FIREBASE_PROJECT_ID;
+}
+
+export function storageBucket(env: PortalEnv) {
+  return env.FIREBASE_STORAGE_BUCKET || `${projectId(env)}.firebasestorage.app`;
 }
 
 function encodeValue(value: unknown): FirestoreValue {
@@ -81,6 +85,17 @@ async function firestoreFetch(env: PortalEnv, path: string, init: RequestInit = 
   const token = await accessToken(env);
   const url = `https://firestore.googleapis.com/v1/projects/${projectId(env)}/databases/(default)/documents${path}`;
   return fetch(url, { ...init, headers: { Authorization: `Bearer ${token}`, "content-type": "application/json", ...init.headers } });
+}
+
+export async function googleAuthorizedFetch(env: PortalEnv, url: string, init: RequestInit = {}) {
+  const token = await accessToken(env);
+  return fetch(url, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...init.headers,
+    },
+  });
 }
 
 export async function getDocument(env: PortalEnv, path: string) {
