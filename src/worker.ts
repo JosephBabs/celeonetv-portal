@@ -2,6 +2,7 @@
 export interface Env {
   FIREBASE_PROJECT_ID?: string;
   OPENAI_API_KEY?: string;
+  OPENAI_MODEL?: string;
   LIBRETRANSLATE_URL?: string;
   LIBRETRANSLATE_API_KEY?: string;
   ASSETS?: { fetch: (req: Request) => Promise<Response> };
@@ -165,31 +166,36 @@ function cleanLang(value: unknown, fallback = "en") {
 
 async function translateWithOpenAI(env: Env, text: string, target: string, source: string) {
   if (!env.OPENAI_API_KEY) return "";
-  const res = await fetchWithTimeout("https://api.openai.com/v1/responses", 20000, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${env.OPENAI_API_KEY}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "system",
-          content:
-            "Translate the user text fully and naturally. Preserve meaning, names, Bible references, URLs, hashtags, line breaks, and simple HTML tags. Return only the translated text.",
-        },
-        {
-          role: "user",
-          content: `Source language: ${source || "auto"}\nTarget language: ${target}\n\n${text}`,
-        },
-      ],
-      temperature: 0,
-    }),
-  } as RequestInit);
-  if (!res.ok) return "";
-  const data: any = await res.json();
-  return String(data?.output_text || data?.output?.[0]?.content?.[0]?.text || "").trim();
+  const models = Array.from(new Set([env.OPENAI_MODEL || "gpt-4.1-mini", "gpt-4o-mini"]));
+  for (const model of models) {
+    const res = await fetchWithTimeout("https://api.openai.com/v1/responses", 20000, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${env.OPENAI_API_KEY}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        input: [
+          {
+            role: "system",
+            content:
+              "Translate the user text fully and naturally. Preserve meaning, names, Bible references, URLs, hashtags, line breaks, and simple HTML tags. Return only the translated text.",
+          },
+          {
+            role: "user",
+            content: `Source language: ${source || "auto"}\nTarget language: ${target}\n\n${text}`,
+          },
+        ],
+        temperature: 0,
+      }),
+    } as RequestInit).catch(() => null);
+    if (!res?.ok) continue;
+    const data: any = await res.json().catch(() => ({}));
+    const translated = String(data?.output_text || data?.output?.[0]?.content?.[0]?.text || "").trim();
+    if (translated) return translated;
+  }
+  return "";
 }
 
 async function translateWithLibre(env: Env, text: string, target: string, source: string) {
@@ -212,6 +218,17 @@ async function translateWithLibre(env: Env, text: string, target: string, source
 
 async function handleTranslate(request: Request, env: Env) {
   if (request.method.toUpperCase() === "OPTIONS") return jsonResponse({ ok: true });
+  if (request.method.toUpperCase() === "GET") {
+    return jsonResponse({
+      ok: true,
+      route: "/api/translate",
+      method: "POST",
+      providers: {
+        openai: !!env.OPENAI_API_KEY,
+        libreTranslate: !!env.LIBRETRANSLATE_URL,
+      },
+    });
+  }
   if (request.method.toUpperCase() !== "POST") return jsonResponse({ error: "METHOD_NOT_ALLOWED" }, { status: 405 });
 
   let body: any = {};
@@ -237,7 +254,16 @@ async function handleTranslate(request: Request, env: Env) {
     (await translateWithLibre(env, text, target, source).catch(() => ""));
 
   if (!translatedText) {
-    return jsonResponse({ error: "TRANSLATION_PROVIDER_NOT_CONFIGURED", translatedText: "", source, target }, { status: 503 });
+    return jsonResponse({
+      error: "TRANSLATION_PROVIDER_UNAVAILABLE",
+      translatedText: "",
+      source,
+      target,
+      providers: {
+        openai: !!env.OPENAI_API_KEY,
+        libreTranslate: !!env.LIBRETRANSLATE_URL,
+      },
+    }, { status: 503 });
   }
 
   const response = jsonResponse({ translatedText, source, target, cached: false }, {
