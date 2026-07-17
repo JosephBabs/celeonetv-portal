@@ -53,7 +53,8 @@ type ManageKey =
   | "channels"
   | "songs"
   | "videos"
-  | "spiritual_program";
+  | "spiritual_program"
+  | "founders";
 
 const COLLECTION_META: Record<
   ManageKey,
@@ -76,6 +77,7 @@ const COLLECTION_META: Record<
   songs: { label: "Songs", icon: "🎧", primary: "title", secondary: "artist", orderField: "createdAt" },
   videos: { label: "Videos", icon: "🎬", primary: "title", secondary: "channelName", orderField: "createdAt" },
   spiritual_program: { label: "Spiritual Program", icon: "SP", primary: "title", secondary: "startDate", orderField: "updatedAt" },
+  founders: { label: "Founder's Pass", icon: "CO", primary: "publicFounderId", secondary: "status", orderField: "createdAt" },
 };
 
 const PAGE_SIZE = 50;

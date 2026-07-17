@@ -62,6 +62,9 @@ function DesktopLinks({ user, isAdmin, t }: { user: unknown; isAdmin: boolean; t
       <Link to="/prelaunch-registration" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.prelaunch_registration", "Prelaunch Registration")}
       </Link>
+      <Link to="/founders" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+        Founder's Pass
+      </Link>
       <Link to="/documentation" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.documentation", "Documentation")}
       </Link>
@@ -114,6 +117,9 @@ function MobileLinks({
       </Link>
       <Link onClick={onClose} to="/prelaunch-registration" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.prelaunch_registration", "Prelaunch Registration")}
+      </Link>
+      <Link onClick={onClose} to="/founders" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+        Founder's Pass
       </Link>
       <Link onClick={onClose} to="/documentation" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
         {t("nav.documentation", "Documentation")}

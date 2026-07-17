@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { auth } from "../lib/firebase";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
@@ -11,6 +11,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     setPageMeta({
@@ -24,7 +25,7 @@ export default function Login() {
     setSaving(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/");
+      navigate(searchParams.get("returnTo") || "/");
     } catch (error) {
       console.error(error);
       alert(t("login.invalid", "Invalid email or password."));

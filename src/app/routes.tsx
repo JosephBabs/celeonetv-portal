@@ -12,6 +12,13 @@ import AdminRoute from "../routes/AdminRoute";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import PrelaunchRegistration from "../pages/PrelaunchRegistration";
+import Founders from "../pages/Founders";
+import FounderActivate from "../pages/FounderActivate";
+import FounderDashboard from "../pages/FounderDashboard";
+import FounderVerify from "../pages/FounderVerify";
+import FounderWall from "../pages/FounderWall";
+import FounderHubPage from "../pages/FounderHubPage";
+import AdminFounders from "../pages/AdminFounders";
 import Documentation from "../pages/Documentation";
 import SpiritualProgram from "../pages/SpiritualProgram";
 import AdminSpiritualProgram from "../pages/AdminSpiritualProgram";
@@ -41,6 +48,13 @@ export const router = createBrowserRouter([
       { path: "/logout", element: <Login /> },
       { path: "/register", element: <Register /> },
       { path: "/prelaunch-registration", element: <PrelaunchRegistration /> },
+      { path: "/founders", element: <Founders /> },
+      { path: "/founders/activate", element: <FounderActivate /> },
+      { path: "/founders/dashboard", element: <FounderDashboard /> },
+      { path: "/founders/wall", element: <FounderWall /> },
+      { path: "/founders/verify", element: <FounderVerify /> },
+      { path: "/founders/verify/:founderId", element: <FounderVerify /> },
+      { path: "/founders/:section", element: <FounderHubPage /> },
 
 
       // Admin
@@ -49,6 +63,14 @@ export const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AdminDashboard />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/founders",
+        element: (
+          <AdminRoute>
+            <AdminFounders />
           </AdminRoute>
         ),
       },
