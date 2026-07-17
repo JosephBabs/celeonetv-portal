@@ -278,7 +278,7 @@ export default {
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
 
-    if (url.pathname === "/api/translate") return handleTranslate(request, env);
+    if (/^\/api\/translate\/?$/.test(url.pathname)) return handleTranslate(request, env);
 
     if (method === "HEAD") {
       return new Response(null, {

@@ -14,10 +14,12 @@ import Register from "../pages/Register";
 import Documentation from "../pages/Documentation";
 import SpiritualProgram from "../pages/SpiritualProgram";
 import AdminSpiritualProgram from "../pages/AdminSpiritualProgram";
+import RouteError from "../pages/RouteError";
 
 export const router = createBrowserRouter([
   {
     element: <AppShell />,
+    errorElement: <RouteError />,
     children: [
       { path: "/", element: <Landing /> },
 
@@ -64,6 +66,7 @@ export const router = createBrowserRouter([
           </AdminRoute>
         ),
       },
+      { path: "*", element: <RouteError status={404} /> },
     ],
   },
 ]);
