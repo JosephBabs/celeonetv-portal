@@ -124,7 +124,15 @@ service cloud.firestore {
         request.resource.data.status in ['pending_review', 'verified'] &&
         request.resource.data.activationStatus in ['pending_review', 'active'] &&
         request.resource.data.updatedAt is string;
-      allow read: if isAdmin() || isOwnerByUid("userId") || isOwnerByEmail("email");
+      allow get: if
+        isAdmin() ||
+        isOwnerByUid("userId") ||
+        isOwnerByEmail("email") ||
+        (
+          resource.data.publicFounderId is string &&
+          resource.data.displayName is string
+        );
+      allow list: if isAdmin() || isOwnerByUid("userId") || isOwnerByEmail("email");
       allow delete: if false;
     }
 

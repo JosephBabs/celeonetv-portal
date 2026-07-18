@@ -83,6 +83,10 @@ export function founderCertificateNumber(publicFounderId: string) {
   return normalized.startsWith("CERT-") ? normalized : `CERT-${normalized}`;
 }
 
+export function founderPublicIdFromIdentifier(identifier: string) {
+  return String(identifier || "").trim().toUpperCase().replace(/^CERT-/, "");
+}
+
 export function verificationUrl(identifier: string) {
   const base = APP.founders.verificationBaseUrl.replace(/\/$/, "");
   return `${base}/${encodeURIComponent(String(identifier || "").trim().toUpperCase())}`;
@@ -178,10 +182,31 @@ export async function getFounderByPublicId(publicFounderId: string) {
   if (certificateDoc) return { id: certificateDoc.id, ...certificateDoc.data() };
 
   const byPublicFounderId = await getDocs(
-    query(collection(db, FOUNDER_COLLECTIONS.founders), where("publicFounderId", "==", normalized.replace(/^CERT-/, "")), limit(1)),
+    query(collection(db, FOUNDER_COLLECTIONS.founders), where("publicFounderId", "==", founderPublicIdFromIdentifier(normalized)), limit(1)),
   );
   const founderDoc = byPublicFounderId.docs[0];
-  return founderDoc ? { id: founderDoc.id, ...founderDoc.data() } : null;
+  if (founderDoc) return { id: founderDoc.id, ...founderDoc.data() };
+
+  const reservationPublicId = founderPublicIdFromIdentifier(normalized);
+  const reservationSnap = await getDoc(doc(db, "founderReservations", reservationDocumentId(reservationPublicId))).catch(() => null);
+  if (!reservationSnap?.exists()) return null;
+  const reservation = reservationSnap.data() as Record<string, any>;
+  const status = String(reservation.activationStatus || reservation.status || "").trim();
+  const active = status === "active" || status === "verified";
+  return {
+    id: reservationSnap.id,
+    publicFounderId: reservationPublicId,
+    displayName: String(reservation.displayName || `${reservation.firstName || ""} ${reservation.lastName || ""}`).trim() || "-",
+    founderLevel: String(reservation.founderLevel || ""),
+    certificateNumber: founderCertificateNumber(reservationPublicId),
+    joinedAt: String(reservation.updatedAt || reservation.createdAt || ""),
+    issuedAt: String(reservation.updatedAt || reservation.createdAt || ""),
+    status: active ? "active" : status || "pending_review",
+    certificateStatus: active ? "active" : "pending_review",
+    activationStatus: status || "pending_review",
+    verificationUrl: verificationUrl(founderCertificateNumber(reservationPublicId)),
+    source: "founderReservations",
+  };
 }
 
 export function reservationDocumentId(publicFounderId: string) {

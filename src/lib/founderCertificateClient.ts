@@ -1,7 +1,7 @@
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, PDFPage, StandardFonts, rgb } from "pdf-lib";
 import { fitFounderName } from "./founderCertificateUtils";
-import { founderLevelLabel, verificationUrl } from "./founders";
+import { founderCertificateNumber, founderLevelLabel, verificationUrl } from "./founders";
 
 const TEMPLATE_URL = "/founders/founder-certificate-template.pdf";
 const GABRIOLA_FONT_URL = "/fonts/Gabriola.ttf";
@@ -18,7 +18,7 @@ function stringValue(value: unknown, fallback = "") {
 
 function certificateNumber(founder: Record<string, unknown>) {
   const publicFounderId = stringValue(founder.publicFounderId, "COF-XXXX-000000");
-  return stringValue(founder.certificateNumber, `CERT-${publicFounderId}`);
+  return stringValue(founder.certificateNumber, founderCertificateNumber(publicFounderId));
 }
 
 function issueDate(founder: Record<string, unknown>) {
@@ -106,33 +106,33 @@ export async function buildFounderCertificatePdf(founder: Record<string, unknown
   const founderLevel = founderLevelLabel(stringValue(founder.founderLevel)).toUpperCase();
   const certNo = certificateNumber(founder);
   const issued = issueDate(founder);
-  const verify = verificationUrl(publicFounderId);
+  const verify = verificationUrl(certNo);
 
-  centerText(page, "CERTIFICAT PASS-FONDATEUR", 742, 34, serif, gold);
-  centerText(page, "Cele One Founder's Pass", 706, 18, sansBold, green);
-  centerText(page, "decerne officiellement a", 642, 16, sans, soft);
+  centerText(page, "CERTIFICAT PASS-FONDATEUR", 860, 42, serif, gold);
+  centerText(page, "Cele One Founder's Pass", 820, 20, sansBold, green);
+  centerText(page, "decerne officiellement a", 742, 18, sans, soft);
 
   if (fit.lines.length === 1) {
-    centerText(page, fit.lines[0], 548, fit.fontSize + 28, nameFont, dark);
+    centerText(page, fit.lines[0], 640, fit.fontSize + 36, nameFont, dark);
   } else {
-    centerText(page, fit.lines[0], 582, fit.fontSize + 22, nameFont, dark);
-    centerText(page, fit.lines[1], 522, fit.fontSize + 22, nameFont, dark);
+    centerText(page, fit.lines[0], 664, fit.fontSize + 28, nameFont, dark);
+    centerText(page, fit.lines[1], 594, fit.fontSize + 28, nameFont, dark);
   }
 
-  centerText(page, `pour son soutien en tant que ${founderLevel} FOUNDER`, 470, 18, sansBold, green);
-  centerText(page, "au developpement et au lancement de Cele One.", 438, 15, sans, soft);
+  centerText(page, `pour son soutien en tant que ${founderLevel} FOUNDER`, 520, 20, sansBold, green);
+  centerText(page, "au developpement et au lancement de Cele One.", 486, 16, sans, soft);
 
-  page.drawText(publicFounderId, { x: 270, y: 248, size: 22, font: sansBold, color: green });
-  page.drawText("Founder ID", { x: 270, y: 278, size: 11, font: sansBold, color: gold });
+  page.drawText("Founder ID", { x: 430, y: 252, size: 11, font: sansBold, color: gold });
+  page.drawText(publicFounderId, { x: 430, y: 226, size: 22, font: sansBold, color: green });
 
-  page.drawText("Certificate Number", { x: 588, y: 120, size: 11, font: sansBold, color: gold });
-  page.drawText(certNo, { x: 588, y: 98, size: 16, font: sansBold, color: dark });
+  page.drawText("Certificate Number", { x: 760, y: 252, size: 11, font: sansBold, color: gold });
+  page.drawText(certNo, { x: 760, y: 226, size: 18, font: sansBold, color: dark });
 
-  page.drawText("Issue Date", { x: 886, y: 120, size: 11, font: sansBold, color: gold });
-  page.drawText(issued, { x: 886, y: 98, size: 14, font: sans, color: dark });
+  page.drawText("Issue Date", { x: 1112, y: 252, size: 11, font: sansBold, color: gold });
+  page.drawText(issued, { x: 1112, y: 226, size: 14, font: sansBold, color: dark });
 
-  page.drawText("Verification", { x: 100, y: 58, size: 10, font: sansBold, color: gold });
-  page.drawText(verify, { x: 100, y: 42, size: 9, font: sans, color: soft });
+  page.drawText("Verification", { x: 430, y: 170, size: 11, font: sansBold, color: gold });
+  page.drawText(verify, { x: 430, y: 146, size: 10, font: sans, color: soft });
 
   drawLogoInBox(page, logo);
 
