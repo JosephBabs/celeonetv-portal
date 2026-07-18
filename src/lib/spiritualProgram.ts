@@ -234,6 +234,18 @@ export type ProgramBundle = {
 const mapDocs = <T,>(snap: Awaited<ReturnType<typeof getDocs>>): T[] =>
   snap.docs.map((item) => ({ id: item.id, ...(item.data() as Record<string, unknown>) } as T));
 
+const safeGetDocs = async (path: string) => {
+  try {
+    return await getDocs(collection(db, path));
+  } catch (error: any) {
+    if (String(error?.code || "") === "permission-denied") {
+      console.warn(`Skipping protected Firestore collection on public portal: ${path}`);
+      return null;
+    }
+    throw error;
+  }
+};
+
 const toYmd = (value: Date = new Date()) => {
   const year = value.getFullYear();
   const month = `${value.getMonth() + 1}`.padStart(2, "0");
@@ -359,26 +371,26 @@ const loadThemeWeekBundle = async () => {
 
 export const loadProgramBundle = async (): Promise<ProgramBundle> => {
   const [yearsSnap, monthsSnap, weeksSnap, servicesSnap, hymnSnap, celebrationsSnap, schedulesSnap, themeBundle] = await Promise.all([
-    getDocs(collection(db, "spiritual_years")),
-    getDocs(collection(db, "spiritual_months")),
-    getDocs(collection(db, "spiritual_weeks")),
-    getDocs(collection(db, "spiritual_services")),
-    getDocs(collection(db, "hymn_programs")),
-    getDocs(collection(db, "special_celebrations")),
-    getDocs(collection(db, "service_schedules")),
+    safeGetDocs("spiritual_years"),
+    safeGetDocs("spiritual_months"),
+    safeGetDocs("spiritual_weeks"),
+    safeGetDocs("spiritual_services"),
+    safeGetDocs("hymn_programs"),
+    safeGetDocs("special_celebrations"),
+    safeGetDocs("service_schedules"),
     loadThemeWeekBundle(),
   ]);
 
   return {
-    years: mapDocs<SpiritualYear>(yearsSnap).sort((a, b) => Number(b.yearName || 0) - Number(a.yearName || 0)),
-    months: mapDocs<SpiritualMonth>(monthsSnap).sort((a, b) => Number(a.orderIndex || 99) - Number(b.orderIndex || 99)),
-    weeks: mapDocs<SpiritualWeek>(weeksSnap).sort((a, b) => String(b.startDate || "").localeCompare(String(a.startDate || ""))),
-    services: mapDocs<SpiritualService>(servicesSnap).sort((a, b) => `${a.date || ""} ${a.time || ""}`.localeCompare(`${b.date || ""} ${b.time || ""}`)),
-    hymnPrograms: mapDocs<HymnProgram>(hymnSnap),
-    celebrations: mapDocs<SpiritualCelebration>(celebrationsSnap)
+    years: yearsSnap ? mapDocs<SpiritualYear>(yearsSnap).sort((a, b) => Number(b.yearName || 0) - Number(a.yearName || 0)) : [],
+    months: monthsSnap ? mapDocs<SpiritualMonth>(monthsSnap).sort((a, b) => Number(a.orderIndex || 99) - Number(b.orderIndex || 99)) : [],
+    weeks: weeksSnap ? mapDocs<SpiritualWeek>(weeksSnap).sort((a, b) => String(b.startDate || "").localeCompare(String(a.startDate || ""))) : [],
+    services: servicesSnap ? mapDocs<SpiritualService>(servicesSnap).sort((a, b) => `${a.date || ""} ${a.time || ""}`.localeCompare(`${b.date || ""} ${b.time || ""}`)) : [],
+    hymnPrograms: hymnSnap ? mapDocs<HymnProgram>(hymnSnap) : [],
+    celebrations: celebrationsSnap ? mapDocs<SpiritualCelebration>(celebrationsSnap)
       .map((item) => ({ ...item, category: item.category || item.type || "custom" }))
-      .sort((a, b) => String(a.startDate || "").localeCompare(String(b.startDate || ""))),
-    schedules: mapDocs<ServiceScheduleItem>(schedulesSnap).sort((a, b) => `${a.dayName || ""} ${a.time || ""}`.localeCompare(`${b.dayName || ""} ${b.time || ""}`)),
+      .sort((a, b) => String(a.startDate || "").localeCompare(String(b.startDate || ""))) : [],
+    schedules: schedulesSnap ? mapDocs<ServiceScheduleItem>(schedulesSnap).sort((a, b) => `${a.dayName || ""} ${a.time || ""}`.localeCompare(`${b.dayName || ""} ${b.time || ""}`)) : [],
     themeWeeks: themeBundle.themeWeeks,
     eventDays: themeBundle.eventDays,
     hymns: themeBundle.hymns,
