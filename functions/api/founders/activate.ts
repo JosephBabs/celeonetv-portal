@@ -28,6 +28,10 @@ function canFallbackToClient(message: string) {
     || message.startsWith("STORAGE_");
 }
 
+function backendFinalizationUnavailable(env: PortalEnv) {
+  return !env.FIREBASE_SERVICE_ACCOUNT_EMAIL || !env.FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY;
+}
+
 function splitDisplayName(displayName: string) {
   const normalized = String(displayName || "").trim().replace(/\s+/g, " ");
   const [firstName = "", ...rest] = normalized.split(" ");
@@ -81,6 +85,31 @@ export async function onRequestPost({ request, env }: Context) {
     const paymentId = paymentDocumentId(sale.id);
     const applicationId = applicationDocumentId(paymentId);
     const now = new Date().toISOString();
+
+    if (backendFinalizationUnavailable(env)) {
+      return json({
+        ok: true,
+        status: "verified_client_pending",
+        applicationId,
+        paymentId,
+        founderReferenceId,
+        fallbackReason: "FIREBASE_SERVICE_ACCOUNT_NOT_CONFIGURED",
+        verification: {
+          founderReferenceId,
+          saleId: sale.id,
+          paymentId,
+          amount: sale.amount.value,
+          currency: sale.amount.currency,
+          purchaseDate: sale.completed_at || sale.created_at || now,
+          paymentMethod: sale.payment?.method?.name || sale.payment?.gateway || "",
+          purchaseEmail: sale.customer.email,
+          customerName: sale.customer.name || `${sale.customer.first_name || ""} ${sale.customer.last_name || ""}`.trim(),
+          customerPhone: sale.customer.phone || "",
+          customerCountry: sale.customer.country || "",
+          founderLevel: level,
+        },
+      });
+    }
 
     const existingPayment = await getDocument(env, `founderPayments/${paymentId}`) as Record<string, unknown> | null;
     if (existingPayment?.userId && String(existingPayment.userId) !== user.uid) {
