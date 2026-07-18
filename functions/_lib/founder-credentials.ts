@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import QRCode from "qrcode";
 import { Resvg, initWasm } from "@resvg/resvg-wasm";
 // @ts-ignore
@@ -99,15 +99,6 @@ function joinedYear(joinedAt?: string) {
 function frenchDate(value?: string) {
   const date = new Date(isoDate(value));
   return new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(date);
-}
-
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .toLowerCase();
 }
 
 function verificationUrl(env: PortalEnv, founder: FounderRecord) {
@@ -329,15 +320,6 @@ async function pdfFromPng(title: string, width: number, height: number, pngBytes
   return doc.save();
 }
 
-async function tinyPlaceholderPng(label: string) {
-  const pdf = await PDFDocument.create();
-  const page = pdf.addPage([800, 500]);
-  const font = await pdf.embedFont(StandardFonts.HelveticaBold);
-  page.drawRectangle({ x: 0, y: 0, width: 800, height: 500, color: rgb(0.07, 0.23, 0.25) });
-  page.drawText(label, { x: 80, y: 230, size: 36, font, color: rgb(1, 1, 1) });
-  return pdf.save();
-}
-
 function escapeXml(value: string) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -466,7 +448,7 @@ async function persistCredentialState(env: PortalEnv, founder: FounderRecord, ve
     credentialUpdatedAt: now,
     verificationUrl: String(founder.verificationUrl || ""),
     passCardUrl: paths.cardFrontPath,
-    certificateUrl: paths.certificateStoragePath || paths.certificatePdfPath,
+    certificateUrl: paths.certificatePdfPath,
   });
 }
 
