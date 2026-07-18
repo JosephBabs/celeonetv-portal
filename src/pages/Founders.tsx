@@ -4,16 +4,18 @@ import { setPageMeta } from "../lib/seo";
 import { useEffect } from "react";
 
 const benefits = [
-  "Badge fondateur dans Cele One",
-  "Carte numerique personnalisee",
-  "Certificat de soutien",
-  "Acces anticipe a certaines actualites",
-  "Acces aux coulisses de certains tournages",
-  "Invitations a certaines visites ou activites",
-  "Acces prioritaire a certains evenements",
-  "Sessions privees ou rencontres avec l'equipe",
-  "Nom sur le mur des fondateurs, avec consentement",
-  "Opportunites futures reservees aux detenteurs eligibles",
+  {
+    title: "Identifiants premium",
+    desc: "Carte Founder, certificat verifie, badge digital et QR de verification apres approbation.",
+  },
+  {
+    title: "Acces prioritaire",
+    desc: "Ouvertures selectives vers certaines actualites, rencontres, visites et evenements reserves.",
+  },
+  {
+    title: "Reconnaissance officielle",
+    desc: "Presence eligible sur le mur des fondateurs et rattachement a la base Founder officielle Cele One.",
+  },
 ];
 
 export default function Founders() {
@@ -25,55 +27,144 @@ export default function Founders() {
   }, []);
 
   const chariowUrl = APP.founders.chariowPassUrl;
+  const paymentUrl = chariowUrl || "https://dzrkqyqp.mychariow.shop/prd_htdw78o8";
 
   return (
     <div className="space-y-8 py-6">
-      <section className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-gradient-to-br from-[#0f3c40] via-[#2FA5A9] to-[#0f766e] p-8 text-white shadow-sm md:p-12">
-        <div className="absolute right-0 top-0 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-        <div className="relative max-w-4xl">
-          <div className="inline-flex rounded-full bg-white/15 px-4 py-1 text-xs font-black tracking-wide">CELE ONE</div>
-          <h1 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Cele One Founder's Pass</h1>
-          <p className="mt-4 text-xl font-extrabold text-white/90">Devenez l'un des premiers batisseurs de Cele One.</p>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-white/90 md:text-base">
-            Le Founder's Pass reconnait les premieres personnes qui contribuent au developpement de Cele One. Les detenteurs verifies peuvent beneficier d'un acces prioritaire a certaines actualites, experiences, visites, tournages, evenements et programmes reserves aux membres fondateurs.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <a
-              href={chariowUrl || "#chariow-missing"}
-              target={chariowUrl ? "_blank" : undefined}
-              rel="noreferrer"
-              className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-slate-100"
-              onClick={(event) => {
-                if (!chariowUrl) {
-                  event.preventDefault();
-                  alert("Chariow product URL is not configured yet.");
-                }
-              }}
-            >
-              Obtenir mon Founder's Pass
-            </a>
-            <Link to="/founders/activate" className="rounded-2xl bg-amber-300 px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-amber-200">Activer mon pass</Link>
-            <Link to="/founders/verify" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">Verifier un pass</Link>
-            <Link to="/login?returnTo=/founders/dashboard" className="rounded-2xl border border-white/40 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">Se connecter</Link>
+      <section className="overflow-hidden rounded-[2rem] border border-[#d4c295] bg-[linear-gradient(135deg,#0d2d33_0%,#15434c_52%,#2FA5A9_100%)] text-white shadow-sm">
+        <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
+          <div className="p-8 md:p-12">
+            <div className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-black tracking-[0.22em]">CELE ONE</div>
+            <h1 className="mt-5 text-4xl font-black leading-tight md:text-6xl">Founder&apos;s Pass</h1>
+            <p className="mt-4 max-w-3xl text-base font-semibold leading-8 text-white/85">
+              Une adhesion fondatrice premium pour les premiers soutiens verifies du projet Cele One, avec un parcours clair:
+              achat du produit officiel, verification backend, puis activation des identifiants fondateurs.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a
+                href={paymentUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-2xl bg-[#f5d36d] px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-[#efc850]"
+              >
+                Acheter le Founder&apos;s Pass
+              </a>
+              <Link to="/founders/activate" className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-slate-100">
+                Activer mon pass
+              </Link>
+              <Link to="/founders/verify" className="rounded-2xl border border-white/25 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
+                Verifier un pass
+              </Link>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              <Stat title="Paiement officiel" value="Produit Chariow" />
+              <Stat title="Activation" value="Recu ou sale ID" />
+              <Stat title="Sortie premium" value="Certificat + carte" />
+            </div>
+          </div>
+
+          <div className="border-t border-white/10 bg-white/[0.08] p-8 backdrop-blur lg:border-l lg:border-t-0">
+            <div className="text-xs font-black uppercase tracking-[0.2em] text-amber-200">Lien produit</div>
+            <div className="mt-3 rounded-[1.5rem] border border-white/10 bg-white/10 p-5">
+              <div className="text-lg font-black">Cele One Founder&apos;s Pass</div>
+              <p className="mt-2 text-sm font-semibold leading-7 text-white/82">
+                Utilisez ce lien pour finaliser votre contribution Founder&apos;s Pass sur la boutique officielle Chariow.
+              </p>
+              <a href={paymentUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex rounded-2xl bg-[#123b40] px-5 py-3 text-sm font-extrabold text-white hover:bg-[#0d2d33]">
+                Ouvrir le produit
+              </a>
+              <div className="mt-4 break-all text-sm font-bold text-white/78">{paymentUrl}</div>
+            </div>
+
+            <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-[#fff8ea] p-5 text-slate-900">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-[#a76f1f]">Parcours simple</div>
+              <div className="mt-3 space-y-3">
+                <Step label="1" text="Achetez le Founder&apos;s Pass avec le lien produit." />
+                <Step label="2" text="Gardez votre recu ou votre sale ID apres paiement." />
+                <Step label="3" text="Activez votre pass dans le portail Cele One." />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {benefits.map((benefit) => (
-          <div key={benefit} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-lg font-black text-[#2FA5A9]">CO</div>
-            <div className="mt-4 text-base font-black text-slate-900">{benefit}</div>
+      <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="text-xs font-black uppercase tracking-[0.2em] text-[#2FA5A9]">Ce que vous recevez</div>
+          <div className="mt-5 space-y-4">
+            {benefits.map((benefit) => (
+              <div key={benefit.title} className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <div className="text-base font-black text-slate-900">{benefit.title}</div>
+                <div className="mt-2 text-sm font-semibold leading-6 text-slate-600">{benefit.desc}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </section>
+        </div>
 
-      <section className="rounded-3xl border border-amber-200 bg-amber-50 p-6">
-        <div className="text-sm font-black uppercase tracking-wide text-amber-800">Important</div>
-        <p className="mt-2 text-sm font-bold leading-6 text-amber-950">
-          Les avantages sont progressifs, peuvent varier selon les evenements, les disponibilites, la localisation, les partenaires et le niveau de soutien. Le Founder's Pass ne constitue ni un investissement financier, ni une promesse de rendement, ni une action dans Cele One.
-        </p>
+        <div className="rounded-[2rem] border border-amber-200 bg-[linear-gradient(135deg,#fff9ec_0%,#fff4dd_100%)] p-6 shadow-sm">
+          <div className="text-xs font-black uppercase tracking-[0.2em] text-[#a76f1f]">Activation et verification</div>
+          <h2 className="mt-2 text-2xl font-black text-slate-900">Un parcours plus propre, sans confusion</h2>
+          <p className="mt-3 text-sm font-semibold leading-7 text-slate-700">
+            Le Founder&apos;s Pass n&apos;est pas une promesse financiere. C&apos;est une adhesion de soutien verifiee, rattachee a un paiement officiel,
+            puis transformee en identifiants premium apres verification et approbation.
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <ActionCard
+              title="Apres paiement"
+              desc="Ouvrez la page d'activation et collez votre recu ou votre sale ID Chariow."
+              link="/founders/activate"
+              label="Aller a l'activation"
+            />
+            <ActionCard
+              title="Verification publique"
+              desc="Chaque certificat et chaque carte Founder peuvent etre verifies depuis la route officielle Cele One."
+              link="/founders/verify"
+              label="Ouvrir la verification"
+            />
+          </div>
+
+          <div className="mt-5 rounded-[1.5rem] border border-amber-200 bg-white/80 p-5">
+            <div className="text-sm font-black uppercase tracking-[0.16em] text-[#a76f1f]">Important</div>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
+              Les avantages peuvent varier selon les disponibilites, les evenements, les partenaires, la localisation et le niveau de soutien.
+              Le Founder&apos;s Pass ne constitue ni une action, ni un investissement, ni une garantie de rendement.
+            </p>
+          </div>
+        </div>
       </section>
+    </div>
+  );
+}
+
+function Stat({ title, value }: { title: string; value: string }) {
+  return (
+    <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-4">
+      <div className="text-xs font-black uppercase tracking-[0.16em] text-amber-200">{title}</div>
+      <div className="mt-2 text-lg font-black text-white">{value}</div>
+    </div>
+  );
+}
+
+function Step({ label, text }: { label: string; text: string }) {
+  return (
+    <div className="flex gap-3 rounded-[1rem] bg-white p-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#123b40] text-sm font-black text-white">{label}</div>
+      <div className="text-sm font-semibold leading-6 text-slate-700">{text}</div>
+    </div>
+  );
+}
+
+function ActionCard({ title, desc, link, label }: { title: string; desc: string; link: string; label: string }) {
+  return (
+    <div className="rounded-[1.4rem] border border-slate-200 bg-white p-4">
+      <div className="text-base font-black text-slate-900">{title}</div>
+      <div className="mt-2 text-sm font-semibold leading-6 text-slate-600">{desc}</div>
+      <Link to={link} className="mt-4 inline-flex rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800">
+        {label}
+      </Link>
     </div>
   );
 }

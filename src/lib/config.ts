@@ -1,4 +1,5 @@
 export const APP = {
+  founderPassProductUrl: "https://dzrkqyqp.mychariow.shop/prd_htdw78o8",
   brand: {
     name: "Celeone",
     primary: "#14B8A6", // teal
@@ -12,10 +13,10 @@ export const APP = {
     publicLiveBase: "https://live.celeonetv.com", // or celeonetv.com depending on your DNS
   },
   donations: {
-    paymentUrl: import.meta.env.VITE_DONATION_PAYMENT_URL || "https://celeonetv.com/donate",
+    paymentUrl: import.meta.env.VITE_DONATION_PAYMENT_URL || "https://dzrkqyqp.mychariow.shop/prd_htdw78o8",
   },
   founders: {
-    chariowPassUrl: import.meta.env.VITE_CHARIOW_FOUNDERS_PASS_URL || "",
+    chariowPassUrl: import.meta.env.VITE_CHARIOW_FOUNDERS_PASS_URL || "https://dzrkqyqp.mychariow.shop/prd_htdw78o8",
     supportEmail: import.meta.env.VITE_FOUNDERS_SUPPORT_EMAIL || "support@celeonetv.com",
     verificationBaseUrl: import.meta.env.VITE_FOUNDERS_VERIFICATION_BASE_URL || "https://celeonetv.com/founders/verify",
     levels: [

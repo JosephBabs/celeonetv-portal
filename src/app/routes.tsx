@@ -12,6 +12,7 @@ import AdminRoute from "../routes/AdminRoute";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import PrelaunchRegistration from "../pages/PrelaunchRegistration";
+import DonateRedirect from "../pages/DonateRedirect";
 import Founders from "../pages/Founders";
 import FounderActivate from "../pages/FounderActivate";
 import FounderCertificate from "../pages/FounderCertificate";
@@ -49,6 +50,7 @@ export const router = createBrowserRouter([
       { path: "/login", element: <Login /> },
       { path: "/logout", element: <Login /> },
       { path: "/register", element: <Register /> },
+      { path: "/donate", element: <DonateRedirect /> },
       { path: "/prelaunch-registration", element: <PrelaunchRegistration /> },
       { path: "/founders", element: <Founders /> },
       { path: "/founders/activate", element: <FounderActivate /> },
