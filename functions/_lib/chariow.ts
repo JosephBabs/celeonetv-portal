@@ -68,6 +68,14 @@ function normalizeSale(value: unknown): ChariowSale {
   };
 }
 
+function normalizedText(value: string) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function uniqueValues(values: string[]) {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+}
+
 export class ChariowService {
   private baseUrl: string;
   private key: string;
@@ -120,8 +128,42 @@ export class ChariowService {
   }
   searchSales(search: string) { return this.listSales({ search, per_page: 25 }); }
 
+  private async resolveSale(reference: string) {
+    const rawReference = String(reference || "").trim();
+    if (!rawReference) throw new ChariowError(422, "CHARIOW_REFERENCE_REQUIRED", "Sale reference is required");
+
+    const directCandidates = uniqueValues([
+      rawReference,
+      normalizedText(rawReference),
+      rawReference.replace(/^sale/i, "sal_"),
+      normalizedText(rawReference).replace(/^sale/i, "sal_"),
+    ]).filter((candidate) => /^sal_[a-z0-9]+$/i.test(candidate));
+
+    for (const candidate of directCandidates) {
+      try {
+        return await this.getSale(candidate.toLowerCase());
+      } catch (error) {
+        if (error instanceof ChariowError && error.status === 404) continue;
+        throw error;
+      }
+    }
+
+    const searchTerms = uniqueValues([rawReference, normalizedText(rawReference)]);
+    for (const term of searchTerms) {
+      const rows = await this.searchSales(term);
+      const normalizedRows = rows.map((row) => normalizeSale(row));
+      const exact =
+        normalizedRows.find((row) => normalizedText(row.id) === normalizedText(rawReference))
+        || normalizedRows.find((row) => normalizedText(row.payment?.transaction_id || "") === normalizedText(rawReference));
+      const resolved = exact || (normalizedRows.length === 1 ? normalizedRows[0] : null);
+      if (resolved?.id) return this.getSale(resolved.id);
+    }
+
+    throw new ChariowError(404, "CHARIOW_NOT_FOUND", "Sale not found");
+  }
+
   async verifyFounderSale(saleId: string): Promise<VerifiedFounderSale> {
-    const sale = await this.getSale(saleId);
+    const sale = await this.resolveSale(saleId);
     if (!sale.id) return { eligible: false, sale, reason: "SALE_ID_MISSING" };
     if (!new Set(["completed", "settled"]).has(sale.status)) return { eligible: false, sale, reason: "SALE_NOT_COMPLETED" };
     if (sale.payment?.status !== "success") return { eligible: false, sale, reason: "PAYMENT_NOT_SUCCESSFUL" };

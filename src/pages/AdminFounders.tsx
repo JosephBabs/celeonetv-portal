@@ -28,6 +28,7 @@ export default function AdminFounders() {
   const [tab, setTab] = useState<Tab>("overview");
   const [applications, setApplications] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<any[]>([]);
   const [founders, setFounders] = useState<any[]>([]);
   const [benefits, setBenefits] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -38,9 +39,10 @@ export default function AdminFounders() {
 
   async function load() {
     setLoading(true);
-    const [apps, pays, fnds, bens, anns, logs] = await Promise.all([
+    const [apps, pays, reservs, fnds, bens, anns, logs] = await Promise.all([
       loadCollection("founderApplications"),
       loadCollection("founderPayments"),
+      loadCollection("founderReservations"),
       loadCollection("founders"),
       loadCollection("founderBenefits"),
       loadCollection("founderAnnouncements"),
@@ -48,6 +50,7 @@ export default function AdminFounders() {
     ]);
     setApplications(apps);
     setPayments(pays);
+    setReservations(reservs);
     setFounders(fnds);
     setBenefits(bens);
     setAnnouncements(anns);
@@ -67,13 +70,15 @@ export default function AdminFounders() {
       pending: applications.filter((a) => a.status === "pending").length,
       approved: applications.filter((a) => a.status === "approved").length,
       rejected: applications.filter((a) => a.status === "rejected").length,
+      reservedFounderIds: reservations.length,
+      pendingFounderIds: reservations.filter((r) => r.activationStatus === "awaiting_payment" || r.status === "not_verified").length,
       activeFounders: founders.filter((f) => f.status === "active").length,
       inactiveFounders: founders.filter((f) => f.status !== "active").length,
       totalVerified,
       pendingInvitations: 0,
       upcomingEvents: benefits.filter((b) => b.active).length,
     };
-  }, [applications, benefits, founders, payments]);
+  }, [applications, benefits, founders, payments, reservations]);
 
   const approve = async (applicationId: string) => {
     if (!confirm("Approve this Founder application and generate Founder ID?")) return;
@@ -137,7 +142,7 @@ export default function AdminFounders() {
       {loading ? <div className="rounded-3xl bg-slate-100 p-6">Loading...</div> : null}
       {!loading && tab === "overview" ? <Overview stats={stats} founders={founders} /> : null}
       {!loading && tab === "applications" ? <Applications rows={applications} onApprove={approve} onReject={reject} /> : null}
-      {!loading && tab === "payments" ? <Table rows={payments} fields={["providerOrderReference", "customerEmail", "amount", "currency", "paymentStatus", "verified"]} /> : null}
+      {!loading && tab === "payments" ? <PaymentsTable payments={payments} reservations={reservations} founders={founders} /> : null}
       {!loading && tab === "founders" ? <FoundersTable rows={founders} onStatus={(id, status) => updateFounderStatus(id, user?.uid || "", status).then(load)} /> : null}
       {!loading && tab === "benefits" ? <EditorList rows={benefits} draft={benefitDraft} setDraft={setBenefitDraft} onSave={saveBenefit} fields={["title", "description", "type", "location"]} /> : null}
       {!loading && tab === "announcements" ? <EditorList rows={announcements} draft={announcementDraft} setDraft={setAnnouncementDraft} onSave={saveAnnouncement} fields={["title", "summary", "content"]} /> : null}
@@ -183,6 +188,65 @@ function Applications({ rows, onApprove, onReject }: { rows: any[]; onApprove: (
   );
 }
 
+function PaymentsTable({ payments, reservations, founders }: { payments: any[]; reservations: any[]; founders: any[] }) {
+  const foundersByPublicId = new Map(founders.map((item) => [String(item.publicFounderId || "").trim().toUpperCase(), item]));
+  const reservationByPublicId = new Map(reservations.map((item) => [String(item.publicFounderId || "").trim().toUpperCase(), item]));
+
+  return (
+    <div className="space-y-3">
+      {payments.map((payment) => {
+        const founderReferenceId = String(payment.founderReferenceId || "").trim().toUpperCase();
+        const reservation = reservationByPublicId.get(founderReferenceId);
+        const founder = foundersByPublicId.get(founderReferenceId);
+        const saleReference = String(payment.providerSaleId || payment.providerOrderReference || payment.id || "-");
+        const amount = [payment.amount, payment.currency].filter(Boolean).join(" ") || "-";
+        return (
+          <div key={payment.id} className="rounded-3xl border border-slate-200 bg-white p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-extrabold text-white">{String(payment.provider || "chariow").toUpperCase()}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-extrabold ${payment.verified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>{payment.verified ? "Verified" : "Pending"}</span>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold text-slate-700">{String(payment.paymentStatus || "-")}</span>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold text-slate-700">{String(payment.saleStatus || "-")}</span>
+                </div>
+                <div className="mt-3 text-lg font-black text-slate-900">{payment.customerName || payment.customerEmail || "Paiement Founder"}</div>
+                <div className="mt-1 font-mono text-sm font-bold text-slate-500 break-all">{saleReference}</div>
+                <div className="mt-1 text-sm font-semibold text-slate-600">{payment.customerEmail || "-"}{payment.customerPhone ? ` - ${payment.customerPhone}` : ""}</div>
+              </div>
+              <div className="rounded-2xl bg-slate-50 px-4 py-3 text-right">
+                <div className="text-xs font-black uppercase tracking-wide text-slate-500">Amount</div>
+                <div className="mt-1 text-lg font-black text-slate-900">{amount}</div>
+                <div className="mt-1 text-xs font-bold text-slate-500">{founderLevelLabel(payment.founderLevel)}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <AdminInfo label="Founder ID" value={founderReferenceId || "-"} mono />
+              <AdminInfo label="Reservation status" value={String(reservation?.activationStatus || reservation?.status || "-")} />
+              <AdminInfo label="Founder record" value={String(founder?.status || "-")} />
+              <AdminInfo label="Completed" value={formatDate(payment.completedAt || payment.verifiedAt || payment.createdAt)} />
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <AdminInfo label="Payment doc" value={String(payment.id || "-")} mono />
+              <AdminInfo label="Transaction" value={String(payment.providerTransactionId || payment.channel || "-")} mono />
+              <AdminInfo label="Method" value={String(payment.paymentMethod || "-")} />
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {founder?.id ? <Link to={`/admin/founders/members/${founder.id}/certificate`} className="rounded-2xl bg-[#2FA5A9] px-4 py-2 text-xs font-extrabold text-white">Open founder</Link> : null}
+              {saleReference && saleReference !== "-" ? <button onClick={() => navigator.clipboard?.writeText(saleReference)} className="rounded-2xl border border-slate-200 px-4 py-2 text-xs font-extrabold text-slate-700">Copy sale reference</button> : null}
+              {founderReferenceId ? <button onClick={() => navigator.clipboard?.writeText(founderReferenceId)} className="rounded-2xl border border-slate-200 px-4 py-2 text-xs font-extrabold text-slate-700">Copy Founder ID</button> : null}
+            </div>
+          </div>
+        );
+      })}
+      {payments.length === 0 ? <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm font-bold text-slate-600">Aucun paiement Founder pour le moment.</div> : null}
+    </div>
+  );
+}
+
 function FoundersTable({ rows, onStatus }: { rows: any[]; onStatus: (id: string, status: any) => void }) {
   return (
     <div className="space-y-3">
@@ -224,6 +288,15 @@ function EditorList({ rows, draft, setDraft, onSave, fields }: { rows: any[]; dr
 
 function Table({ rows, fields }: { rows: any[]; fields: string[] }) {
   return <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-xs font-black uppercase text-slate-500"><tr>{fields.map((f) => <th key={f} className="p-3">{f}</th>)}</tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-slate-100">{fields.map((f) => <td key={f} className="p-3 font-semibold text-slate-700">{String(row[f] ?? "-")}</td>)}</tr>)}</tbody></table></div>;
+}
+
+function AdminInfo({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+      <div className="text-[11px] font-black uppercase tracking-wide text-slate-500">{label}</div>
+      <div className={`mt-1 text-sm font-bold text-slate-800 ${mono ? "font-mono break-all" : ""}`}>{value || "-"}</div>
+    </div>
+  );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
