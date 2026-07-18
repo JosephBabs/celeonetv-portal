@@ -46,7 +46,7 @@ export default function FounderVerify() {
             <div className="text-xs font-black uppercase tracking-[0.22em] text-amber-200">Verification officielle</div>
             <h1 className="mt-3 text-4xl font-black">Verifier un certificat Founder</h1>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-white/85">
-              Entrez un Founder ID comme `COF-2026-000018` ou scannez le QR code du certificat pour ouvrir la verification publique Cele One.
+              Entrez un numero de certificat comme `CERT-COF-2026-000018` ou scannez le QR code du certificat pour ouvrir la verification publique Cele One.
             </p>
           </div>
 
@@ -54,11 +54,11 @@ export default function FounderVerify() {
             <form onSubmit={openVerification} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6">
               <div className="text-sm font-black uppercase tracking-[0.18em] text-[#2FA5A9]">Recherche manuelle</div>
               <label className="mt-4 grid gap-2">
-                <span className="text-sm font-extrabold text-slate-800">Founder ID</span>
+                <span className="text-sm font-extrabold text-slate-800">Numero de certificat</span>
                 <input
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  placeholder="COF-2026-000018"
+                  placeholder="CERT-COF-2026-000018"
                   className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold uppercase outline-none focus:ring-2 focus:ring-teal-200"
                 />
               </label>
@@ -73,7 +73,7 @@ export default function FounderVerify() {
             <div className="rounded-[1.5rem] border border-amber-200 bg-[linear-gradient(135deg,#fff9ec_0%,#fff4dd_100%)] p-6">
               <div className="text-sm font-black uppercase tracking-[0.18em] text-[#a76f1f]">Ce que la page verifie</div>
               <div className="mt-4 space-y-3">
-                <VerifyStep text="Le Founder ID public" />
+                <VerifyStep text="Le numero de certificat public" />
                 <VerifyStep text="Le niveau fondateur enregistre" />
                 <VerifyStep text="Le numero de certificat actif" />
                 <VerifyStep text="Le statut actuel du certificat" />
@@ -103,7 +103,7 @@ export default function FounderVerify() {
             ? "Ce certificat n'existe pas dans la base officielle Cele One."
             : active
               ? "Ce certificat appartient a un soutien fondateur enregistre dans la base officielle Cele One."
-              : "Ce Founder ID existe bien dans la base Cele One, mais son statut n'est pas actif actuellement."}
+              : "Ce numero de certificat existe bien dans la base Cele One, mais son statut n'est pas actif actuellement."}
         </p>
         {founder ? (
           <div className="mt-6 grid gap-3 md:grid-cols-2">

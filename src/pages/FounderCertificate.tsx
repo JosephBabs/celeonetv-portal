@@ -4,7 +4,7 @@ import { FounderCertificateActions } from "../components/founders/certificate/Fo
 import { FounderCertificateInfoPanel } from "../components/founders/certificate/FounderCertificateInfoPanel";
 import { FounderCertificatePreview } from "../components/founders/certificate/FounderCertificatePreview";
 import { buildFounderCertificatePdf } from "../lib/founderCertificateClient";
-import { getFounderByUserId, getLatestFounderApplication, getLatestFounderPayment, verificationUrl } from "../lib/founders";
+import { founderCertificateNumber, getFounderByUserId, getLatestFounderApplication, getLatestFounderPayment, verificationUrl } from "../lib/founders";
 import { setPageMeta } from "../lib/seo";
 import { useAuthUser } from "../lib/useAuthUser";
 
@@ -46,7 +46,8 @@ export default function FounderCertificate() {
               joinedAt: String((application as Record<string, unknown> | null)?.purchaseDate || (payment as Record<string, unknown> | null)?.completedAt || new Date().toISOString()),
               status: "active",
               certificateStatus: "active",
-              verificationUrl: verificationUrl(publicFounderId),
+              certificateNumber: founderCertificateNumber(publicFounderId),
+              verificationUrl: verificationUrl(founderCertificateNumber(publicFounderId)),
             };
           }
         }
@@ -64,8 +65,8 @@ export default function FounderCertificate() {
               joinedAt: String(verification.purchaseDate || new Date().toISOString()),
               status: "active",
               certificateStatus: "active",
-              verificationUrl: verificationUrl(publicFounderId),
-              certificateNumber: `CERT-${publicFounderId}`,
+              certificateNumber: founderCertificateNumber(publicFounderId),
+              verificationUrl: verificationUrl(founderCertificateNumber(publicFounderId)),
             };
           }
         }

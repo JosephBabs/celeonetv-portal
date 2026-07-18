@@ -176,8 +176,9 @@ service cloud.firestore {
         request.resource.data.saleStatus == 'completed' &&
         request.resource.data.verified == true &&
         request.resource.data.verificationSource == 'client_verified_via_backend' &&
+        request.resource.data.founderId is string &&
         request.resource.data.founderReferenceId is string &&
-        request.resource.data.activationStatus == 'pending_review' &&
+        request.resource.data.activationStatus in ['pending_review', 'active'] &&
         request.resource.data.founderLevel in ['supporter', 'builder', 'pioneer', 'legacy'] &&
         request.resource.data.createdAt is string &&
         request.resource.data.updatedAt is string &&

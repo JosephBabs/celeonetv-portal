@@ -5,7 +5,7 @@ import { Link, Navigate } from "react-router-dom";
 import { FounderCertificateStatus } from "../components/founders/certificate/FounderCertificateStatus";
 import { db } from "../lib/firebase";
 import { getFounderCredentials, loadFounderAsset, retryFounderCredentialGeneration } from "../lib/founderCredentialsApi";
-import { formatDate, founderLevelLabel, getFounderByUserId, getLatestFounderApplication, getLatestFounderPayment, qrCodeUrl, synthesizeFounderRecord, verificationUrl } from "../lib/founders";
+import { formatDate, founderCertificateNumber, founderLevelLabel, getFounderByUserId, getLatestFounderApplication, getLatestFounderPayment, qrCodeUrl, reconcileFounderActivationState, synthesizeFounderRecord, verificationUrl } from "../lib/founders";
 import { useAuthUser } from "../lib/useAuthUser";
 import { setPageMeta } from "../lib/seo";
 
@@ -41,6 +41,7 @@ export default function FounderDashboard() {
       const effectiveFounder = found || synthesizeFounderRecord({ application: app, payment: paid, user });
       setFounder(effectiveFounder);
       if (effectiveFounder) {
+        await reconcileFounderActivationState({ userId: user.uid, founder: effectiveFounder, payment: paid }).catch(() => null);
         const credentialData = await getFounderCredentials().catch(() => null);
         setCredentialFounder(credentialData?.founder || effectiveFounder);
         if (credentialData?.founder) {
@@ -109,7 +110,7 @@ export default function FounderDashboard() {
             <button onClick={() => window.print()} className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white">Download pass</button>
             {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Generer le PDF</Link> : <span className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-400">Founder ID requis</span>}
             {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Re telecharger le PDF</Link> : null}
-            <button onClick={() => navigator.clipboard?.writeText(verificationUrl(founder.publicFounderId))} className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Share verification link</button>
+            <button onClick={() => navigator.clipboard?.writeText(verificationUrl(founderCertificateNumber(founder.publicFounderId)))} className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Share verification link</button>
           </div>
         </section>
       </div>
@@ -170,7 +171,7 @@ export default function FounderDashboard() {
                 <div className="flex flex-wrap gap-3">
                   <Link to="/founders/certificate" className="rounded-2xl bg-[#2FA5A9] px-4 py-3 text-sm font-extrabold text-white">Voir le certificat</Link>
                   <button onClick={() => certificateThumb && window.open(certificateThumb, "_blank", "noopener,noreferrer")} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700">Afficher le QR code</button>
-                  <button onClick={() => navigator.clipboard?.writeText(String(credentialFounder?.verificationUrl || verificationUrl(founder.publicFounderId)))} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700">Copier le lien de verification</button>
+                  <button onClick={() => navigator.clipboard?.writeText(String(credentialFounder?.verificationUrl || verificationUrl(founderCertificateNumber(founder.publicFounderId))))} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700">Copier le lien de verification</button>
                 </div>
               </div>
             </div>
@@ -183,6 +184,7 @@ export default function FounderDashboard() {
 
 export function FounderPassCard({ founder }: { founder: any }) {
   const publicId = String(founder.publicFounderId || "");
+  const certificateId = String(founder.certificateNumber || founderCertificateNumber(publicId));
   return (
     <div className="rounded-[2rem] bg-gradient-to-br from-[#092f33] via-[#2FA5A9] to-[#0f766e] p-6 text-white shadow-xl print:shadow-none">
       <div className="flex items-center justify-between gap-3">
@@ -206,7 +208,7 @@ export function FounderPassCard({ founder }: { founder: any }) {
       </div>
       <div className="mt-6 flex items-end justify-between gap-4">
         <div className="text-sm font-extrabold">Verified Founder</div>
-        <img src={qrCodeUrl(publicId)} alt="Founder verification QR code" className="h-28 w-28 rounded-2xl bg-white p-2" />
+        <img src={qrCodeUrl(certificateId)} alt="Founder verification QR code" className="h-28 w-28 rounded-2xl bg-white p-2" />
       </div>
       <div className="mt-4 text-xs font-semibold text-white/70">Scan to verify this pass in the official Cele One database.</div>
     </div>

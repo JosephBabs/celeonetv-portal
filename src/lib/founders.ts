@@ -77,13 +77,19 @@ export function founderLevelLabel(levelId?: string) {
   return APP.founders.levels.find((level) => level.id === levelId)?.label || "Supporter";
 }
 
-export function verificationUrl(publicFounderId: string) {
-  const base = APP.founders.verificationBaseUrl.replace(/\/$/, "");
-  return `${base}/${encodeURIComponent(publicFounderId)}`;
+export function founderCertificateNumber(publicFounderId: string) {
+  const normalized = String(publicFounderId || "").trim().toUpperCase();
+  if (!normalized) return "";
+  return normalized.startsWith("CERT-") ? normalized : `CERT-${normalized}`;
 }
 
-export function qrCodeUrl(publicFounderId: string) {
-  return `https://quickchart.io/qr?size=220&margin=2&text=${encodeURIComponent(verificationUrl(publicFounderId))}`;
+export function verificationUrl(identifier: string) {
+  const base = APP.founders.verificationBaseUrl.replace(/\/$/, "");
+  return `${base}/${encodeURIComponent(String(identifier || "").trim().toUpperCase())}`;
+}
+
+export function qrCodeUrl(identifier: string) {
+  return `https://quickchart.io/qr?size=220&margin=2&text=${encodeURIComponent(verificationUrl(identifier))}`;
 }
 
 export async function assertUniqueOrderReference(reference: string) {
@@ -165,11 +171,17 @@ export async function getFounderByUserId(userId: string) {
 export async function getFounderByPublicId(publicFounderId: string) {
   const normalized = String(publicFounderId || "").trim().toUpperCase();
   if (!normalized) return null;
-  const snap = await getDocs(
-    query(collection(db, FOUNDER_COLLECTIONS.founders), where("publicFounderId", "==", normalized), limit(1)),
+  const byCertificate = await getDocs(
+    query(collection(db, FOUNDER_COLLECTIONS.founders), where("certificateNumber", "==", normalized), limit(1)),
+  ).catch(() => null);
+  const certificateDoc = byCertificate?.docs[0];
+  if (certificateDoc) return { id: certificateDoc.id, ...certificateDoc.data() };
+
+  const byPublicFounderId = await getDocs(
+    query(collection(db, FOUNDER_COLLECTIONS.founders), where("publicFounderId", "==", normalized.replace(/^CERT-/, "")), limit(1)),
   );
-  const docSnap = snap.docs[0];
-  return docSnap ? { id: docSnap.id, ...docSnap.data() } : null;
+  const founderDoc = byPublicFounderId.docs[0];
+  return founderDoc ? { id: founderDoc.id, ...founderDoc.data() } : null;
 }
 
 export function reservationDocumentId(publicFounderId: string) {
@@ -217,7 +229,7 @@ export async function submitFounderActivationClient(params: {
   const applicationId = `activation_${paymentId}`;
   const founderDocId = founderReferenceId;
   const founderStatus = "active";
-  const certificateNumber = `CERT-${founderReferenceId}`;
+  const certificateNumber = founderCertificateNumber(founderReferenceId);
 
   await setDoc(doc(db, "founderPayments", paymentId), {
     provider: "chariow",
@@ -239,11 +251,11 @@ export async function submitFounderActivationClient(params: {
     verified: true,
     verifiedAt: now,
     verificationSource: "client_verified_via_backend",
-    founderId: "",
+    founderId: founderDocId,
     founderReferenceId,
     userId: uid,
     matchedUserId: uid,
-    activationStatus: "pending_review",
+    activationStatus: "active",
     founderLevel: params.verification.founderLevel,
     rawPayloadRestricted: { saleId: params.verification.saleId, clientRecordedAt: now },
     createdAt: now,
@@ -317,7 +329,7 @@ export async function submitFounderActivationClient(params: {
     certificateNumber,
     certificateUrl: "",
     passCardUrl: "",
-    qrVerificationToken: founderReferenceId,
+    qrVerificationToken: certificateNumber,
     benefitAccess: {
       levels: [params.verification.founderLevel],
       coreFounder: true,
@@ -328,6 +340,42 @@ export async function submitFounderActivationClient(params: {
   }, { merge: true });
 
   return { paymentId, applicationId, founderId: founderDocId, publicFounderId: founderReferenceId };
+}
+
+export async function reconcileFounderActivationState(params: {
+  userId: string;
+  founder?: Record<string, any> | null;
+  payment?: Record<string, any> | null;
+}) {
+  const founder = params.founder || null;
+  const payment = params.payment || null;
+  const publicFounderId = String(founder?.publicFounderId || payment?.founderReferenceId || "").trim().toUpperCase();
+  const paymentId = String(payment?.id || founder?.paymentId || payment?.paymentId || "").trim();
+  if (!params.userId || !publicFounderId || !paymentId) return false;
+
+  const updates: Promise<unknown>[] = [];
+
+  if (payment && String(payment.activationStatus || "") !== "active") {
+    updates.push(updateDoc(doc(db, FOUNDER_COLLECTIONS.payments, paymentId), {
+      activationStatus: "active",
+      founderId: String(founder?.id || publicFounderId).trim(),
+      founderReferenceId: publicFounderId,
+      updatedAt: new Date().toISOString(),
+    }).catch(() => null));
+  }
+
+  const reservationId = reservationDocumentId(publicFounderId);
+  updates.push(updateDoc(doc(db, "founderReservations", reservationId), {
+    userId: params.userId,
+    founderId: String(founder?.id || publicFounderId).trim(),
+    paymentId,
+    status: "verified",
+    activationStatus: "active",
+    updatedAt: new Date().toISOString(),
+  }).catch(() => null));
+
+  await Promise.all(updates);
+  return updates.length > 0;
 }
 
 export async function generateFounderId() {
@@ -504,10 +552,10 @@ export function synthesizeFounderRecord(params: {
     issuedAt: timestamp,
     publicRecognitionConsent: true,
     badgeEnabled: true,
-    certificateNumber: `CERT-${publicFounderId}`,
+    certificateNumber: founderCertificateNumber(publicFounderId),
     certificateUrl: "",
     passCardUrl: "",
-    qrVerificationToken: publicFounderId,
-    verificationUrl: verificationUrl(publicFounderId),
+    qrVerificationToken: founderCertificateNumber(publicFounderId),
+    verificationUrl: verificationUrl(founderCertificateNumber(publicFounderId)),
   };
 }
