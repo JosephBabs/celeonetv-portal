@@ -1,14 +1,23 @@
 import { useEffect, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuthUser } from "../lib/useAuthUser";
-import { getLatestFounderApplication, getLatestFounderPayment, submitFounderActivationClient, type FounderActivationVerification } from "../lib/founders";
+import { getLatestFounderApplication, getLatestFounderPayment, type FounderActivationVerification } from "../lib/founders";
 import { setPageMeta } from "../lib/seo";
 import { founderApi } from "../lib/founderApi";
 
 type ActivationResponse = {
   ok: boolean;
   status?: string;
+  founderId?: string;
+  applicationId?: string;
+  paymentId?: string;
   founderReferenceId?: string;
+  founder?: {
+    id?: string;
+    publicFounderId?: string;
+    status?: string;
+    certificateStatus?: string;
+  } | null;
   verification?: FounderActivationVerification | null;
 };
 
@@ -78,18 +87,10 @@ export default function FounderActivate() {
           receiptReference: form.receiptReference.trim(),
         }),
       });
-      const verification = response.verification;
-      const founderReferenceId = String(response.founderReferenceId || verification?.founderReferenceId || form.founderReferenceId || "").trim().toUpperCase();
-      if (!verification || !founderReferenceId || !user.email) throw new Error("ACTIVATION_VERIFICATION_INCOMPLETE");
-      await submitFounderActivationClient({
-        uid: user.uid,
-        accountEmail: user.email,
-        founderReferenceId,
-        receiptReference: form.receiptReference.trim(),
-        verification,
-      });
+      const founderReferenceId = String(response.founderReferenceId || response.founder?.publicFounderId || form.founderReferenceId || "").trim().toUpperCase();
+      if (!founderReferenceId) throw new Error("ACTIVATION_VERIFICATION_INCOMPLETE");
       setForm((prev) => ({ ...prev, founderReferenceId }));
-      setExistingStatus(String(response.status || "pending_review"));
+      setExistingStatus(String(response.status || response.founder?.status || "active"));
       setSuccess(true);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "REQUEST_FAILED";

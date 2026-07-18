@@ -1,6 +1,10 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { onRequestGet as founderActivateGet, onRequestPost as founderActivatePost } from "../functions/api/founders/activate";
+import { onRequestGet as adminFounderAssetGet } from "../functions/api/admin/founders/asset";
+import { onRequestGet as adminFounderCredentialsGet, onRequestPost as adminFounderCredentialsPost } from "../functions/api/admin/founders/credentials";
 import { onRequestGet as founderConfigGet } from "../functions/api/founders/config";
+import { onRequestGet as founderAssetGet } from "../functions/api/founders/asset";
+import { onRequestGet as founderCredentialsGet, onRequestPost as founderCredentialsPost } from "../functions/api/founders/credentials";
 import type { PortalEnv } from "../functions/_lib/types";
 import { translatePlainTextEmbedded } from "./lib/embeddedTranslator";
 
@@ -325,6 +329,64 @@ export default {
     }
     if (/^\/api\/founders\/config\/?$/.test(url.pathname)) {
       if (method === "GET") return founderConfigGet({ env });
+      if (method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-headers": "content-type, authorization, x-celeone-client",
+          },
+        });
+      }
+      return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+    }
+    if (/^\/api\/founders\/credentials\/?$/.test(url.pathname)) {
+      if (method === "GET") return founderCredentialsGet({ request, env });
+      if (method === "POST") return founderCredentialsPost({ request, env });
+      if (method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, POST, OPTIONS",
+            "access-control-allow-headers": "content-type, authorization, x-celeone-client",
+          },
+        });
+      }
+      return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+    }
+    if (/^\/api\/founders\/asset\/?$/.test(url.pathname)) {
+      if (method === "GET") return founderAssetGet({ request, env });
+      if (method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-headers": "content-type, authorization, x-celeone-client",
+          },
+        });
+      }
+      return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+    }
+    if (/^\/api\/admin\/founders\/credentials\/?$/.test(url.pathname)) {
+      if (method === "GET") return adminFounderCredentialsGet({ request, env });
+      if (method === "POST") return adminFounderCredentialsPost({ request, env });
+      if (method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, POST, OPTIONS",
+            "access-control-allow-headers": "content-type, authorization, x-celeone-client",
+          },
+        });
+      }
+      return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+    }
+    if (/^\/api\/admin\/founders\/asset\/?$/.test(url.pathname)) {
+      if (method === "GET") return adminFounderAssetGet({ request, env });
       if (method === "OPTIONS") {
         return new Response(null, {
           status: 204,
