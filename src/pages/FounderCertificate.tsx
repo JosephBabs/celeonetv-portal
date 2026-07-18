@@ -4,7 +4,7 @@ import { FounderCertificateActions } from "../components/founders/certificate/Fo
 import { FounderCertificateInfoPanel } from "../components/founders/certificate/FounderCertificateInfoPanel";
 import { FounderCertificatePreview } from "../components/founders/certificate/FounderCertificatePreview";
 import { buildFounderCertificatePdf } from "../lib/founderCertificateClient";
-import { getFounderByUserId } from "../lib/founders";
+import { getFounderByUserId, getLatestFounderApplication, getLatestFounderPayment, verificationUrl } from "../lib/founders";
 import { setPageMeta } from "../lib/seo";
 import { useAuthUser } from "../lib/useAuthUser";
 
@@ -26,7 +26,28 @@ export default function FounderCertificate() {
     (async () => {
       setBusy(true);
       try {
-        const data = await getFounderByUserId(user.uid);
+        let data: Record<string, unknown> | null = await getFounderByUserId(user.uid);
+        if (!data) {
+          const [application, payment] = await Promise.all([
+            getLatestFounderApplication(user.uid).catch(() => null),
+            getLatestFounderPayment(user.uid, user.email || "").catch(() => null),
+          ]);
+          const publicFounderId = String((application as Record<string, unknown> | null)?.publicFounderId || (payment as Record<string, unknown> | null)?.founderReferenceId || "").trim();
+          if (publicFounderId) {
+            data = {
+              ...(application || {}),
+              ...(payment || {}),
+              displayName: String((application as Record<string, unknown> | null)?.displayName || `${(application as Record<string, unknown> | null)?.firstName || ""} ${(application as Record<string, unknown> | null)?.lastName || ""}` || (payment as Record<string, unknown> | null)?.customerName || user.displayName || "").trim(),
+              publicFounderId,
+              founderLevel: String((application as Record<string, unknown> | null)?.founderLevel || (payment as Record<string, unknown> | null)?.founderLevel || "supporter"),
+              issuedAt: String((application as Record<string, unknown> | null)?.purchaseDate || (payment as Record<string, unknown> | null)?.completedAt || new Date().toISOString()),
+              joinedAt: String((application as Record<string, unknown> | null)?.purchaseDate || (payment as Record<string, unknown> | null)?.completedAt || new Date().toISOString()),
+              status: "active",
+              certificateStatus: "active",
+              verificationUrl: verificationUrl(publicFounderId),
+            };
+          }
+        }
         if (!active) return;
         setFounder(data);
         if (data) {

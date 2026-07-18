@@ -21,6 +21,13 @@ function applicationDocumentId(paymentId: string) {
   return `activation_${paymentId}`;
 }
 
+function canFallbackToClient(message: string) {
+  return message === "FIREBASE_SERVICE_ACCOUNT_NOT_CONFIGURED"
+    || message === "FIREBASE_TOKEN_ERROR"
+    || message.startsWith("FIRESTORE_")
+    || message.startsWith("STORAGE_");
+}
+
 function splitDisplayName(displayName: string) {
   const normalized = String(displayName || "").trim().replace(/\s+/g, " ");
   const [firstName = "", ...rest] = normalized.split(" ");
@@ -203,29 +210,30 @@ export async function onRequestPost({ request, env }: Context) {
       updatedAt: now,
     });
 
-    const approved = await approveFounderApplicationTrusted(env, applicationId, user.uid);
-    const founder = await getDocument(env, `founders/${approved.founderId}`) as Record<string, unknown> | null;
-    return json({
-      ok: true,
-      status: "active",
-      founderId: approved.founderId,
-      applicationId,
-      paymentId,
-      founderReferenceId,
-      verification: {
-        founderReferenceId,
-        saleId: sale.id,
+    try {
+      const approved = await approveFounderApplicationTrusted(env, applicationId, user.uid);
+      const founder = await getDocument(env, `founders/${approved.founderId}`) as Record<string, unknown> | null;
+      return json({
+        ok: true,
+        status: "active",
+        founderId: approved.founderId,
+        applicationId,
         paymentId,
-        amount: sale.amount.value,
-        currency: sale.amount.currency,
-        purchaseDate: sale.completed_at || sale.created_at || now,
-        paymentMethod: sale.payment?.method?.name || sale.payment?.gateway || "",
-        purchaseEmail: sale.customer.email,
-        customerName: sale.customer.name || `${sale.customer.first_name || ""} ${sale.customer.last_name || ""}`.trim(),
-        customerPhone: sale.customer.phone || "",
-        customerCountry: sale.customer.country || "",
-        founderLevel: level,
-      },
+        founderReferenceId,
+        verification: {
+          founderReferenceId,
+          saleId: sale.id,
+          paymentId,
+          amount: sale.amount.value,
+          currency: sale.amount.currency,
+          purchaseDate: sale.completed_at || sale.created_at || now,
+          paymentMethod: sale.payment?.method?.name || sale.payment?.gateway || "",
+          purchaseEmail: sale.customer.email,
+          customerName: sale.customer.name || `${sale.customer.first_name || ""} ${sale.customer.last_name || ""}`.trim(),
+          customerPhone: sale.customer.phone || "",
+          customerCountry: sale.customer.country || "",
+          founderLevel: level,
+        },
         founder: founder ? {
           id: String(founder.id || approved.founderId),
           publicFounderId: String(founder.publicFounderId || founderReferenceId),
@@ -234,6 +242,32 @@ export async function onRequestPost({ request, env }: Context) {
           credentialStatus: String(founder.credentialStatus || ""),
         } : null,
       });
+    } catch (error) {
+      const message = errorMessage(error);
+      if (!canFallbackToClient(message)) throw error;
+      return json({
+        ok: true,
+        status: "verified_client_pending",
+        applicationId,
+        paymentId,
+        founderReferenceId,
+        fallbackReason: message,
+        verification: {
+          founderReferenceId,
+          saleId: sale.id,
+          paymentId,
+          amount: sale.amount.value,
+          currency: sale.amount.currency,
+          purchaseDate: sale.completed_at || sale.created_at || now,
+          paymentMethod: sale.payment?.method?.name || sale.payment?.gateway || "",
+          purchaseEmail: sale.customer.email,
+          customerName: sale.customer.name || `${sale.customer.first_name || ""} ${sale.customer.last_name || ""}`.trim(),
+          customerPhone: sale.customer.phone || "",
+          customerCountry: sale.customer.country || "",
+          founderLevel: level,
+        },
+      });
+    }
   } catch (error) {
     const message = errorMessage(error);
     if (message === "UNAUTHORIZED") {

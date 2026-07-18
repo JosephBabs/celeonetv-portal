@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../lib/useAuthUser";
-import { getLatestFounderApplication, getLatestFounderPayment, type FounderActivationVerification } from "../lib/founders";
+import { getLatestFounderApplication, getLatestFounderPayment, submitFounderActivationClient, type FounderActivationVerification } from "../lib/founders";
 import { setPageMeta } from "../lib/seo";
 import { founderApi } from "../lib/founderApi";
 
@@ -17,12 +17,15 @@ type ActivationResponse = {
     publicFounderId?: string;
     status?: string;
     certificateStatus?: string;
+    credentialStatus?: string;
   } | null;
+  fallbackReason?: string;
   verification?: FounderActivationVerification | null;
 };
 
 export default function FounderActivate() {
   const { user, loading } = useAuthUser();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -89,9 +92,21 @@ export default function FounderActivate() {
       });
       const founderReferenceId = String(response.founderReferenceId || response.founder?.publicFounderId || form.founderReferenceId || "").trim().toUpperCase();
       if (!founderReferenceId) throw new Error("ACTIVATION_VERIFICATION_INCOMPLETE");
+      if (response.status === "verified_client_pending") {
+        const verification = response.verification;
+        if (!verification || !user.email) throw new Error("ACTIVATION_VERIFICATION_INCOMPLETE");
+        await submitFounderActivationClient({
+          uid: user.uid,
+          accountEmail: user.email,
+          founderReferenceId,
+          receiptReference: form.receiptReference.trim(),
+          verification,
+        });
+      }
       setForm((prev) => ({ ...prev, founderReferenceId }));
       setExistingStatus(String(response.status || response.founder?.status || "active"));
       setSuccess(true);
+      navigate("/founders/certificate");
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "REQUEST_FAILED";
       if (code === "PURCHASE_EMAIL_MISMATCH") setError("Le recu doit appartenir a la meme adresse email que votre compte Cele One.");
