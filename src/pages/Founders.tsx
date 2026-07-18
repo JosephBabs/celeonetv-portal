@@ -85,7 +85,7 @@ export default function Founders() {
               <div className="text-xs font-black uppercase tracking-[0.16em] text-[#a76f1f]">Parcours simple</div>
               <div className="mt-3 space-y-3">
                 <Step label="1" text="Achetez le Founder&apos;s Pass avec le lien produit." />
-                <Step label="2" text="Gardez votre recu ou votre sale ID apres paiement." />
+                <Step label="2" text="Gardez votre recu, votre id d'achat ou une capture de la finalisation du paiement." />
                 <Step label="3" text="Activez votre pass dans le portail Cele One." />
               </div>
             </div>
