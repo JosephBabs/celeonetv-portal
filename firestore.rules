@@ -5,6 +5,10 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function signedInEmail() {
+      return signedIn() && request.auth.token.email != null;
+    }
+
     function isAdmin() {
       return signedIn() && (
         get(/databases/$(database)/documents/user_data/$(request.auth.uid)).data.isAdmin == true ||
@@ -12,32 +16,77 @@ service cloud.firestore {
       );
     }
 
+    function isOwnerByUid(field) {
+      return signedIn() && resource.data[field] == request.auth.uid;
+    }
+
+    function isOwnerByEmail(field) {
+      return signedInEmail() && resource.data[field] == request.auth.token.email;
+    }
+
+    match /portal_pre_registrations/{docId} {
+      allow create: if
+        request.resource.data.firstName is string &&
+        request.resource.data.lastName is string &&
+        request.resource.data.intent in ['reserve', 'donate'] &&
+        request.resource.data.createdAt != null;
+      allow read: if isAdmin() || (signedIn() && (
+        resource.id == request.auth.uid ||
+        resource.data.uid == request.auth.uid ||
+        (signedInEmail() && resource.data.email == request.auth.token.email)
+      ));
+      allow update: if isAdmin() || (signedIn() && (
+        resource.id == request.auth.uid ||
+        resource.data.uid == request.auth.uid
+      ));
+      allow delete: if false;
+    }
+
+    match /user_data/{userId} {
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == userId &&
+        !(request.resource.data.isAdmin == true) &&
+        !(request.resource.data.role in ['admin', 'super_admin']));
+      allow delete: if false;
+    }
+
+    match /users/{userId} {
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow delete: if false;
+    }
+
     match /founderApplications/{applicationId} {
-      allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow read: if isAdmin() || isOwnerByUid("userId") || isOwnerByEmail("email") || isOwnerByEmail("purchaseEmail");
       allow write: if false;
     }
 
     match /founders/{founderId} {
-      allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid) || (
-        resource.data.publicFounderId != null &&
-        resource.data.displayName != null
-      );
+      allow read: if isAdmin() || isOwnerByUid("userId") || isOwnerByEmail("email");
       allow write: if false;
     }
 
     match /founderPayments/{paymentId} {
-      allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow read: if isAdmin() || isOwnerByUid("userId") || isOwnerByEmail("customerEmail");
       allow write: if false;
     }
 
     match /founderCredentialHistory/{historyId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isOwnerByUid("userId");
       allow write: if false;
     }
 
     match /founderAuditLogs/{logId} {
       allow read: if isAdmin();
       allow write: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAdmin() || isOwnerByUid("userId");
+      allow update: if isAdmin() || isOwnerByUid("userId");
+      allow create, delete: if false;
     }
   }
 }

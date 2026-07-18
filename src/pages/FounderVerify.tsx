@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { FounderCertificateStatus } from "../components/founders/certificate/FounderCertificateStatus";
-import { formatDate, founderLevelLabel, getFounderByPublicId } from "../lib/founders";
+import { formatDate, founderLevelLabel } from "../lib/founders";
 import { setPageMeta } from "../lib/seo";
 
 export default function FounderVerify() {
@@ -11,6 +11,7 @@ export default function FounderVerify() {
   const [founder, setFounder] = useState<any>(null);
   const [loading, setLoading] = useState(Boolean(founderId));
   const [input, setInput] = useState(founderId || "");
+  const whatsappUrl = "https://wa.me/2290141193144";
 
   useEffect(() => {
     setPageMeta({ title: "Verifier Founder's Pass | Cele One", description: "Verification publique Founder's Pass." });
@@ -24,7 +25,9 @@ export default function FounderVerify() {
     if (!founderId) return;
     (async () => {
       setLoading(true);
-      setFounder(await getFounderByPublicId(founderId));
+      const response = await fetch(`/api/founders/verify?founderId=${encodeURIComponent(founderId)}`, { cache: "no-store" }).catch(() => null);
+      const data = response ? await response.json().catch(() => ({ founder: null })) : { founder: null };
+      setFounder(data?.founder || null);
       setLoading(false);
     })();
   }, [founderId]);
@@ -63,6 +66,9 @@ export default function FounderVerify() {
               <button className="mt-5 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white hover:bg-slate-800">
                 Ouvrir la verification
               </button>
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex text-sm font-extrabold text-[#2FA5A9] hover:underline">
+                En cas d&apos;erreur, ecrire sur WhatsApp
+              </a>
             </form>
 
             <div className="rounded-[1.5rem] border border-amber-200 bg-[linear-gradient(135deg,#fff9ec_0%,#fff4dd_100%)] p-6">
@@ -111,6 +117,11 @@ export default function FounderVerify() {
             <Info label="Issue date" value={formatDate(founder.issuedAt || founder.joinedAt)} />
             <Info label="Current status" value={founder.certificateStatus || founder.status || "-"} />
           </div>
+        ) : null}
+        {!founder || !active ? (
+          <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50">
+            Ecrire sur WhatsApp: +2290141193144
+          </a>
         ) : null}
         <Link to="/founders" className="mt-6 inline-flex rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white">Retour Founder's Pass</Link>
       </div>
