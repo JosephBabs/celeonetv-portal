@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { addDoc, collection, doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import { auth, db } from "../lib/firebase";
 import { APP } from "../lib/config";
@@ -43,6 +43,9 @@ function registrationErrorMessage(code: string, fallback: string) {
   switch (code) {
     case "auth/email-already-in-use":
       return "An account already exists with this email address. Try logging in instead.";
+    case "auth/invalid-credential":
+    case "auth/wrong-password":
+      return "This email is already registered. Use the correct password to log in, or reset your password.";
     case "auth/invalid-email":
       return "Please enter a valid email address.";
     case "auth/weak-password":
@@ -59,12 +62,17 @@ function registrationErrorMessage(code: string, fallback: string) {
   }
 }
 
+function firebaseErrorCode(caught: any) {
+  return String(caught?.code || "");
+}
+
 export default function PrelaunchRegistration() {
   const { t, lang } = useI18n();
   const [intent, setIntent] = useState<Intent>("reserve");
   const [form, setForm] = useState<FormState>(initialForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [created, setCreated] = useState(false);
   const [paymentReady, setPaymentReady] = useState(false);
 
@@ -85,6 +93,7 @@ export default function PrelaunchRegistration() {
   const selectIntent = (next: Intent) => {
     setIntent(next);
     setError("");
+    setSuccessMessage("");
     setCreated(false);
     setPaymentReady(false);
   };
@@ -93,9 +102,81 @@ export default function PrelaunchRegistration() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const reserveProfilePayload = (uid: string, email: string, donationAmount: number | null) => ({
+    uid,
+    email,
+    firstName: form.firstName.trim(),
+    lastName: form.lastName.trim(),
+    displayName,
+    parish: form.parish.trim(),
+    phone: form.phone.trim(),
+    country: form.country.trim(),
+    photoURL: "",
+    profileImage: "",
+    provider: "password",
+    role: "user",
+    approved: false,
+    isApproved: false,
+    restricted: false,
+    prayerRobePhotoNote: true,
+    prelaunchRegistration: true,
+    prelaunchIntent: "reserve" as const,
+    donationInterest: false,
+    donationAmount,
+    donationCurrency: form.currency.trim().toUpperCase() || "USD",
+    preferredLanguage: lang,
+    source: "celeonetv_portal_prelaunch",
+    updatedAt: serverTimestamp(),
+    createdAt: serverTimestamp(),
+  });
+
+  const persistReserveAccount = async (uid: string, email: string, donationAmount: number | null) => {
+    const baseProfile = reserveProfilePayload(uid, email, donationAmount);
+
+    await Promise.all([
+      setDoc(doc(db, "user_data", uid), baseProfile, { merge: true }),
+      setDoc(
+        doc(db, "users", uid),
+        {
+          firstName: baseProfile.firstName,
+          lastName: baseProfile.lastName,
+          parish: baseProfile.parish,
+          phone: baseProfile.phone,
+          email: baseProfile.email,
+          country: baseProfile.country,
+          isApproved: false,
+          role: "user",
+          prelaunchRegistration: true,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+        },
+        { merge: true },
+      ),
+      setDoc(
+        doc(db, "portal_pre_registrations", uid),
+        {
+          ...baseProfile,
+          intent: "reserve",
+          message: form.message.trim(),
+          status: "reserved",
+        },
+        { merge: true },
+      ),
+    ]);
+  };
+
+  const existingAccountMessage = async (uid: string) => {
+    const [userDataSnap, userSnap] = await Promise.all([getDoc(doc(db, "user_data", uid)), getDoc(doc(db, "users", uid))]);
+    if (userDataSnap.exists() || userSnap.exists()) {
+      return "This email had already been registered earlier. We found the CeleOne account and refreshed the preregistration details.";
+    }
+    return "This email is already registered in Firebase Auth. Please log in to continue.";
+  };
+
   const submit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
     setError("");
+    setSuccessMessage("");
     setCreated(false);
     setPaymentReady(false);
 
@@ -149,70 +230,70 @@ export default function PrelaunchRegistration() {
       const credential = await createUserWithEmailAndPassword(auth, email, form.password);
       const uid = credential.user.uid;
       await updateProfile(credential.user, { displayName });
-
-      const baseProfile = {
-        uid,
-        email,
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        displayName,
-        parish: form.parish.trim(),
-        phone: form.phone.trim(),
-        country: form.country.trim(),
-        photoURL: "",
-        profileImage: "",
-        provider: "password",
-        role: "user",
-        approved: false,
-        isApproved: false,
-        restricted: false,
-        prayerRobePhotoNote: true,
-        prelaunchRegistration: true,
-        prelaunchIntent: intent,
-        donationInterest: donationMode,
-        donationAmount,
-        donationCurrency: form.currency.trim().toUpperCase() || "USD",
-        preferredLanguage: lang,
-        source: "celeonetv_portal_prelaunch",
-        updatedAt: serverTimestamp(),
-        createdAt: serverTimestamp(),
-      };
-
-      await Promise.all([
-        setDoc(doc(db, "user_data", uid), baseProfile, { merge: true }),
-        setDoc(
-          doc(db, "users", uid),
-          {
-            firstName: baseProfile.firstName,
-            lastName: baseProfile.lastName,
-            parish: baseProfile.parish,
-            phone: baseProfile.phone,
-            email: baseProfile.email,
-            country: baseProfile.country,
-            isApproved: false,
-            role: "user",
-            prelaunchRegistration: true,
-            createdAt: serverTimestamp(),
-          },
-          { merge: true },
-        ),
-        setDoc(
-          doc(db, "portal_pre_registrations", uid),
-          {
-            ...baseProfile,
-            intent: "reserve",
-            message: form.message.trim(),
-            status: "reserved",
-          },
-          { merge: true },
-        ),
-      ]);
+      await persistReserveAccount(uid, email, donationAmount);
+      try {
+        await sendEmailVerification(credential.user);
+      } catch (verificationError) {
+        console.warn("Unable to send verification email after preregistration", verificationError);
+      }
 
       setCreated(true);
+      setSuccessMessage("Your prelaunch account has been created. Please check your email and verify your account.");
       setForm(initialForm);
     } catch (caught: any) {
       console.error(caught);
-      setError(registrationErrorMessage(String(caught?.code || ""), t("prelaunch.failed", "Unable to create your prelaunch account.")));
+      const code = firebaseErrorCode(caught);
+
+      if (!donationMode && code === "auth/email-already-in-use") {
+        try {
+          const email = form.email.trim().toLowerCase();
+          const recoveredCredential = await signInWithEmailAndPassword(auth, email, form.password);
+          await updateProfile(recoveredCredential.user, { displayName });
+          await persistReserveAccount(recoveredCredential.user.uid, email, null);
+
+          if (!recoveredCredential.user.emailVerified) {
+            try {
+              await sendEmailVerification(recoveredCredential.user);
+            } catch (verificationError) {
+              console.warn("Unable to resend verification email for existing preregistration", verificationError);
+            }
+          }
+
+          setCreated(true);
+          setSuccessMessage(
+            recoveredCredential.user.emailVerified
+              ? await existingAccountMessage(recoveredCredential.user.uid)
+              : "This account had already been registered. We found it in CeleOne and sent a verification email again.",
+          );
+          setForm(initialForm);
+          return;
+        } catch (recoveryError: any) {
+          console.error("Unable to recover existing preregistration", recoveryError);
+          setError(registrationErrorMessage(firebaseErrorCode(recoveryError) || code, "This email is already registered. Please log in or reset your password."));
+          return;
+        }
+      }
+
+      if (!donationMode && auth.currentUser?.email?.toLowerCase() === form.email.trim().toLowerCase()) {
+        try {
+          await persistReserveAccount(auth.currentUser.uid, auth.currentUser.email || form.email.trim().toLowerCase(), null);
+          if (!auth.currentUser.emailVerified) {
+            try {
+              await sendEmailVerification(auth.currentUser);
+            } catch (verificationError) {
+              console.warn("Unable to resend verification email after partial success", verificationError);
+            }
+          }
+          setCreated(true);
+          setSuccessMessage("Your account was already created in Firebase. We completed the preregistration details successfully.");
+          setForm(initialForm);
+          return;
+        } catch (repairError) {
+          console.error("Unable to repair preregistration after partial Firebase success", repairError);
+        }
+      }
+
+      setError(registrationErrorMessage(code, t("prelaunch.failed", "Unable to create your prelaunch account.")));
     } finally {
       setSaving(false);
     }
@@ -366,7 +447,7 @@ export default function PrelaunchRegistration() {
         {error ? <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{error}</div> : null}
         {created ? (
           <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
-            {donationMode ? t("prelaunch.donor_success", "Your donor details have been saved. Use the payment link below to complete your donation.") : t("prelaunch.success", "Your prelaunch account has been created and saved.")}
+            {donationMode ? t("prelaunch.donor_success", "Your donor details have been saved. Use the payment link below to complete your donation.") : successMessage || t("prelaunch.success", "Your prelaunch account has been created and saved.")}
           </div>
         ) : null}
         {paymentReady ? (
