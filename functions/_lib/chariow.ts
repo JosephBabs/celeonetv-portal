@@ -167,7 +167,6 @@ export class ChariowService {
     if (!sale.id) return { eligible: false, sale, reason: "SALE_ID_MISSING" };
     if (!new Set(["completed", "settled"]).has(sale.status)) return { eligible: false, sale, reason: "SALE_NOT_COMPLETED" };
     if (sale.payment?.status !== "success") return { eligible: false, sale, reason: "PAYMENT_NOT_SUCCESSFUL" };
-    if (!this.env.CHARIOW_FOUNDERS_PRODUCT_ID || sale.product.id !== this.env.CHARIOW_FOUNDERS_PRODUCT_ID) return { eligible: false, sale, reason: "PRODUCT_MISMATCH" };
     if (this.env.CHARIOW_STORE_ID && sale.store?.id !== this.env.CHARIOW_STORE_ID) return { eligible: false, sale, reason: "STORE_MISMATCH" };
     if (!sale.customer.email) return { eligible: false, sale, reason: "CUSTOMER_EMAIL_MISSING" };
     if (!(sale.amount.value > 0) || !sale.amount.currency) return { eligible: false, sale, reason: "INVALID_AMOUNT" };
