@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuthUser } from "../lib/useAuthUser";
+import { getLatestFounderApplication, getLatestFounderPayment, submitFounderActivationClient, type FounderActivationVerification } from "../lib/founders";
 import { setPageMeta } from "../lib/seo";
 import { founderApi } from "../lib/founderApi";
 
 type ActivationResponse = {
   ok: boolean;
   status?: string;
-  application?: Record<string, unknown> | null;
-  payment?: Record<string, unknown> | null;
+  founderReferenceId?: string;
+  verification?: FounderActivationVerification | null;
 };
 
 export default function FounderActivate() {
@@ -35,15 +36,18 @@ export default function FounderActivate() {
     (async () => {
       setLoadingState(true);
       try {
-        const data = await founderApi<ActivationResponse>("/api/founders/activate", { method: "GET" });
-        const application = data.application || {};
-      const payment = data.payment || {};
-      setForm((prev) => ({
-        ...prev,
-        founderReferenceId: String(application.publicFounderId || payment.founderReferenceId || "").trim(),
-        receiptReference: String(application.receiptReference || application.chariowOrderReference || payment.providerSaleId || "").trim(),
+        const [application, payment] = await Promise.all([
+          getLatestFounderApplication(user.uid),
+          getLatestFounderPayment(user.uid, user.email || ""),
+        ]);
+        const applicationRow = (application || {}) as Record<string, unknown>;
+        const paymentRow = (payment || {}) as Record<string, unknown>;
+        setForm((prev) => ({
+          ...prev,
+          founderReferenceId: String(applicationRow.publicFounderId || paymentRow.founderReferenceId || "").trim(),
+          receiptReference: String(applicationRow.receiptReference || applicationRow.chariowOrderReference || paymentRow.providerSaleId || "").trim(),
         }));
-        setExistingStatus(String(application.status || payment.activationStatus || ""));
+        setExistingStatus(String(applicationRow.status || paymentRow.activationStatus || ""));
       } catch {
         return;
       } finally {
@@ -74,6 +78,17 @@ export default function FounderActivate() {
           receiptReference: form.receiptReference.trim(),
         }),
       });
+      const verification = response.verification;
+      const founderReferenceId = String(response.founderReferenceId || verification?.founderReferenceId || form.founderReferenceId || "").trim().toUpperCase();
+      if (!verification || !founderReferenceId || !user.email) throw new Error("ACTIVATION_VERIFICATION_INCOMPLETE");
+      await submitFounderActivationClient({
+        uid: user.uid,
+        accountEmail: user.email,
+        founderReferenceId,
+        receiptReference: form.receiptReference.trim(),
+        verification,
+      });
+      setForm((prev) => ({ ...prev, founderReferenceId }));
       setExistingStatus(String(response.status || "pending_review"));
       setSuccess(true);
     } catch (caught) {
@@ -85,6 +100,7 @@ export default function FounderActivate() {
       else if (code === "FOUNDER_ID_MISMATCH") setError("Le Founder ID saisi ne correspond pas a celui enregistre pendant la finalisation du paiement.");
       else if (code === "FOUNDER_ID_NOT_FOUND_IN_PAYMENT") setError("Aucun Founder ID n'a ete retrouve dans ce paiement. Collez votre Founder ID si vous ne l'avez pas ajoute pendant la finalisation.");
       else if (code === "INVALID_CLIENT" || code === "INVALID_ORIGIN") setError("La requete d'activation a ete refusee. Rechargez la page puis reessayez.");
+      else if (code === "ACTIVATION_VERIFICATION_INCOMPLETE") setError("La verification du paiement est incomplete. Reessayez dans quelques instants.");
       else if (code === "SALE_NOT_COMPLETED" || code === "PAYMENT_NOT_SUCCESSFUL") setError("Ce recu n'est pas encore confirme comme paiement reussi.");
       else if (code === "PRODUCT_MISMATCH") setError("Ce recu ne correspond pas au Founder's Pass officiel.");
       else setError("Impossible de soumettre l'activation pour le moment.");

@@ -42,6 +42,21 @@ export type FounderApplicationInput = {
   termsAccepted: boolean;
 };
 
+export type FounderActivationVerification = {
+  founderReferenceId: string;
+  saleId: string;
+  paymentId: string;
+  amount: number;
+  currency: string;
+  purchaseDate: string;
+  paymentMethod: string;
+  purchaseEmail: string;
+  customerName: string;
+  customerPhone: string;
+  customerCountry: string;
+  founderLevel: FounderLevelId;
+};
+
 export const FOUNDER_COLLECTIONS = {
   applications: "founderApplications",
   payments: "founderPayments",
@@ -125,6 +140,20 @@ export async function getLatestFounderApplication(userId: string) {
   return docSnap ? { id: docSnap.id, ...docSnap.data() } : null;
 }
 
+export async function getLatestFounderPayment(userId: string, email = "") {
+  const byUser = await getDocs(
+    query(collection(db, FOUNDER_COLLECTIONS.payments), where("userId", "==", userId), limit(1)),
+  ).catch(() => null);
+  const first = byUser?.docs[0];
+  if (first) return { id: first.id, ...first.data() };
+  if (!email.trim()) return null;
+  const byEmail = await getDocs(
+    query(collection(db, FOUNDER_COLLECTIONS.payments), where("customerEmail", "==", email.trim().toLowerCase()), limit(1)),
+  ).catch(() => null);
+  const second = byEmail?.docs[0];
+  return second ? { id: second.id, ...second.data() } : null;
+}
+
 export async function getFounderByUserId(userId: string) {
   const snap = await getDocs(
     query(collection(db, FOUNDER_COLLECTIONS.founders), where("userId", "==", userId), limit(1)),
@@ -139,6 +168,127 @@ export async function getFounderByPublicId(publicFounderId: string) {
   );
   const docSnap = snap.docs[0];
   return docSnap ? { id: docSnap.id, ...docSnap.data() } : null;
+}
+
+export function reservationDocumentId(publicFounderId: string) {
+  return `reservation_${String(publicFounderId || "").toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+}
+
+export function paymentDocumentId(saleId: string) {
+  return String(saleId || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
+function splitDisplayName(displayName: string) {
+  const normalized = String(displayName || "").trim().replace(/\s+/g, " ");
+  const [firstName = "", ...rest] = normalized.split(" ");
+  return {
+    firstName,
+    lastName: rest.join(" "),
+    displayName: normalized,
+  };
+}
+
+export async function submitFounderActivationClient(params: {
+  uid: string;
+  accountEmail: string;
+  founderReferenceId: string;
+  receiptReference: string;
+  verification: FounderActivationVerification;
+}) {
+  const uid = String(params.uid || "").trim();
+  const accountEmail = String(params.accountEmail || "").trim().toLowerCase();
+  const founderReferenceId = String(params.founderReferenceId || "").trim().toUpperCase();
+  const receiptReference = String(params.receiptReference || "").trim();
+  if (!uid || !accountEmail || !founderReferenceId || !receiptReference) throw new Error("ACTIVATION_DATA_INCOMPLETE");
+
+  const reservationRef = doc(db, "founderReservations", reservationDocumentId(founderReferenceId));
+  const reservationSnap = await getDoc(reservationRef);
+  if (!reservationSnap.exists()) throw new Error("FOUNDER_REFERENCE_NOT_FOUND");
+  const reservation = reservationSnap.data() as Record<string, any>;
+  if (String(reservation.founderId || "").trim()) throw new Error("FOUNDER_REFERENCE_ALREADY_USED");
+  if (String(reservation.paymentId || "").trim() && String(reservation.paymentId) !== params.verification.paymentId) throw new Error("FOUNDER_REFERENCE_ALREADY_USED");
+
+  const displayName = String(reservation.displayName || "").trim();
+  const { firstName, lastName } = splitDisplayName(displayName);
+  const now = new Date().toISOString();
+  const paymentId = params.verification.paymentId || paymentDocumentId(params.verification.saleId);
+  const applicationId = `activation_${paymentId}`;
+
+  await setDoc(doc(db, "founderPayments", paymentId), {
+    provider: "chariow",
+    providerSaleId: params.verification.saleId,
+    providerTransactionId: "",
+    providerCustomerId: "",
+    providerProductId: "",
+    providerStoreId: "",
+    customerEmail: params.verification.purchaseEmail,
+    customerName: displayName || params.verification.customerName,
+    customerPhone: params.verification.customerPhone,
+    amount: params.verification.amount,
+    currency: params.verification.currency,
+    paymentStatus: "success",
+    saleStatus: "completed",
+    channel: "",
+    paymentMethod: params.verification.paymentMethod,
+    completedAt: params.verification.purchaseDate,
+    verified: true,
+    verifiedAt: now,
+    verificationSource: "client_verified_via_backend",
+    founderId: "",
+    founderReferenceId,
+    userId: uid,
+    matchedUserId: uid,
+    activationStatus: "pending_review",
+    founderLevel: params.verification.founderLevel,
+    rawPayloadRestricted: { saleId: params.verification.saleId, clientRecordedAt: now },
+    createdAt: now,
+    updatedAt: now,
+  }, { merge: true });
+
+  await setDoc(doc(db, "founderApplications", applicationId), {
+    userId: uid,
+    paymentId,
+    firstName,
+    lastName,
+    displayName,
+    email: accountEmail,
+    phone: params.verification.customerPhone,
+    country: params.verification.customerCountry,
+    city: "",
+    purchaseEmail: params.verification.purchaseEmail,
+    chariowOrderReference: params.verification.saleId,
+    publicFounderId: founderReferenceId,
+    claimedAmount: params.verification.amount,
+    claimedCurrency: params.verification.currency,
+    purchaseDate: params.verification.purchaseDate,
+    paymentMethod: params.verification.paymentMethod,
+    receiptReference,
+    receiptFileName: "",
+    receiptUrl: "",
+    profilePhotoUrl: "",
+    publicRecognitionConsent: true,
+    termsAccepted: true,
+    founderLevel: params.verification.founderLevel,
+    status: "pending",
+    verificationMethod: "chariow_api_verified",
+    reviewedBy: "",
+    reviewedAt: "",
+    rejectionReason: "",
+    createdAt: now,
+    updatedAt: now,
+  }, { merge: true });
+
+  await updateDoc(reservationRef, {
+    userId: uid,
+    email: accountEmail,
+    paymentId,
+    applicationId,
+    status: "pending_review",
+    activationStatus: "pending_review",
+    updatedAt: now,
+  });
+
+  return { paymentId, applicationId };
 }
 
 export async function generateFounderId() {

@@ -1,27 +1,17 @@
-import { createDocument, getDocument, queryEquals, requireFirebaseUser, updateDocument } from "../../_lib/firebase-admin";
+import { ChariowService } from "../../_lib/chariow";
 import { requireFounderClient } from "../../_lib/client-guard";
 import { extractFounderReferenceId } from "../../_lib/founder-reference";
-import { paymentDocumentId, verifyAndPersistSale } from "../../_lib/founder-payments";
+import { founderLevel, paymentDocumentId } from "../../_lib/founder-payments";
+import { requireFirebaseUser } from "../../_lib/firebase-admin";
 import { errorMessage, json } from "../../_lib/http";
 import type { PortalEnv } from "../../_lib/types";
 
 type Context = { request: Request; env: PortalEnv };
 
-function splitName(displayName: string) {
-  const normalized = displayName.trim().replace(/\s+/g, " ");
-  const [firstName = "", ...rest] = normalized.split(" ");
-  return {
-    firstName,
-    lastName: rest.join(" "),
-    displayName: normalized,
-  };
-}
-
 function levelLabel(level: string) {
   if (level === "legacy") return "legacy";
   if (level === "pioneer") return "pioneer";
   if (level === "builder") return "builder";
-  if (level === "supporter") return "supporter";
   return "supporter";
 }
 
@@ -29,6 +19,7 @@ export async function onRequestPost({ request, env }: Context) {
   try {
     const clientError = requireFounderClient(request, env);
     if (clientError) return clientError;
+
     const user = await requireFirebaseUser(request, env);
     const body = await request.json().catch(() => null) as { founderReferenceId?: string; receiptReference?: string } | null;
     const manualFounderReferenceId = String(body?.founderReferenceId || "").trim().toUpperCase();
@@ -38,132 +29,46 @@ export async function onRequestPost({ request, env }: Context) {
       return json({ ok: false, error: "RECEIPT_REQUIRED" }, { status: 400 });
     }
 
-    const verification = await verifyAndPersistSale(env, receiptReference, "activation_form");
-    if (!verification.ok) {
+    const verification = await new ChariowService(env).verifyFounderSale(receiptReference);
+    if (!verification.eligible) {
       return json({ ok: false, error: verification.reason }, { status: 422 });
     }
 
     const sale = verification.sale;
-    const saleFounderReferenceId = extractFounderReferenceId(sale);
     if (sale.customer.email !== user.email) {
       return json({ ok: false, error: "PURCHASE_EMAIL_MISMATCH" }, { status: 409 });
     }
 
-    const paymentId = paymentDocumentId(sale.id);
-    const payment = await getDocument(env, `founderPayments/${paymentId}`) as { userId?: string; founderId?: string; founderReferenceId?: string; activationStatus?: string } | null;
-    if (!payment) return json({ ok: false, error: "PAYMENT_NOT_FOUND" }, { status: 404 });
-    if (payment.founderId) return json({ ok: true, status: "already_activated", paymentId });
-    if (payment.userId && payment.userId !== user.uid) {
-      return json({ ok: false, error: "PAYMENT_ALREADY_LINKED" }, { status: 409 });
-    }
-
-    const existingFounderReferenceId = String(payment.founderReferenceId || "").trim().toUpperCase();
+    const saleFounderReferenceId = extractFounderReferenceId(sale);
     if (manualFounderReferenceId && saleFounderReferenceId && manualFounderReferenceId !== saleFounderReferenceId) {
       return json({ ok: false, error: "FOUNDER_ID_MISMATCH" }, { status: 409 });
     }
-    if (manualFounderReferenceId && existingFounderReferenceId && manualFounderReferenceId !== existingFounderReferenceId) {
-      return json({ ok: false, error: "FOUNDER_ID_MISMATCH" }, { status: 409 });
-    }
 
-    const founderReferenceId = saleFounderReferenceId || manualFounderReferenceId || existingFounderReferenceId;
+    const founderReferenceId = saleFounderReferenceId || manualFounderReferenceId;
     if (!founderReferenceId) {
       return json({ ok: false, error: "FOUNDER_ID_NOT_FOUND_IN_PAYMENT" }, { status: 422 });
     }
 
-    const reservations = await queryEquals(env, "founderReservations", "publicFounderId", founderReferenceId, 1);
-    const reservation = reservations[0] as { id: string; founderId?: string; paymentId?: string; displayName?: string; firstName?: string; lastName?: string } | undefined;
-    if (!reservation?.id) {
-      return json({ ok: false, error: "FOUNDER_REFERENCE_NOT_FOUND" }, { status: 404 });
-    }
-    if (reservation.founderId) {
-      return json({ ok: true, status: "already_activated", paymentId, founderId: reservation.founderId, founderReferenceId });
-    }
-    if (reservation.paymentId && reservation.paymentId !== paymentId) {
-      return json({ ok: false, error: "FOUNDER_REFERENCE_ALREADY_USED" }, { status: 409 });
-    }
-
-    const displayName = String(reservation.displayName || `${reservation.firstName || ""} ${reservation.lastName || ""}`).trim();
-    const { firstName, lastName } = splitName(displayName);
-    const now = new Date().toISOString();
-    const existingFounders = await queryEquals(env, "founders", "userId", user.uid, 1);
-    if (existingFounders.length) {
-      await updateDocument(env, `founderPayments/${paymentId}`, {
-        userId: user.uid,
-        matchedUserId: user.uid,
-        founderReferenceId,
-        activationStatus: "already_active",
-        updatedAt: now,
-      });
-      return json({ ok: true, status: "already_active", paymentId, founderId: existingFounders[0].id });
-    }
-
-    await updateDocument(env, `founderPayments/${paymentId}`, {
-      userId: user.uid,
-      matchedUserId: user.uid,
-      customerName: displayName,
+    const level = levelLabel(founderLevel(sale.amount.value, sale.amount.currency));
+    return json({
+      ok: true,
+      status: "verified",
       founderReferenceId,
-      activationStatus: payment.activationStatus === "requires_manual_review" ? "requires_manual_review" : "pending_review",
-      updatedAt: now,
+      verification: {
+        founderReferenceId,
+        saleId: sale.id,
+        paymentId: paymentDocumentId(sale.id),
+        amount: sale.amount.value,
+        currency: sale.amount.currency,
+        purchaseDate: sale.completed_at || sale.created_at || new Date().toISOString(),
+        paymentMethod: sale.payment?.method?.name || sale.payment?.gateway || "",
+        purchaseEmail: sale.customer.email,
+        customerName: sale.customer.name || `${sale.customer.first_name || ""} ${sale.customer.last_name || ""}`.trim(),
+        customerPhone: sale.customer.phone || "",
+        customerCountry: sale.customer.country || "",
+        founderLevel: level,
+      },
     });
-
-    const applicationId = `activation_${paymentId}`;
-    const payload = {
-      userId: user.uid,
-      paymentId,
-      firstName,
-      lastName,
-      displayName,
-      email: user.email,
-      phone: sale.customer.phone || "",
-      country: sale.customer.country || "",
-      city: "",
-      purchaseEmail: sale.customer.email,
-      chariowOrderReference: sale.id,
-      publicFounderId: founderReferenceId,
-      claimedAmount: sale.amount.value,
-      claimedCurrency: sale.amount.currency,
-      purchaseDate: sale.completed_at || sale.created_at || now,
-      paymentMethod: sale.payment?.method?.name || sale.payment?.gateway || "",
-      receiptReference,
-      receiptFileName: "",
-      receiptUrl: "",
-      profilePhotoUrl: "",
-      publicRecognitionConsent: true,
-      termsAccepted: true,
-      founderLevel: levelLabel(String((await getDocument(env, `founderPayments/${paymentId}`) as { founderLevel?: string } | null)?.founderLevel || "")),
-      status: "pending",
-      verificationMethod: "chariow_api_verified",
-      reviewedBy: "",
-      reviewedAt: "",
-      rejectionReason: "",
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    const created = await createDocument(env, "founderApplications", applicationId, payload);
-    if (!created.created) {
-      await updateDocument(env, `founderApplications/${applicationId}`, {
-        displayName,
-        firstName,
-        lastName,
-        paymentId,
-        publicFounderId: founderReferenceId,
-        receiptReference,
-        updatedAt: now,
-      });
-    }
-
-    await updateDocument(env, `founderReservations/${reservation.id}`, {
-      userId: user.uid,
-      email: user.email,
-      paymentId,
-      applicationId,
-      status: "pending_review",
-      activationStatus: "pending_review",
-      updatedAt: now,
-    });
-
-    return json({ ok: true, status: "pending_review", applicationId, paymentId, duplicatePayment: verification.duplicate, founderReferenceId });
   } catch (error) {
     const message = errorMessage(error);
     const status = message === "UNAUTHORIZED" ? 401 : 500;
@@ -172,19 +77,7 @@ export async function onRequestPost({ request, env }: Context) {
 }
 
 export async function onRequestGet({ request, env }: Context) {
-  try {
-    const clientError = requireFounderClient(request, env);
-    if (clientError) return clientError;
-    const user = await requireFirebaseUser(request, env);
-    const applications = await queryEquals(env, "founderApplications", "userId", user.uid, 5);
-    const payments = await queryEquals(env, "founderPayments", "userId", user.uid, 5);
-    return json({
-      ok: true,
-      application: applications[0] || null,
-      payment: payments[0] || null,
-    });
-  } catch (error) {
-    const message = errorMessage(error);
-    return json({ ok: false, error: message === "UNAUTHORIZED" ? "UNAUTHORIZED" : "FETCH_FAILED" }, { status: message === "UNAUTHORIZED" ? 401 : 500 });
-  }
+  const clientError = requireFounderClient(request, env);
+  if (clientError) return clientError;
+  return json({ ok: true, route: "/api/founders/activate", mode: "verify_only" });
 }
