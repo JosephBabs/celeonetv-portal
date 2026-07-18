@@ -11,6 +11,7 @@ async function authHeaders(extra: Record<string, string> = {}) {
   return {
     authorization: `Bearer ${token}`,
     "content-type": "application/json",
+    "x-celeone-client": "founders-portal-web",
     ...extra,
   };
 }

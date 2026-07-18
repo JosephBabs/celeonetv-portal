@@ -69,6 +69,7 @@ export interface ChariowSale {
     method?: { name?: string; icon_url?: string };
   };
   store?: { id: string; name?: string; url?: string };
+  custom_fields_values?: unknown;
 }
 
 export type VerifiedFounderSale = {

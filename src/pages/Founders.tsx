@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore";
 import { APP } from "../lib/config";
+import { db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
 
 const benefits = [
@@ -37,6 +39,12 @@ export default function Founders() {
 
   const paymentUrl = APP.founders.chariowPassUrl || "https://dzrkqyqp.mychariow.shop/prd_htdw78o8";
 
+  const generateFounderReferenceId = () => {
+    const year = new Date().getFullYear();
+    const random = Math.floor(100000 + Math.random() * 900000);
+    return `COF-${year}-${random}`;
+  };
+
   const reserveFounderId = async () => {
     const normalizedName = displayName.trim().replace(/\s+/g, " ");
     if (!normalizedName) {
@@ -47,17 +55,35 @@ export default function Founders() {
     setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/founders/reserve", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ displayName: normalizedName }),
+      const parts = normalizedName.split(" ");
+      const firstName = parts[0] || "";
+      const lastName = parts.slice(1).join(" ");
+      const founderReferenceId = generateFounderReferenceId();
+      const reservationId = `reservation_${founderReferenceId.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+      const now = new Date().toISOString();
+
+      await setDoc(doc(db, "founderReservations", reservationId), {
+        publicFounderId: founderReferenceId,
+        firstName,
+        lastName,
+        displayName: normalizedName,
+        status: "not_verified",
+        activationStatus: "awaiting_payment",
+        source: "founders_portal_client",
+        paymentId: "",
+        applicationId: "",
+        founderId: "",
+        userId: "",
+        email: "",
+        createdAt: now,
+        updatedAt: now,
       });
-      const body = await response.json().catch(() => ({})) as { founderReferenceId?: string; publicFounderId?: string; error?: string };
-      if (!response.ok) throw new Error(body.error || "FOUNDER_ID_RESERVATION_FAILED");
-      setReservedId(String(body.founderReferenceId || body.publicFounderId || "").trim());
+
+      setReservedId(founderReferenceId);
       setReservedName(normalizedName);
-    } catch {
-      setError("Impossible de generer votre Founder ID pour le moment.");
+    } catch (caught) {
+      console.error(caught);
+      setError("Impossible de generer votre Founder ID pour le moment. Verifiez la configuration Firestore.");
     } finally {
       setSaving(false);
     }

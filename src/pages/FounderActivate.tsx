@@ -37,11 +37,11 @@ export default function FounderActivate() {
       try {
         const data = await founderApi<ActivationResponse>("/api/founders/activate", { method: "GET" });
         const application = data.application || {};
-        const payment = data.payment || {};
-        setForm((prev) => ({
-          ...prev,
-          founderReferenceId: String(application.publicFounderId || payment.founderReferenceId || "").trim(),
-          receiptReference: String(application.receiptReference || application.chariowOrderReference || payment.providerSaleId || "").trim(),
+      const payment = data.payment || {};
+      setForm((prev) => ({
+        ...prev,
+        founderReferenceId: String(application.publicFounderId || payment.founderReferenceId || "").trim(),
+        receiptReference: String(application.receiptReference || application.chariowOrderReference || payment.providerSaleId || "").trim(),
         }));
         setExistingStatus(String(application.status || payment.activationStatus || ""));
       } catch {
@@ -61,8 +61,8 @@ export default function FounderActivate() {
   const submit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
     setError("");
-    if (!form.founderReferenceId || !form.receiptReference) {
-      setError("Veuillez renseigner votre Founder ID et votre preuve de paiement.");
+    if (!form.receiptReference) {
+      setError("Veuillez renseigner votre preuve de paiement.");
       return;
     }
     setSaving(true);
@@ -82,6 +82,9 @@ export default function FounderActivate() {
       else if (code === "PAYMENT_ALREADY_LINKED") setError("Ce recu est deja associe a un autre compte.");
       else if (code === "FOUNDER_REFERENCE_NOT_FOUND") setError("Ce Founder ID est introuvable. Revenez d'abord le generer sur la page Founder&apos;s Pass.");
       else if (code === "FOUNDER_REFERENCE_ALREADY_USED") setError("Ce Founder ID est deja lie a un autre paiement.");
+      else if (code === "FOUNDER_ID_MISMATCH") setError("Le Founder ID saisi ne correspond pas a celui enregistre pendant la finalisation du paiement.");
+      else if (code === "FOUNDER_ID_NOT_FOUND_IN_PAYMENT") setError("Aucun Founder ID n'a ete retrouve dans ce paiement. Collez votre Founder ID si vous ne l'avez pas ajoute pendant la finalisation.");
+      else if (code === "INVALID_CLIENT" || code === "INVALID_ORIGIN") setError("La requete d'activation a ete refusee. Rechargez la page puis reessayez.");
       else if (code === "SALE_NOT_COMPLETED" || code === "PAYMENT_NOT_SUCCESSFUL") setError("Ce recu n'est pas encore confirme comme paiement reussi.");
       else if (code === "PRODUCT_MISMATCH") setError("Ce recu ne correspond pas au Founder's Pass officiel.");
       else setError("Impossible de soumettre l'activation pour le moment.");
@@ -96,7 +99,7 @@ export default function FounderActivate() {
         <div className="text-xs font-black uppercase tracking-wide text-white/75">Founder activation</div>
         <h1 className="mt-2 text-3xl font-black md:text-5xl">Activer mon Founder's Pass</h1>
         <p className="mt-3 max-w-2xl text-sm font-semibold text-white/85">
-          Collez simplement votre Founder ID puis votre id d'achat, votre recu ou une capture de la finalisation du paiement.
+          Collez votre id d'achat, votre recu ou une capture de la finalisation du paiement. Si vous avez bien ajoute votre Founder ID pendant le paiement, nous le recuperons automatiquement.
         </p>
       </section>
 
@@ -110,11 +113,10 @@ export default function FounderActivate() {
         <form onSubmit={submit} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
           <div className="grid gap-4 md:grid-cols-2">
             <Field
-              label="Founder ID"
+              label="Founder ID de secours"
               value={form.founderReferenceId}
               onChange={(v) => setField("founderReferenceId", v.toUpperCase())}
               placeholder="Ex: COF-2026-000001"
-              required
             />
             <Field
               label="Recu, id d'achat ou capture de paiement"
@@ -126,7 +128,7 @@ export default function FounderActivate() {
           </div>
 
           <div className="mt-5 rounded-3xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">
-            Le Founder ID doit etre celui que vous avez copie avant paiement. Le recu doit correspondre au paiement reussi du Founder's Pass officiel et utiliser la meme adresse email que votre compte Cele One.
+            Le recu doit correspondre au paiement reussi du Founder's Pass officiel et utiliser la meme adresse email que votre compte Cele One. Le champ Founder ID reste disponible seulement si vous devez corriger ou completer la verification.
             {existingStatus ? <div className="mt-2 font-extrabold text-slate-900">Statut actuel: {existingStatus}</div> : null}
           </div>
 

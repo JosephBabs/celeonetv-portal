@@ -1,4 +1,6 @@
 import { createDocument, getDocument, queryEquals, requireFirebaseUser, updateDocument } from "../../_lib/firebase-admin";
+import { requireFounderClient } from "../../_lib/client-guard";
+import { extractFounderReferenceId } from "../../_lib/founder-reference";
 import { paymentDocumentId, verifyAndPersistSale } from "../../_lib/founder-payments";
 import { errorMessage, json } from "../../_lib/http";
 import type { PortalEnv } from "../../_lib/types";
@@ -25,13 +27,15 @@ function levelLabel(level: string) {
 
 export async function onRequestPost({ request, env }: Context) {
   try {
+    const clientError = requireFounderClient(request, env);
+    if (clientError) return clientError;
     const user = await requireFirebaseUser(request, env);
     const body = await request.json().catch(() => null) as { founderReferenceId?: string; receiptReference?: string } | null;
-    const founderReferenceId = String(body?.founderReferenceId || "").trim().toUpperCase();
+    const manualFounderReferenceId = String(body?.founderReferenceId || "").trim().toUpperCase();
     const receiptReference = String(body?.receiptReference || "").trim();
 
-    if (!founderReferenceId || !receiptReference) {
-      return json({ ok: false, error: "FOUNDER_ID_AND_RECEIPT_REQUIRED" }, { status: 400 });
+    if (!receiptReference) {
+      return json({ ok: false, error: "RECEIPT_REQUIRED" }, { status: 400 });
     }
 
     const verification = await verifyAndPersistSale(env, receiptReference, "activation_form");
@@ -40,16 +44,30 @@ export async function onRequestPost({ request, env }: Context) {
     }
 
     const sale = verification.sale;
+    const saleFounderReferenceId = extractFounderReferenceId(sale);
     if (sale.customer.email !== user.email) {
       return json({ ok: false, error: "PURCHASE_EMAIL_MISMATCH" }, { status: 409 });
     }
 
     const paymentId = paymentDocumentId(sale.id);
-    const payment = await getDocument(env, `founderPayments/${paymentId}`) as { userId?: string; founderId?: string; activationStatus?: string } | null;
+    const payment = await getDocument(env, `founderPayments/${paymentId}`) as { userId?: string; founderId?: string; founderReferenceId?: string; activationStatus?: string } | null;
     if (!payment) return json({ ok: false, error: "PAYMENT_NOT_FOUND" }, { status: 404 });
     if (payment.founderId) return json({ ok: true, status: "already_activated", paymentId });
     if (payment.userId && payment.userId !== user.uid) {
       return json({ ok: false, error: "PAYMENT_ALREADY_LINKED" }, { status: 409 });
+    }
+
+    const existingFounderReferenceId = String(payment.founderReferenceId || "").trim().toUpperCase();
+    if (manualFounderReferenceId && saleFounderReferenceId && manualFounderReferenceId !== saleFounderReferenceId) {
+      return json({ ok: false, error: "FOUNDER_ID_MISMATCH" }, { status: 409 });
+    }
+    if (manualFounderReferenceId && existingFounderReferenceId && manualFounderReferenceId !== existingFounderReferenceId) {
+      return json({ ok: false, error: "FOUNDER_ID_MISMATCH" }, { status: 409 });
+    }
+
+    const founderReferenceId = saleFounderReferenceId || manualFounderReferenceId || existingFounderReferenceId;
+    if (!founderReferenceId) {
+      return json({ ok: false, error: "FOUNDER_ID_NOT_FOUND_IN_PAYMENT" }, { status: 422 });
     }
 
     const reservations = await queryEquals(env, "founderReservations", "publicFounderId", founderReferenceId, 1);
@@ -155,6 +173,8 @@ export async function onRequestPost({ request, env }: Context) {
 
 export async function onRequestGet({ request, env }: Context) {
   try {
+    const clientError = requireFounderClient(request, env);
+    if (clientError) return clientError;
     const user = await requireFirebaseUser(request, env);
     const applications = await queryEquals(env, "founderApplications", "userId", user.uid, 5);
     const payments = await queryEquals(env, "founderPayments", "userId", user.uid, 5);

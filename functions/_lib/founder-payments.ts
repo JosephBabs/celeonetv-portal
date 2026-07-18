@@ -1,5 +1,6 @@
 import { ChariowService } from "./chariow";
 import { addDocument, createDocument, getDocument, queryEquals, updateDocument } from "./firebase-admin";
+import { extractFounderReferenceId } from "./founder-reference";
 import type { ChariowSale, PortalEnv } from "./types";
 
 export function founderLevel(amount: number, currency: string) {
@@ -24,6 +25,7 @@ export async function persistVerifiedFounderSale(env: PortalEnv, sale: ChariowSa
   if (existing?.verified) return { paymentId, duplicate: true, payment: existing };
 
   const now = new Date().toISOString();
+  const founderReferenceId = extractFounderReferenceId(sale);
   const users = await queryEquals(env, "user_data", "email", sale.customer.email, 3);
   const matchStatus = users.length === 1 ? "ready_to_activate" : users.length === 0 ? "unclaimed" : "requires_manual_review";
   const matchedUserId = users.length === 1 ? users[0].id : "";
@@ -49,11 +51,12 @@ export async function persistVerifiedFounderSale(env: PortalEnv, sale: ChariowSa
     verifiedAt: now,
     verificationSource: source,
     founderId: "",
+    founderReferenceId,
     userId: matchedUserId,
     matchedUserId,
     activationStatus: matchStatus,
     founderLevel: level,
-    rawPayloadRestricted: { saleId: sale.id, verifiedAgainstApiAt: now },
+    rawPayloadRestricted: { saleId: sale.id, verifiedAgainstApiAt: now, founderReferenceId },
     createdAt: now,
     updatedAt: now,
   };
@@ -65,7 +68,7 @@ export async function persistVerifiedFounderSale(env: PortalEnv, sale: ChariowSa
     entityId: paymentId,
     userId: matchedUserId,
     adminId: "",
-    metadata: { providerSaleId: sale.id, source, matchStatus },
+    metadata: { providerSaleId: sale.id, source, matchStatus, founderReferenceId },
     createdAt: now,
   });
   if (matchedUserId) {

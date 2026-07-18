@@ -59,6 +59,7 @@ function normalizeSale(value: unknown): ChariowSale {
       method: { name: String(method.name || payment.method_name || ""), icon_url: String(method.icon_url || "") },
     },
     store: { id: String(store.id || sale.store_id || ""), name: String(store.name || ""), url: String(store.url || "") },
+    custom_fields_values: sale.custom_fields_values ?? sale.customFieldsValues ?? sale.custom_fields ?? null,
   };
 }
 

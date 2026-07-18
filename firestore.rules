@@ -64,12 +64,35 @@ service cloud.firestore {
     }
 
     match /founderReservations/{reservationId} {
+      allow create: if
+        request.resource.data.publicFounderId is string &&
+        request.resource.data.publicFounderId.matches('^COF-[0-9]{4}-[0-9]{6}$') &&
+        request.resource.data.firstName is string &&
+        request.resource.data.lastName is string &&
+        request.resource.data.displayName is string &&
+        request.resource.data.status == 'not_verified' &&
+        request.resource.data.activationStatus == 'awaiting_payment' &&
+        request.resource.data.source in ['founders_portal', 'founders_portal_client'] &&
+        request.resource.data.paymentId == '' &&
+        request.resource.data.applicationId == '' &&
+        request.resource.data.founderId == '' &&
+        request.resource.data.userId == '' &&
+        request.resource.data.email == '' &&
+        request.resource.data.createdAt is string &&
+        request.resource.data.updatedAt is string;
       allow read: if isAdmin() || isOwnerByUid("userId") || isOwnerByEmail("email");
-      allow write: if false;
+      allow update, delete: if false;
     }
 
     match /founders/{founderId} {
-      allow read: if isAdmin() || isOwnerByUid("userId") || isOwnerByEmail("email");
+      allow read: if
+        isAdmin() ||
+        isOwnerByUid("userId") ||
+        isOwnerByEmail("email") ||
+        (
+          resource.data.publicFounderId is string &&
+          !(resource.data.documentRole == 'schema')
+        );
       allow write: if false;
     }
 

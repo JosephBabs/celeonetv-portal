@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { FounderCertificateStatus } from "../components/founders/certificate/FounderCertificateStatus";
-import { formatDate, founderLevelLabel } from "../lib/founders";
+import { formatDate, founderLevelLabel, getFounderByPublicId } from "../lib/founders";
 import { setPageMeta } from "../lib/seo";
 
 export default function FounderVerify() {
@@ -25,9 +25,8 @@ export default function FounderVerify() {
     if (!founderId) return;
     (async () => {
       setLoading(true);
-      const response = await fetch(`/api/founders/verify?founderId=${encodeURIComponent(founderId)}`, { cache: "no-store" }).catch(() => null);
-      const data = response ? await response.json().catch(() => ({ founder: null })) : { founder: null };
-      setFounder(data?.founder || null);
+      const data = await getFounderByPublicId(founderId).catch(() => null);
+      setFounder(data || null);
       setLoading(false);
     })();
   }, [founderId]);
