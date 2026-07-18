@@ -5,11 +5,9 @@ import { founderCertificateNumber, founderLevelLabel, verificationUrl } from "./
 
 const TEMPLATE_URL = "/founders/founder-certificate-template.pdf";
 const GABRIOLA_FONT_URL = "/fonts/Gabriola.ttf";
-const LOGO_URL = "/favicon.png";
 
 let cachedTemplateBytes: Uint8Array | null = null;
 let cachedGabriolaFontBytes: Uint8Array | null = null;
-let cachedLogoBytes: Uint8Array | null = null;
 
 function stringValue(value: unknown, fallback = "") {
   const text = String(value ?? "").trim();
@@ -55,26 +53,6 @@ async function loadGabriolaFontBytes() {
   return cachedGabriolaFontBytes;
 }
 
-async function loadLogoBytes() {
-  cachedLogoBytes = await loadBytes(LOGO_URL, cachedLogoBytes);
-  return cachedLogoBytes;
-}
-
-function drawLogoInBox(page: PDFPage, image: Awaited<ReturnType<PDFDocument["embedPng"]>>) {
-  const boxX = 114;
-  const boxY = 118;
-  const boxWidth = 130;
-  const boxHeight = 146;
-  const maxWidth = 92;
-  const maxHeight = 92;
-  const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
-  const width = image.width * scale;
-  const height = image.height * scale;
-  const x = boxX + (boxWidth - width) / 2;
-  const y = boxY + (boxHeight - height) / 2 + 10;
-  page.drawImage(image, { x, y, width, height });
-}
-
 export async function buildFounderCertificatePdf(founder: Record<string, unknown>) {
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
@@ -93,7 +71,6 @@ export async function buildFounderCertificatePdf(founder: Record<string, unknown
       return pdf.embedFont(StandardFonts.TimesRomanBoldItalic);
     }
   })();
-  const logo = await pdf.embedPng(await loadLogoBytes());
 
   const green = rgb(0.0, 0.37, 0.30);
   const dark = rgb(0.14, 0.18, 0.18);
@@ -108,33 +85,31 @@ export async function buildFounderCertificatePdf(founder: Record<string, unknown
   const issued = issueDate(founder);
   const verify = verificationUrl(certNo);
 
-  centerText(page, "CERTIFICAT PASS-FONDATEUR", 860, 42, serif, gold);
-  centerText(page, "Cele One Founder's Pass", 820, 20, sansBold, green);
-  centerText(page, "decerne officiellement a", 742, 18, sans, soft);
+  centerText(page, "CERTIFICAT PASS-FONDATEUR", 470, 28, serif, gold);
+  centerText(page, "Cele One Founder's Pass", 438, 14, sansBold, green);
+  centerText(page, "decerne officiellement a", 392, 13, sans, soft);
 
   if (fit.lines.length === 1) {
-    centerText(page, fit.lines[0], 640, fit.fontSize + 36, nameFont, dark);
+    centerText(page, fit.lines[0], 314, Math.min(fit.fontSize + 18, 34), nameFont, dark);
   } else {
-    centerText(page, fit.lines[0], 664, fit.fontSize + 28, nameFont, dark);
-    centerText(page, fit.lines[1], 594, fit.fontSize + 28, nameFont, dark);
+    centerText(page, fit.lines[0], 336, Math.min(fit.fontSize + 12, 28), nameFont, dark);
+    centerText(page, fit.lines[1], 286, Math.min(fit.fontSize + 12, 28), nameFont, dark);
   }
 
-  centerText(page, `pour son soutien en tant que ${founderLevel} FOUNDER`, 520, 20, sansBold, green);
-  centerText(page, "au developpement et au lancement de Cele One.", 486, 16, sans, soft);
+  centerText(page, `pour son soutien en tant que ${founderLevel} FOUNDER`, 232, 14, sansBold, green);
+  centerText(page, "au developpement et au lancement de Cele One.", 208, 12, sans, soft);
 
-  page.drawText("Founder ID", { x: 430, y: 252, size: 11, font: sansBold, color: gold });
-  page.drawText(publicFounderId, { x: 430, y: 226, size: 22, font: sansBold, color: green });
+  page.drawText("Founder ID", { x: 306, y: 126, size: 9, font: sansBold, color: gold });
+  page.drawText(publicFounderId, { x: 306, y: 106, size: 14, font: sansBold, color: green });
 
-  page.drawText("Certificate Number", { x: 760, y: 252, size: 11, font: sansBold, color: gold });
-  page.drawText(certNo, { x: 760, y: 226, size: 18, font: sansBold, color: dark });
+  page.drawText("Certificate Number", { x: 490, y: 126, size: 9, font: sansBold, color: gold });
+  page.drawText(certNo, { x: 490, y: 106, size: 12, font: sansBold, color: dark });
 
-  page.drawText("Issue Date", { x: 1112, y: 252, size: 11, font: sansBold, color: gold });
-  page.drawText(issued, { x: 1112, y: 226, size: 14, font: sansBold, color: dark });
+  page.drawText("Issue Date", { x: 680, y: 126, size: 9, font: sansBold, color: gold });
+  page.drawText(issued, { x: 680, y: 106, size: 11, font: sansBold, color: dark });
 
-  page.drawText("Verification", { x: 430, y: 170, size: 11, font: sansBold, color: gold });
-  page.drawText(verify, { x: 430, y: 146, size: 10, font: sans, color: soft });
-
-  drawLogoInBox(page, logo);
+  page.drawText("Verification", { x: 306, y: 74, size: 9, font: sansBold, color: gold });
+  page.drawText(verify, { x: 306, y: 56, size: 7, font: sans, color: soft });
 
   const pdfBytes = await pdf.save();
   return new Blob([Uint8Array.from(pdfBytes)], { type: "application/pdf" });
