@@ -29,7 +29,7 @@ const emptyBundle: ProgramBundle = {
 };
 
 export default function SpiritualProgram() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [bundle, setBundle] = useState<ProgramBundle>(emptyBundle);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -57,9 +57,12 @@ export default function SpiritualProgram() {
   const legacyWeeks = useMemo(() => resolveWeeks(bundle), [bundle]);
   const themeWeeks = useMemo(() => resolveThemeWeeks(bundle), [bundle]);
   const visibleThemeWeeks = useMemo(() => themeWeeks.filter(isThemeWeekVisible), [themeWeeks]);
-  const hasMobileThemeData = themeWeeks.length > 0;
+  const hasMobileThemeData = visibleThemeWeeks.length > 0;
   const currentLegacyWeek = useMemo(() => getCurrentWeek(legacyWeeks), [legacyWeeks]);
-  const currentThemeWeek = useMemo(() => getCurrentThemeWeek(themeWeeks), [themeWeeks]);
+  const currentThemeWeek = useMemo(
+    () => getCurrentThemeWeek(visibleThemeWeeks.length ? visibleThemeWeeks : themeWeeks),
+    [themeWeeks, visibleThemeWeeks],
+  );
 
   const filteredWeeks = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -70,14 +73,14 @@ export default function SpiritualProgram() {
         if (!q) return true;
 
         const haystack = [
-          getLocalizedText(week.title, week.titleTranslations),
-          getLocalizedText(week.description, week.descriptionTranslations),
-          getLocalizedText(week.bibleTheme, week.bibleThemeTranslations),
+          getLocalizedText(week.title, week.titleTranslations, lang),
+          getLocalizedText(week.description, week.descriptionTranslations, lang),
+          getLocalizedText(week.bibleTheme, week.bibleThemeTranslations, lang),
           ...(week.scriptureReferences || []),
           ...(week.verses || []),
           ...week.eventDays.flatMap((service) => [
-            getLocalizedText(service.title, service.titleTranslations),
-            getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations),
+            getLocalizedText(service.title, service.titleTranslations, lang),
+            getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang),
             service.dayOfWeek || service.dayKey || "",
             service.time || service.serviceTime || "",
             ...(service.scriptureReferences || []),
@@ -106,7 +109,7 @@ export default function SpiritualProgram() {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [hasMobileThemeData, legacyWeeks, search, visibleThemeWeeks, year]);
+  }, [hasMobileThemeData, lang, legacyWeeks, search, visibleThemeWeeks, year]);
 
   const yearOptions = useMemo(() => {
     if (hasMobileThemeData) {
@@ -116,12 +119,13 @@ export default function SpiritualProgram() {
   }, [bundle.years, hasMobileThemeData, themeWeeks]);
 
   const currentTitle = currentThemeWeek
-    ? getLocalizedText(currentThemeWeek.title, currentThemeWeek.titleTranslations)
+    ? getLocalizedText(currentThemeWeek.title, currentThemeWeek.titleTranslations, lang)
     : currentLegacyWeek?.title || "";
   const currentDescription = currentThemeWeek
     ? getLocalizedText(
         currentThemeWeek.bibleTheme || currentThemeWeek.description,
-        currentThemeWeek.bibleThemeTranslations || currentThemeWeek.descriptionTranslations
+        currentThemeWeek.bibleThemeTranslations || currentThemeWeek.descriptionTranslations,
+        lang,
       )
     : currentLegacyWeek?.description || currentLegacyWeek?.bibleTheme || "";
   const currentRange = currentThemeWeek || currentLegacyWeek;
@@ -223,7 +227,7 @@ export default function SpiritualProgram() {
             <div className="space-y-4">
               {filteredWeeks.slice(0, 18).map((week) =>
                 hasMobileThemeData ? (
-                  <ThemeWeekCard key={week.id} week={week as ResolvedThemeWeek} />
+                  <ThemeWeekCard key={week.id} week={week as ResolvedThemeWeek} lang={lang} />
                 ) : (
                   <LegacyWeekCard key={week.id} week={week as ResolvedWeek} />
                 )
@@ -245,7 +249,7 @@ export default function SpiritualProgram() {
                         .slice(0, 8)
                         .map((item) => (
                           <div key={item.id} className="rounded-2xl bg-slate-50 p-4">
-                            <div className="font-black text-slate-900">{getLocalizedText(item.title, item.titleTranslations) || "Celebration"}</div>
+                            <div className="font-black text-slate-900">{getLocalizedText(item.title, item.titleTranslations, lang) || "Celebration"}</div>
                             <div className="mt-1 text-xs font-bold uppercase tracking-wide text-amber-700">{item.serviceType || "special"}</div>
                             <div className="mt-1 text-sm text-slate-600">{item.date || item.serviceDate}</div>
                           </div>
@@ -286,11 +290,11 @@ export default function SpiritualProgram() {
   );
 }
 
-function ThemeWeekCard({ week }: { week: ResolvedThemeWeek }) {
+function ThemeWeekCard({ week, lang }: { week: ResolvedThemeWeek; lang: string }) {
   const services = week.eventDays.filter((item) => item.serviceType !== "special_celebration" && !item.specialCelebrationId);
   const celebrations = week.eventDays.filter((item) => item.serviceType === "special_celebration" || item.specialCelebrationId);
-  const title = getLocalizedText(week.title || week.theme, week.titleTranslations);
-  const bibleTheme = getLocalizedText(week.bibleTheme || week.description, week.bibleThemeTranslations || week.descriptionTranslations);
+  const title = getLocalizedText(week.title || week.theme, week.titleTranslations, lang);
+  const bibleTheme = getLocalizedText(week.bibleTheme || week.description, week.bibleThemeTranslations || week.descriptionTranslations, lang);
 
   return (
     <div className="rounded-3xl border border-slate-200 p-5">
@@ -315,13 +319,13 @@ function ThemeWeekCard({ week }: { week: ResolvedThemeWeek }) {
         {services.slice(0, 5).map((service) => (
           <div key={service.id} className="rounded-2xl bg-slate-50 px-4 py-3 text-sm">
             <div className="font-black text-slate-900">
-              {getLocalizedText(service.title, service.titleTranslations) || "Service"}
+              {getLocalizedText(service.title, service.titleTranslations, lang) || "Service"}
             </div>
             <div className="mt-1 text-slate-600">
               {[service.dayOfWeek || service.dayKey, service.date || service.serviceDate, service.time || service.serviceTime].filter(Boolean).join(" - ")}
             </div>
             <div className="mt-1 text-slate-600">
-              {getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations) || "-"}
+              {getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang) || "-"}
             </div>
           </div>
         ))}
