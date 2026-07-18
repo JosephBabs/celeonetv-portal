@@ -63,7 +63,7 @@ export default function Founders() {
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               <Stat title="Paiement officiel" value="Produit Chariow" />
-              <Stat title="Activation" value="Recu ou sale ID" />
+              <Stat title="Activation" value="Recu ou id d'achat" />
               <Stat title="Sortie premium" value="Certificat + carte" />
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function Founders() {
             <div className="grid gap-4 md:grid-cols-2">
               <ActionCard
                 title="Apres paiement"
-                desc="Ouvrez la page d'activation et collez votre recu ou votre sale ID Chariow."
+                desc="Ouvrez la page d'activation et collez votre recu, votre id d'achat ou une capture de la finalisation du paiement."
                 link="/founders/activate"
                 label="Aller a l'activation"
               />

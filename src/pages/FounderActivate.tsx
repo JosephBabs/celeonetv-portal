@@ -118,10 +118,10 @@ export default function FounderActivate() {
               required
             />
             <Field
-              label="Recu / sale ID Chariow"
+              label="Recu, id d'achat ou capture de paiement"
               value={form.receiptReference}
               onChange={(v) => setField("receiptReference", v)}
-              placeholder="Ex: sale_123456"
+              placeholder="Ex: recu Chariow ou capture de finalisation"
               required
             />
           </div>

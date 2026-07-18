@@ -264,7 +264,7 @@ export default function PrelaunchRegistration() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <SimpleFeature title="1. Paiement" desc="Ouvrez le produit et terminez le paiement sur Chariow." />
-            <SimpleFeature title="2. Recu" desc="Conservez votre recu ou votre `sale ID` apres paiement." />
+            <SimpleFeature title="2. Recu" desc="Gardez votre recu, votre id d'achat ou une capture de la finalisation du paiement." />
             <SimpleFeature title="3. Activation" desc="Revenez dans le portail pour activer votre pass." />
           </div>
 
@@ -352,7 +352,7 @@ export default function PrelaunchRegistration() {
               </Link>
             </div>
             <div className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-semibold text-slate-700">
-              Important: conservez le recu Chariow ou le `sale ID`. Il sera demande pendant l&apos;activation du Founder&apos;s Pass.
+              Important: conservez le recu Chariow, votre id d&apos;achat ou une capture de la finalisation du paiement. Cela sera demande pendant l&apos;activation du Founder&apos;s Pass.
             </div>
             <a href={founderPassUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-extrabold text-[#123b40] hover:underline">
               {founderPassUrl}
