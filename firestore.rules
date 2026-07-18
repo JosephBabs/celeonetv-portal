@@ -120,8 +120,9 @@ service cloud.firestore {
         request.resource.data.email == requestEmail() &&
         request.resource.data.paymentId is string &&
         request.resource.data.applicationId is string &&
-        request.resource.data.status == 'pending_review' &&
-        request.resource.data.activationStatus == 'pending_review' &&
+        request.resource.data.founderId is string &&
+        request.resource.data.status in ['pending_review', 'verified'] &&
+        request.resource.data.activationStatus in ['pending_review', 'active'] &&
         request.resource.data.updatedAt is string;
       allow read: if isAdmin() || isOwnerByUid("userId") || isOwnerByEmail("email");
       allow delete: if false;
@@ -136,7 +137,30 @@ service cloud.firestore {
           resource.data.publicFounderId is string &&
           !(resource.data.documentRole == 'schema')
         );
-      allow write: if false;
+      allow create, update: if signedInEmail() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.email == requestEmail() &&
+        request.resource.data.publicFounderId is string &&
+        request.resource.data.publicFounderId.matches('^COF-[0-9]{4}-[0-9]{6}$') &&
+        request.resource.data.paymentId is string &&
+        request.resource.data.applicationId is string &&
+        request.resource.data.founderLevel in ['supporter', 'builder', 'pioneer', 'legacy'] &&
+        request.resource.data.status == 'active' &&
+        request.resource.data.certificateStatus == 'active' &&
+        request.resource.data.certificateNumber is string &&
+        request.resource.data.joinedAt is string &&
+        request.resource.data.issuedAt is string &&
+        request.resource.data.createdAt is string &&
+        request.resource.data.updatedAt is string &&
+        (
+          !exists(/databases/$(database)/documents/founders/$(founderId)) ||
+          (
+            resource.data.userId == request.auth.uid &&
+            resource.data.publicFounderId == request.resource.data.publicFounderId &&
+            !(resource.data.status in ['revoked', 'suspended'])
+          )
+        );
+      allow delete: if false;
     }
 
     match /founderPayments/{paymentId} {

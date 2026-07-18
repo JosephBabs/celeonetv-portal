@@ -5,7 +5,7 @@ import { Link, Navigate } from "react-router-dom";
 import { FounderCertificateStatus } from "../components/founders/certificate/FounderCertificateStatus";
 import { db } from "../lib/firebase";
 import { getFounderCredentials, loadFounderAsset, retryFounderCredentialGeneration } from "../lib/founderCredentialsApi";
-import { formatDate, founderLevelLabel, getFounderByUserId, getLatestFounderApplication, maskReference, qrCodeUrl, verificationUrl } from "../lib/founders";
+import { formatDate, founderLevelLabel, getFounderByUserId, getLatestFounderApplication, getLatestFounderPayment, qrCodeUrl, synthesizeFounderRecord, verificationUrl } from "../lib/founders";
 import { useAuthUser } from "../lib/useAuthUser";
 import { setPageMeta } from "../lib/seo";
 
@@ -32,12 +32,17 @@ export default function FounderDashboard() {
     if (!user) return;
     (async () => {
       setBusy(true);
-      const [app, found] = await Promise.all([getLatestFounderApplication(user.uid), getFounderByUserId(user.uid)]);
+      const [app, found, paid] = await Promise.all([
+        getLatestFounderApplication(user.uid).catch(() => null),
+        getFounderByUserId(user.uid).catch(() => null),
+        getLatestFounderPayment(user.uid, user.email || "").catch(() => null),
+      ]);
       setApplication(app);
-      setFounder(found);
-      if (found) {
+      const effectiveFounder = found || synthesizeFounderRecord({ application: app, payment: paid, user });
+      setFounder(effectiveFounder);
+      if (effectiveFounder) {
         const credentialData = await getFounderCredentials().catch(() => null);
-        setCredentialFounder(credentialData?.founder || null);
+        setCredentialFounder(credentialData?.founder || effectiveFounder);
         if (credentialData?.founder) {
           const [certificateImage, qrImage] = await Promise.all([
             loadFounderAsset("certificatePreview").catch(() => ""),
@@ -61,19 +66,6 @@ export default function FounderDashboard() {
     return (
       <StateShell title="Vous n'avez pas encore active votre Founder's Pass." desc="Achetez le pass via Chariow, puis soumettez votre activation.">
         <Link to="/founders/activate" className="rounded-2xl bg-[#2FA5A9] px-5 py-3 text-sm font-extrabold text-white">Activer mon pass</Link>
-      </StateShell>
-    );
-  }
-
-  if (application?.status === "pending" && !founder) {
-    return (
-      <StateShell title="Verification en cours" desc="Votre demande est en attente de verification manuelle ou Chariow.">
-        <div className="grid gap-3 md:grid-cols-3">
-          <Info label="Submission date" value={formatDate(application.createdAt)} />
-          <Info label="Claimed amount" value={`${application.claimedAmount || "-"} ${application.claimedCurrency || ""}`} />
-          <Info label="Order reference" value={maskReference(application.chariowOrderReference)} />
-        </div>
-        <a href="mailto:support@celeonetv.com" className="mt-4 inline-flex rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Contact support</a>
       </StateShell>
     );
   }
@@ -115,7 +107,8 @@ export default function FounderDashboard() {
           </div>
           <div className="mt-5 flex flex-wrap gap-3">
             <button onClick={() => window.print()} className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white">Download pass</button>
-            {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Download certificate</Link> : <span className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-400">Certificate pending</span>}
+            {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Generer le PDF</Link> : <span className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-400">Founder ID requis</span>}
+            {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Re telecharger le PDF</Link> : null}
             <button onClick={() => navigator.clipboard?.writeText(verificationUrl(founder.publicFounderId))} className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Share verification link</button>
           </div>
         </section>
@@ -146,10 +139,14 @@ export default function FounderDashboard() {
               <div className="text-lg font-black text-slate-900">Vos identifiants sont en cours de generation</div>
               <p className="mt-2 text-sm font-semibold text-slate-600">Votre certificat et votre carte Founder seront disponibles des que le processus sera termine.</p>
             </div>
-          ) : effectiveCredentialStatus === "pending_storage" ? (
+          ) : effectiveCredentialStatus === "pending_storage" || !credentialFounder ? (
             <div className="mt-5 rounded-3xl bg-amber-50 p-5">
               <div className="text-lg font-black text-amber-900">Votre Founder's Pass est actif.</div>
-              <p className="mt-2 text-sm font-semibold text-amber-800">Le paiement est valide et votre compte fondateur est actif. Votre certificat peut etre genere localement depuis cette page, meme sans Firebase Storage.</p>
+              <p className="mt-2 text-sm font-semibold text-amber-800">Votre paiement est confirme et votre certificat est pret a etre genere ou re telecharge en PDF depuis cette page.</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Link to="/founders/certificate" className="rounded-2xl bg-amber-900 px-4 py-3 text-sm font-extrabold text-white">Generer mon certificat PDF</Link>
+                <Link to="/founders/certificate" className="rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm font-extrabold text-amber-900">Re telecharger le PDF</Link>
+              </div>
             </div>
           ) : credentialFounder?.credentialGenerationError ? (
             <div className="mt-5 rounded-3xl bg-rose-50 p-5">

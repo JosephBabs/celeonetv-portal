@@ -25,7 +25,7 @@ export default function FounderVerify() {
     if (!founderId) return;
     (async () => {
       setLoading(true);
-      const data = await getFounderByPublicId(founderId).catch(() => null);
+      const data = await getFounderByPublicId(String(founderId || "").trim().toUpperCase()).catch(() => null);
       setFounder(data || null);
       setLoading(false);
     })();
@@ -89,7 +89,7 @@ export default function FounderVerify() {
   }
 
   if (loading) return <div className="py-10 text-center text-slate-600">Verification...</div>;
-  const active = founder?.status === "active";
+  const active = founder?.status === "active" || founder?.certificateStatus === "active";
 
   return (
     <div className="mx-auto max-w-3xl py-10">
@@ -103,7 +103,7 @@ export default function FounderVerify() {
             ? "Ce certificat n'existe pas dans la base officielle Cele One."
             : active
               ? "Ce certificat appartient a un soutien fondateur enregistre dans la base officielle Cele One."
-              : "Veuillez contacter Cele One pour plus d'informations."}
+              : "Ce Founder ID existe bien dans la base Cele One, mais son statut n'est pas actif actuellement."}
         </p>
         {founder ? (
           <div className="mt-6 grid gap-3 md:grid-cols-2">

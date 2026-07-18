@@ -163,8 +163,10 @@ export async function getFounderByUserId(userId: string) {
 }
 
 export async function getFounderByPublicId(publicFounderId: string) {
+  const normalized = String(publicFounderId || "").trim().toUpperCase();
+  if (!normalized) return null;
   const snap = await getDocs(
-    query(collection(db, FOUNDER_COLLECTIONS.founders), where("publicFounderId", "==", publicFounderId), limit(1)),
+    query(collection(db, FOUNDER_COLLECTIONS.founders), where("publicFounderId", "==", normalized), limit(1)),
   );
   const docSnap = snap.docs[0];
   return docSnap ? { id: docSnap.id, ...docSnap.data() } : null;
@@ -213,6 +215,9 @@ export async function submitFounderActivationClient(params: {
   const now = new Date().toISOString();
   const paymentId = params.verification.paymentId || paymentDocumentId(params.verification.saleId);
   const applicationId = `activation_${paymentId}`;
+  const founderDocId = founderReferenceId;
+  const founderStatus = "active";
+  const certificateNumber = `CERT-${founderReferenceId}`;
 
   await setDoc(doc(db, "founderPayments", paymentId), {
     provider: "chariow",
@@ -283,12 +288,46 @@ export async function submitFounderActivationClient(params: {
     email: accountEmail,
     paymentId,
     applicationId,
-    status: "pending_review",
-    activationStatus: "pending_review",
+    founderId: founderDocId,
+    status: "verified",
+    activationStatus: "active",
     updatedAt: now,
   });
 
-  return { paymentId, applicationId };
+  await setDoc(doc(db, FOUNDER_COLLECTIONS.founders, founderDocId), {
+    userId: uid,
+    publicFounderId: founderReferenceId,
+    applicationId,
+    paymentId,
+    firstName,
+    lastName,
+    displayName: displayName || params.verification.customerName,
+    email: accountEmail,
+    phone: params.verification.customerPhone,
+    country: params.verification.customerCountry,
+    city: "",
+    profilePhotoUrl: "",
+    founderLevel: params.verification.founderLevel,
+    status: founderStatus,
+    certificateStatus: founderStatus,
+    joinedAt: params.verification.purchaseDate || now,
+    issuedAt: params.verification.purchaseDate || now,
+    publicRecognitionConsent: true,
+    badgeEnabled: true,
+    certificateNumber,
+    certificateUrl: "",
+    passCardUrl: "",
+    qrVerificationToken: founderReferenceId,
+    benefitAccess: {
+      levels: [params.verification.founderLevel],
+      coreFounder: true,
+    },
+    source: "client_activation_verified",
+    createdAt: now,
+    updatedAt: now,
+  }, { merge: true });
+
+  return { paymentId, applicationId, founderId: founderDocId, publicFounderId: founderReferenceId };
 }
 
 export async function generateFounderId() {
@@ -422,4 +461,53 @@ export function maskReference(value = "") {
   const text = String(value || "");
   if (text.length <= 8) return text;
   return `${text.slice(0, 4)}...${text.slice(-4)}`;
+}
+
+export function synthesizeFounderRecord(params: {
+  application?: Record<string, any> | null;
+  payment?: Record<string, any> | null;
+  user?: { uid?: string; email?: string | null; displayName?: string | null } | null;
+}) {
+  const application = params.application || null;
+  const payment = params.payment || null;
+  const user = params.user || null;
+  const publicFounderId = String(application?.publicFounderId || payment?.founderReferenceId || "").trim().toUpperCase();
+  if (!publicFounderId) return null;
+  const displayName = String(
+    application?.displayName ||
+    `${application?.firstName || ""} ${application?.lastName || ""}` ||
+    payment?.customerName ||
+    user?.displayName ||
+    "",
+  ).trim();
+  const timestamp = String(application?.purchaseDate || payment?.completedAt || payment?.purchaseDate || new Date().toISOString());
+  const founderLevel = String(application?.founderLevel || payment?.founderLevel || founderLevelForAmount(Number(application?.claimedAmount || payment?.amount || 0)));
+
+  return {
+    id: publicFounderId,
+    userId: String(application?.userId || payment?.userId || user?.uid || "").trim(),
+    publicFounderId,
+    applicationId: String(application?.id || payment?.applicationId || "").trim(),
+    paymentId: String(payment?.id || application?.paymentId || payment?.paymentId || "").trim(),
+    firstName: String(application?.firstName || "").trim(),
+    lastName: String(application?.lastName || "").trim(),
+    displayName: displayName || "Founder",
+    email: String(application?.email || payment?.customerEmail || user?.email || "").trim().toLowerCase(),
+    phone: String(application?.phone || payment?.customerPhone || "").trim(),
+    country: String(application?.country || payment?.customerCountry || "").trim(),
+    city: String(application?.city || "").trim(),
+    profilePhotoUrl: String(application?.profilePhotoUrl || "").trim(),
+    founderLevel,
+    status: "active",
+    certificateStatus: "active",
+    joinedAt: timestamp,
+    issuedAt: timestamp,
+    publicRecognitionConsent: true,
+    badgeEnabled: true,
+    certificateNumber: `CERT-${publicFounderId}`,
+    certificateUrl: "",
+    passCardUrl: "",
+    qrVerificationToken: publicFounderId,
+    verificationUrl: verificationUrl(publicFounderId),
+  };
 }
