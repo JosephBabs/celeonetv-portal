@@ -46,7 +46,7 @@ export default function AdminFounderCertificate() {
   return (
     <div className="space-y-6 py-6">
       <div className="grid gap-5 xl:grid-cols-[1.5fr_0.8fr]">
-        <FounderCertificatePreview imageUrl={previewUrl} title={String(founder.displayName || "Certificat")} status={String(founder.certificateStatus || founder.status || "active")} zoom={zoom} />
+        <FounderCertificatePreview documentUrl={previewUrl} mode="image" title={String(founder.displayName || "Certificat")} status={String(founder.certificateStatus || founder.status || "active")} zoom={zoom} />
         <div className="space-y-4">
           <FounderCertificateInfoPanel founder={founder} />
           <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">

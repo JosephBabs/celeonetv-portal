@@ -19,7 +19,7 @@ export default function FounderDashboard() {
   const [qrPreview, setQrPreview] = useState("");
   const [busy, setBusy] = useState(true);
   const effectiveCredentialStatus = String(credentialFounder?.credentialStatus || founder?.credentialStatus || "");
-  const certificateReady = Boolean(credentialFounder?.certificateStoragePath || founder?.certificateStoragePath || credentialFounder?.certificateUrl || founder?.certificateUrl);
+  const certificateReady = Boolean(founder?.publicFounderId);
 
   useEffect(() => {
     setPageMeta({
@@ -149,7 +149,7 @@ export default function FounderDashboard() {
           ) : effectiveCredentialStatus === "pending_storage" ? (
             <div className="mt-5 rounded-3xl bg-amber-50 p-5">
               <div className="text-lg font-black text-amber-900">Votre Founder's Pass est actif.</div>
-              <p className="mt-2 text-sm font-semibold text-amber-800">Le paiement est valide et votre compte fondateur est active. Le certificat sera ajoute des que l'acces Firebase Storage sera disponible.</p>
+              <p className="mt-2 text-sm font-semibold text-amber-800">Le paiement est valide et votre compte fondateur est actif. Votre certificat peut etre genere localement depuis cette page, meme sans Firebase Storage.</p>
             </div>
           ) : credentialFounder?.credentialGenerationError ? (
             <div className="mt-5 rounded-3xl bg-rose-50 p-5">

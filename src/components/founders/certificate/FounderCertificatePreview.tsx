@@ -1,12 +1,14 @@
 import { FounderCertificateStatus } from "./FounderCertificateStatus";
 
 export function FounderCertificatePreview({
-  imageUrl,
+  documentUrl,
+  mode = "pdf",
   title,
   status,
   zoom,
 }: {
-  imageUrl: string;
+  documentUrl: string;
+  mode?: "pdf" | "image";
   title: string;
   status?: string;
   zoom: number;
@@ -22,7 +24,15 @@ export function FounderCertificatePreview({
       </div>
       <div className="overflow-auto rounded-[1.5rem] bg-[#092327] p-4">
         <div className="mx-auto origin-top transition-transform duration-200" style={{ transform: `scale(${zoom})`, width: "100%", maxWidth: 1100 }}>
-          {imageUrl ? <img src={imageUrl} alt="Certificat fondateur Cele One" className="w-full rounded-[1rem] bg-white shadow-2xl" /> : <div className="aspect-[1.414/1] animate-pulse rounded-[1rem] bg-white/10" />}
+          {documentUrl && mode === "pdf" ? (
+            <iframe
+              src={`${documentUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+              title="Certificat fondateur Cele One"
+              className="aspect-square w-full rounded-[1rem] bg-white shadow-2xl"
+            />
+          ) : documentUrl ? (
+            <img src={documentUrl} alt="Certificat fondateur Cele One" className="w-full rounded-[1rem] bg-white shadow-2xl" />
+          ) : <div className="aspect-square animate-pulse rounded-[1rem] bg-white/10" />}
         </div>
       </div>
     </section>
