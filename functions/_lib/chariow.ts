@@ -3,8 +3,13 @@ import type { ChariowPaymentStatus, ChariowSale, PortalEnv, VerifiedFounderSale 
 type ChariowEnvelope<T> = { message?: string; data?: T; errors?: unknown[] };
 
 export class ChariowError extends Error {
-  constructor(public status: number, public code: string, message: string) {
+  status: number;
+  code: string;
+
+  constructor(status: number, code: string, message: string) {
     super(message);
+    this.status = status;
+    this.code = code;
   }
 }
 
@@ -66,8 +71,10 @@ function normalizeSale(value: unknown): ChariowSale {
 export class ChariowService {
   private baseUrl: string;
   private key: string;
+  private env: PortalEnv;
 
-  constructor(private env: PortalEnv) {
+  constructor(env: PortalEnv) {
+    this.env = env;
     this.baseUrl = (env.CHARIOW_API_BASE_URL || "https://api.chariow.com/v1").replace(/\/$/, "");
     this.key = apiKey(env) || "";
     if (!this.key) throw new ChariowError(503, "CHARIOW_NOT_CONFIGURED", "Chariow API key is not configured");

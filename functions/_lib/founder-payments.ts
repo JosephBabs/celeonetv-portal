@@ -1,5 +1,5 @@
 import { ChariowService } from "./chariow";
-import { addDocument, createDocument, getDocument, queryEquals, updateDocument } from "./firebase-admin";
+import { addDocument, createDocument, getDocument, queryEquals } from "./firebase-admin";
 import { extractFounderReferenceId } from "./founder-reference";
 import type { ChariowSale, PortalEnv } from "./types";
 

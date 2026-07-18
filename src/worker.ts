@@ -1,4 +1,7 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+import { onRequestGet as founderActivateGet, onRequestPost as founderActivatePost } from "../functions/api/founders/activate";
+import { onRequestGet as founderConfigGet } from "../functions/api/founders/config";
+import type { PortalEnv } from "../functions/_lib/types";
 import { translatePlainTextEmbedded } from "./lib/embeddedTranslator";
 
 export interface Env {
@@ -9,6 +12,8 @@ export interface Env {
   LIBRETRANSLATE_API_KEY?: string;
   ASSETS?: { fetch: (req: Request) => Promise<Response> };
 }
+
+type WorkerEnv = Env & PortalEnv;
 
 const SITE_URL = "https://celeonetv.com";
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
@@ -298,11 +303,40 @@ async function handleTranslate(request: Request, env: Env) {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
 
     if (/^\/api\/translate\/?$/.test(url.pathname)) return handleTranslate(request, env);
+    if (/^\/api\/founders\/activate\/?$/.test(url.pathname)) {
+      if (method === "GET") return founderActivateGet({ request, env });
+      if (method === "POST") return founderActivatePost({ request, env });
+      if (method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, POST, OPTIONS",
+            "access-control-allow-headers": "content-type, authorization, x-celeone-client",
+          },
+        });
+      }
+      return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+    }
+    if (/^\/api\/founders\/config\/?$/.test(url.pathname)) {
+      if (method === "GET") return founderConfigGet({ env });
+      if (method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-headers": "content-type, authorization, x-celeone-client",
+          },
+        });
+      }
+      return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
+    }
 
     if (method === "HEAD") {
       return new Response(null, {
