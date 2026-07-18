@@ -72,7 +72,7 @@ export default function Founders() {
     <div className="space-y-8 py-6">
       <section className="overflow-hidden rounded-[2rem] border border-[#d4c295] bg-[linear-gradient(135deg,#071e22_0%,#103840_48%,#2FA5A9_100%)] text-white shadow-sm">
         <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="p-8 md:p-12">
+          <div className="order-2 p-8 md:p-12 lg:order-1">
             <div className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-black tracking-[0.22em]">CELE ONE</div>
             <h1 className="mt-5 text-4xl font-black leading-tight md:text-6xl">Founder&apos;s Pass</h1>
             <p className="mt-4 max-w-3xl text-base font-semibold leading-8 text-white/85">
@@ -81,6 +81,9 @@ export default function Founders() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
+              <a href="#founder-id-reserve" className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-slate-100 lg:hidden">
+                Generer mon Founder ID
+              </a>
               <a href={paymentUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-[#f5d36d] px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-[#efc850]">
                 Acheter le Founder&apos;s Pass
               </a>
@@ -99,8 +102,8 @@ export default function Founders() {
             </div>
           </div>
 
-          <div className="border-t border-white/10 bg-white/[0.06] p-8 backdrop-blur lg:border-l lg:border-t-0">
-            <div className="rounded-[1.75rem] border border-white/12 bg-[#07181b]/55 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+          <div className="order-1 border-b border-white/10 bg-white/[0.06] p-8 backdrop-blur lg:order-2 lg:border-b-0 lg:border-l lg:border-t-0">
+            <div id="founder-id-reserve" className="rounded-[1.75rem] border border-white/12 bg-[#07181b]/55 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
               <div className="text-xs font-black uppercase tracking-[0.2em] text-amber-200">Avant paiement</div>
               <div className="mt-3 text-2xl font-black">Reserve your Founder ID</div>
               <p className="mt-2 text-sm font-semibold leading-7 text-white/80">
