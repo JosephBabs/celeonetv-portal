@@ -18,6 +18,8 @@ export default function FounderDashboard() {
   const [certificateThumb, setCertificateThumb] = useState("");
   const [qrPreview, setQrPreview] = useState("");
   const [busy, setBusy] = useState(true);
+  const effectiveCredentialStatus = String(credentialFounder?.credentialStatus || founder?.credentialStatus || "");
+  const certificateReady = Boolean(credentialFounder?.certificateStoragePath || founder?.certificateStoragePath || credentialFounder?.certificateUrl || founder?.certificateUrl);
 
   useEffect(() => {
     setPageMeta({
@@ -113,7 +115,7 @@ export default function FounderDashboard() {
           </div>
           <div className="mt-5 flex flex-wrap gap-3">
             <button onClick={() => window.print()} className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white">Download pass</button>
-            <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Download certificate</Link>
+            {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Download certificate</Link> : <span className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-400">Certificate pending</span>}
             <button onClick={() => navigator.clipboard?.writeText(verificationUrl(founder.publicFounderId))} className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Share verification link</button>
           </div>
         </section>
@@ -139,10 +141,15 @@ export default function FounderDashboard() {
             {qrPreview ? <img src={qrPreview} alt="QR de verification du certificat fondateur" className="h-24 w-24 rounded-2xl border border-slate-200 bg-white p-2" /> : null}
           </div>
 
-          {credentialFounder?.credentialStatus === "generating" ? (
+          {effectiveCredentialStatus === "generating" ? (
             <div className="mt-5 rounded-3xl bg-slate-50 p-5">
               <div className="text-lg font-black text-slate-900">Vos identifiants sont en cours de generation</div>
               <p className="mt-2 text-sm font-semibold text-slate-600">Votre certificat et votre carte Founder seront disponibles des que le processus sera termine.</p>
+            </div>
+          ) : effectiveCredentialStatus === "pending_storage" ? (
+            <div className="mt-5 rounded-3xl bg-amber-50 p-5">
+              <div className="text-lg font-black text-amber-900">Votre Founder's Pass est actif.</div>
+              <p className="mt-2 text-sm font-semibold text-amber-800">Le paiement est valide et votre compte fondateur est active. Le certificat sera ajoute des que l'acces Firebase Storage sera disponible.</p>
             </div>
           ) : credentialFounder?.credentialGenerationError ? (
             <div className="mt-5 rounded-3xl bg-rose-50 p-5">

@@ -226,17 +226,30 @@ export async function onRequestPost({ request, env }: Context) {
         customerCountry: sale.customer.country || "",
         founderLevel: level,
       },
-      founder: founder ? {
-        id: String(founder.id || approved.founderId),
-        publicFounderId: String(founder.publicFounderId || founderReferenceId),
-        status: String(founder.status || "active"),
-        certificateStatus: String(founder.certificateStatus || founder.status || "active"),
-      } : null,
-    });
+        founder: founder ? {
+          id: String(founder.id || approved.founderId),
+          publicFounderId: String(founder.publicFounderId || founderReferenceId),
+          status: String(founder.status || "active"),
+          certificateStatus: String(founder.certificateStatus || founder.status || "active"),
+          credentialStatus: String(founder.credentialStatus || ""),
+        } : null,
+      });
   } catch (error) {
     const message = errorMessage(error);
-    const status = message === "UNAUTHORIZED" ? 401 : 500;
-    return json({ ok: false, error: message === "UNAUTHORIZED" ? "UNAUTHORIZED" : "ACTIVATION_FAILED" }, { status });
+    if (message === "UNAUTHORIZED") {
+      return json({ ok: false, error: "UNAUTHORIZED" }, { status: 401 });
+    }
+    if (message === "FIREBASE_SERVICE_ACCOUNT_NOT_CONFIGURED") {
+      return json({ ok: false, error: "FIREBASE_SERVICE_ACCOUNT_NOT_CONFIGURED" }, { status: 503 });
+    }
+    if (
+      message === "FIREBASE_TOKEN_ERROR"
+      || message.startsWith("FIRESTORE_")
+      || message.startsWith("STORAGE_")
+    ) {
+      return json({ ok: false, error: message }, { status: 503 });
+    }
+    return json({ ok: false, error: "ACTIVATION_FAILED" }, { status: 500 });
   }
 }
 

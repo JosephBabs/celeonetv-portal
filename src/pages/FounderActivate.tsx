@@ -102,6 +102,8 @@ export default function FounderActivate() {
       else if (code === "FOUNDER_ID_NOT_FOUND_IN_PAYMENT") setError("Aucun Founder ID n'a ete retrouve dans ce paiement. Collez votre Founder ID si vous ne l'avez pas ajoute pendant la finalisation.");
       else if (code === "INVALID_CLIENT" || code === "INVALID_ORIGIN") setError("La requete d'activation a ete refusee. Rechargez la page puis reessayez.");
       else if (code === "ACTIVATION_VERIFICATION_INCOMPLETE") setError("La verification du paiement est incomplete. Reessayez dans quelques instants.");
+      else if (code === "FIREBASE_SERVICE_ACCOUNT_NOT_CONFIGURED") setError("L'activation finale et la generation du certificat ne sont pas encore configurees sur le backend Firebase.");
+      else if (code === "FIREBASE_TOKEN_ERROR" || code.startsWith("FIRESTORE_") || code.startsWith("STORAGE_")) setError("La validation du paiement est reussie, mais la creation du pass ou du certificat a echoue cote serveur.");
       else if (code === "SALE_NOT_COMPLETED" || code === "PAYMENT_NOT_SUCCESSFUL") setError("Ce recu n'est pas encore confirme comme paiement reussi.");
       else if (code === "PRODUCT_MISMATCH") setError("Ce recu ne correspond pas au Founder's Pass officiel.");
       else setError("Impossible de soumettre l'activation pour le moment.");

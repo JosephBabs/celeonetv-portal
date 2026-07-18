@@ -340,6 +340,20 @@ async function history(env: PortalEnv, founderId: string, credentialType: string
   });
 }
 
+function isDeferredCredentialError(message: string) {
+  return message === "FIREBASE_SERVICE_ACCOUNT_NOT_CONFIGURED"
+    || message === "FIREBASE_TOKEN_ERROR"
+    || message.startsWith("STORAGE_");
+}
+
+async function markCredentialPending(env: PortalEnv, founderId: string, reason: string) {
+  await updateDocument(env, `founders/${founderId}`, {
+    credentialStatus: "pending_storage",
+    credentialGenerationError: reason,
+    credentialUpdatedAt: new Date().toISOString(),
+  }).catch(() => null);
+}
+
 function maxFounderSuffix(rows: Array<Record<string, unknown>>) {
   return rows.reduce((highest, row) => {
     const publicId = String((row as { publicFounderId?: string }).publicFounderId || "");
@@ -578,14 +592,26 @@ export async function approveFounderApplicationTrusted(env: PortalEnv, applicati
   const application = await getDocument(env, `founderApplications/${applicationId}`) as FounderApplication | null;
   if (!application) throw new Error("APPLICATION_NOT_FOUND");
   if (String(application.status || "") === "approved" && application.founderId) {
-    await generateCertificate(env, String(application.founderId), adminId);
+    try {
+      await generateCertificate(env, String(application.founderId), adminId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "CREDENTIAL_GENERATION_FAILED";
+      if (!isDeferredCredentialError(message)) throw error;
+      await markCredentialPending(env, String(application.founderId), message);
+    }
     return { founderId: String(application.founderId), publicFounderId: String(application.publicFounderId || "") };
   }
   const payment = await getDocument(env, `founderPayments/${String(application.paymentId || "")}`) as FounderPayment | null;
   if (!payment?.verified) throw new Error("PAYMENT_NOT_VERIFIED");
   const existingFounders = await queryEquals(env, "founders", "applicationId", applicationId, 1);
   if (existingFounders.length) {
-    await generateCertificate(env, existingFounders[0].id, adminId);
+    try {
+      await generateCertificate(env, existingFounders[0].id, adminId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "CREDENTIAL_GENERATION_FAILED";
+      if (!isDeferredCredentialError(message)) throw error;
+      await markCredentialPending(env, existingFounders[0].id, message);
+    }
     return { founderId: existingFounders[0].id, publicFounderId: String((existingFounders[0] as { publicFounderId?: string }).publicFounderId || "") };
   }
   const reservedPublicFounderId = String(application.publicFounderId || "").trim().toUpperCase();
@@ -660,7 +686,13 @@ export async function approveFounderApplicationTrusted(env: PortalEnv, applicati
     metadata: { founderId, publicFounderId, paymentId: payment.id },
     createdAt: now,
   });
-  await generateCertificate(env, founderId, adminId);
+  try {
+    await generateCertificate(env, founderId, adminId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "CREDENTIAL_GENERATION_FAILED";
+    if (!isDeferredCredentialError(message)) throw error;
+    await markCredentialPending(env, founderId, message);
+  }
   return { founderId, publicFounderId };
 }
 

@@ -14,6 +14,7 @@ export default function FounderCertificate() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [pdfUrl, setPdfUrl] = useState("");
   const [zoom, setZoom] = useState(1);
+  const [pendingCertificate, setPendingCertificate] = useState(false);
 
   useEffect(() => {
     setPageMeta({ title: "Certificat fondateur | Cele One", description: "Apercu et telechargement du certificat fondateur Cele One." });
@@ -29,10 +30,14 @@ export default function FounderCertificate() {
         if (!active) return;
         setFounder(data.founder);
         if (data.founder) {
-          const [preview, pdf] = await Promise.all([loadFounderAsset("certificatePreview"), loadFounderAsset("certificatePdf")]);
+          const [preview, pdf] = await Promise.all([
+            loadFounderAsset("certificatePreview").catch(() => ""),
+            loadFounderAsset("certificatePdf").catch(() => ""),
+          ]);
           if (!active) return;
           setPreviewUrl(preview);
           setPdfUrl(pdf);
+          setPendingCertificate(!preview || !pdf || String((data.founder as Record<string, unknown>).credentialStatus || "") === "pending_storage");
         }
       } finally {
         if (active) setBusy(false);
@@ -45,6 +50,18 @@ export default function FounderCertificate() {
   if (!user) return <Navigate to="/login?returnTo=/founders/certificate" replace />;
   if (busy) return <div className="py-10 text-center text-slate-600">Chargement du certificat...</div>;
   if (!founder) return <Navigate to="/founders/dashboard" replace />;
+  if (pendingCertificate) {
+    return (
+      <div className="space-y-6 py-6">
+        <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-8">
+          <div className="text-xs font-black uppercase tracking-wide text-amber-700">Founder certificate</div>
+          <h1 className="mt-2 text-3xl font-black text-amber-950">Certificat en attente</h1>
+          <p className="mt-3 text-sm font-semibold text-amber-900">Votre Founder's Pass est bien actif. Le certificat sera disponible des que l'acces Firebase Storage sera configure.</p>
+          <Link to="/founders/dashboard" className="mt-5 inline-flex rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white">Retour au tableau de bord</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 py-6">
