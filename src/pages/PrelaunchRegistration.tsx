@@ -39,6 +39,26 @@ const initialForm: FormState = {
 
 const strongPassword = (value: string) => /^(?=.*[A-Z])(?=.*\d).{6,}$/.test(value);
 
+function registrationErrorMessage(code: string, fallback: string) {
+  switch (code) {
+    case "auth/email-already-in-use":
+      return "An account already exists with this email address. Try logging in instead.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/weak-password":
+      return "Your password is too weak. Use at least 6 characters, one uppercase letter, and one number.";
+    case "auth/network-request-failed":
+      return "Network error while creating the account. Please check your connection and try again.";
+    case "permission-denied":
+      return "Registration is temporarily blocked by Firebase rules. Please try again now.";
+    case "unavailable":
+    case "deadline-exceeded":
+      return "Firebase is temporarily unavailable. Please try again in a moment.";
+    default:
+      return fallback;
+  }
+}
+
 export default function PrelaunchRegistration() {
   const { t, lang } = useI18n();
   const [intent, setIntent] = useState<Intent>("reserve");
@@ -60,6 +80,7 @@ export default function PrelaunchRegistration() {
   const donationMode = intent === "donate";
   const displayName = useMemo(() => `${form.firstName} ${form.lastName}`.trim(), [form.firstName, form.lastName]);
   const founderPassUrl = APP.founders.chariowPassUrl || APP.donations.paymentUrl;
+  const passwordMismatch = !donationMode && form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
 
   const selectIntent = (next: Intent) => {
     setIntent(next);
@@ -179,6 +200,7 @@ export default function PrelaunchRegistration() {
           doc(db, "portal_pre_registrations", uid),
           {
             ...baseProfile,
+            intent: "reserve",
             message: form.message.trim(),
             status: "reserved",
           },
@@ -188,9 +210,9 @@ export default function PrelaunchRegistration() {
 
       setCreated(true);
       setForm(initialForm);
-    } catch (caught) {
+    } catch (caught: any) {
       console.error(caught);
-      setError(t("prelaunch.failed", "Unable to create your prelaunch account."));
+      setError(registrationErrorMessage(String(caught?.code || ""), t("prelaunch.failed", "Unable to create your prelaunch account.")));
     } finally {
       setSaving(false);
     }
@@ -336,6 +358,11 @@ export default function PrelaunchRegistration() {
           </label>
         </div>
 
+        {passwordMismatch ? (
+          <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+            {t("prelaunch.password_mismatch", "Passwords do not match.")}
+          </div>
+        ) : null}
         {error ? <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{error}</div> : null}
         {created ? (
           <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
@@ -365,7 +392,7 @@ export default function PrelaunchRegistration() {
           </div>
         ) : null}
 
-        <button disabled={saving} className="mt-6 w-full rounded-2xl bg-slate-900 px-4 py-3 font-extrabold text-white hover:bg-slate-800 disabled:opacity-60 md:w-auto">
+        <button disabled={saving || passwordMismatch} className="mt-6 w-full rounded-2xl bg-slate-900 px-4 py-3 font-extrabold text-white hover:bg-slate-800 disabled:opacity-60 md:w-auto">
           {saving ? t("prelaunch.saving", "Saving...") : donationMode ? t("prelaunch.submit_donate", "Save details and show payment link") : t("prelaunch.submit_reserve", "Create prelaunch account")}
         </button>
       </form>
