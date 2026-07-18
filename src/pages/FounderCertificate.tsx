@@ -8,6 +8,8 @@ import { getFounderByUserId, getLatestFounderApplication, getLatestFounderPaymen
 import { setPageMeta } from "../lib/seo";
 import { useAuthUser } from "../lib/useAuthUser";
 
+const LOCAL_CERTIFICATE_DRAFT_KEY = "celeone_founder_certificate_draft";
+
 export default function FounderCertificate() {
   const { user, loading } = useAuthUser();
   const [busy, setBusy] = useState(true);
@@ -45,6 +47,25 @@ export default function FounderCertificate() {
               status: "active",
               certificateStatus: "active",
               verificationUrl: verificationUrl(publicFounderId),
+            };
+          }
+        }
+        if (!data) {
+          const rawDraft = localStorage.getItem(LOCAL_CERTIFICATE_DRAFT_KEY);
+          const draft = rawDraft ? JSON.parse(rawDraft) as Record<string, unknown> : null;
+          const verification = (draft?.verification || null) as Record<string, unknown> | null;
+          const publicFounderId = String(draft?.founderReferenceId || verification?.founderReferenceId || "").trim();
+          if (verification && publicFounderId) {
+            data = {
+              displayName: String(draft?.displayName || verification.customerName || user.displayName || "").trim(),
+              publicFounderId,
+              founderLevel: String(verification.founderLevel || "supporter"),
+              issuedAt: String(verification.purchaseDate || new Date().toISOString()),
+              joinedAt: String(verification.purchaseDate || new Date().toISOString()),
+              status: "active",
+              certificateStatus: "active",
+              verificationUrl: verificationUrl(publicFounderId),
+              certificateNumber: `CERT-${publicFounderId}`,
             };
           }
         }

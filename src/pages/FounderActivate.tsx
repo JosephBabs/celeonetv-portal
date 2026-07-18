@@ -5,6 +5,8 @@ import { getLatestFounderApplication, getLatestFounderPayment, submitFounderActi
 import { setPageMeta } from "../lib/seo";
 import { founderApi } from "../lib/founderApi";
 
+const LOCAL_CERTIFICATE_DRAFT_KEY = "celeone_founder_certificate_draft";
+
 type ActivationResponse = {
   ok: boolean;
   status?: string;
@@ -95,13 +97,21 @@ export default function FounderActivate() {
       if (response.status === "verified_client_pending") {
         const verification = response.verification;
         if (!verification || !user.email) throw new Error("ACTIVATION_VERIFICATION_INCOMPLETE");
+        localStorage.setItem(LOCAL_CERTIFICATE_DRAFT_KEY, JSON.stringify({
+          founderReferenceId,
+          verification,
+          receiptReference: form.receiptReference.trim(),
+          accountEmail: user.email,
+          displayName: verification.customerName || user.displayName || "",
+          createdAt: new Date().toISOString(),
+        }));
         await submitFounderActivationClient({
           uid: user.uid,
           accountEmail: user.email,
           founderReferenceId,
           receiptReference: form.receiptReference.trim(),
           verification,
-        });
+        }).catch(() => null);
       }
       setForm((prev) => ({ ...prev, founderReferenceId }));
       setExistingStatus(String(response.status || response.founder?.status || "active"));
