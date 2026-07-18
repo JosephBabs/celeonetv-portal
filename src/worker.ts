@@ -38,6 +38,8 @@ const ROUTE_META: Array<
   [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your TV, web TV, radio, podcast, or media channel request to join Celeone." }],
   [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly themes, services, Bible lessons, special celebrations, and hymn programs." }],
   [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
+  [/^\/prelaunch-registration\/?$/, { title: "Prelaunch Registration | CeleOne", description: "Reserve your CeleOne prelaunch account or share your donation interest before the official launch." }],
+  [/^\/donate\/?$/, { title: "Support Cele One | Founder's Pass Payment", description: "Open the official Cele One Founder’s Pass payment page and support the project launch." }],
   [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools." }],
   [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out from your Celeone account securely." }],
   [/^\/register\/?$/, { title: "Register | Celeone TV", description: "Create your Celeone account to access posts, chatrooms, channels, and community tools." }],

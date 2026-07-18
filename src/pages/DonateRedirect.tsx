@@ -8,7 +8,9 @@ export default function DonateRedirect() {
   useEffect(() => {
     setPageMeta({
       title: "Founder&apos;s Pass Payment | Cele One",
-      description: "Redirection vers le produit officiel Founder&apos;s Pass.",
+      description: "Open the official Cele One Founder&apos;s Pass payment page and support the project launch.",
+      image: "https://celeonetv.com/logo.png",
+      url: "https://celeonetv.com/donate",
     });
     window.location.replace(paymentUrl);
   }, [paymentUrl]);

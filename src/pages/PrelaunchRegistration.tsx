@@ -51,7 +51,9 @@ export default function PrelaunchRegistration() {
   useEffect(() => {
     setPageMeta({
       title: t("prelaunch.meta_title", "Prelaunch registration | CeleOne"),
-      description: t("prelaunch.meta_desc", "Create your CeleOne account before launch."),
+      description: t("prelaunch.meta_desc", "Reserve your CeleOne prelaunch account or share your donation interest before the official launch."),
+      image: "https://celeonetv.com/logo.png",
+      url: "https://celeonetv.com/prelaunch-registration",
     });
   }, [t]);
 
