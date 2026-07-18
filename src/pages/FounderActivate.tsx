@@ -19,7 +19,7 @@ export default function FounderActivate() {
   const [loadingState, setLoadingState] = useState(true);
   const [existingStatus, setExistingStatus] = useState("");
   const [form, setForm] = useState({
-    displayName: "",
+    founderReferenceId: "",
     receiptReference: "",
   });
 
@@ -40,15 +40,12 @@ export default function FounderActivate() {
         const payment = data.payment || {};
         setForm((prev) => ({
           ...prev,
-          displayName: String(application.displayName || payment.customerName || user.displayName || "").trim(),
+          founderReferenceId: String(application.publicFounderId || payment.founderReferenceId || "").trim(),
           receiptReference: String(application.receiptReference || application.chariowOrderReference || payment.providerSaleId || "").trim(),
         }));
         setExistingStatus(String(application.status || payment.activationStatus || ""));
       } catch {
-        setForm((prev) => ({
-          ...prev,
-          displayName: prev.displayName || String(user.displayName || "").trim(),
-        }));
+        return;
       } finally {
         setLoadingState(false);
       }
@@ -64,8 +61,8 @@ export default function FounderActivate() {
   const submit = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
     setError("");
-    if (!form.displayName || !form.receiptReference) {
-      setError("Veuillez renseigner votre nom et votre recu Chariow.");
+    if (!form.founderReferenceId || !form.receiptReference) {
+      setError("Veuillez renseigner votre Founder ID et votre preuve de paiement.");
       return;
     }
     setSaving(true);
@@ -73,7 +70,7 @@ export default function FounderActivate() {
       const response = await founderApi<ActivationResponse>("/api/founders/activate", {
         method: "POST",
         body: JSON.stringify({
-          displayName: form.displayName.trim(),
+          founderReferenceId: form.founderReferenceId.trim().toUpperCase(),
           receiptReference: form.receiptReference.trim(),
         }),
       });
@@ -83,6 +80,8 @@ export default function FounderActivate() {
       const code = caught instanceof Error ? caught.message : "REQUEST_FAILED";
       if (code === "PURCHASE_EMAIL_MISMATCH") setError("Le recu doit appartenir a la meme adresse email que votre compte Cele One.");
       else if (code === "PAYMENT_ALREADY_LINKED") setError("Ce recu est deja associe a un autre compte.");
+      else if (code === "FOUNDER_REFERENCE_NOT_FOUND") setError("Ce Founder ID est introuvable. Revenez d'abord le generer sur la page Founder&apos;s Pass.");
+      else if (code === "FOUNDER_REFERENCE_ALREADY_USED") setError("Ce Founder ID est deja lie a un autre paiement.");
       else if (code === "SALE_NOT_COMPLETED" || code === "PAYMENT_NOT_SUCCESSFUL") setError("Ce recu n'est pas encore confirme comme paiement reussi.");
       else if (code === "PRODUCT_MISMATCH") setError("Ce recu ne correspond pas au Founder's Pass officiel.");
       else setError("Impossible de soumettre l'activation pour le moment.");
@@ -97,24 +96,24 @@ export default function FounderActivate() {
         <div className="text-xs font-black uppercase tracking-wide text-white/75">Founder activation</div>
         <h1 className="mt-2 text-3xl font-black md:text-5xl">Activer mon Founder's Pass</h1>
         <p className="mt-3 max-w-2xl text-sm font-semibold text-white/85">
-          Collez simplement votre recu Chariow et votre nom. Nous verifions ensuite la vente avant l'activation.
+          Collez simplement votre Founder ID puis votre id d'achat, votre recu ou une capture de la finalisation du paiement.
         </p>
       </section>
 
       {success ? (
         <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
           <div className="text-lg font-black text-emerald-900">Votre demande d'activation a ete soumise.</div>
-          <p className="mt-2 text-sm font-bold text-emerald-800">Le paiement a ete relie a votre compte et votre pass passe maintenant en revue d'activation.</p>
+          <p className="mt-2 text-sm font-bold text-emerald-800">Le paiement a ete relie a votre Founder ID et votre pass passe maintenant en revue d'activation.</p>
           <Link to="/founders/dashboard" className="mt-4 inline-flex rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white">Ouvrir mon dashboard</Link>
         </div>
       ) : (
         <form onSubmit={submit} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
           <div className="grid gap-4 md:grid-cols-2">
             <Field
-              label="Nom complet"
-              value={form.displayName}
-              onChange={(v) => setField("displayName", v)}
-              placeholder="Ex: Jean Dupont"
+              label="Founder ID"
+              value={form.founderReferenceId}
+              onChange={(v) => setField("founderReferenceId", v.toUpperCase())}
+              placeholder="Ex: COF-2026-000001"
               required
             />
             <Field
@@ -127,7 +126,7 @@ export default function FounderActivate() {
           </div>
 
           <div className="mt-5 rounded-3xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">
-            Le recu doit correspondre au paiement reussi du Founder's Pass officiel et utiliser la meme adresse email que votre compte Cele One.
+            Le Founder ID doit etre celui que vous avez copie avant paiement. Le recu doit correspondre au paiement reussi du Founder's Pass officiel et utiliser la meme adresse email que votre compte Cele One.
             {existingStatus ? <div className="mt-2 font-extrabold text-slate-900">Statut actuel: {existingStatus}</div> : null}
           </div>
 

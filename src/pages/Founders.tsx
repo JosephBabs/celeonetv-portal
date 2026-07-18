@@ -1,7 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { APP } from "../lib/config";
 import { setPageMeta } from "../lib/seo";
-import { useEffect } from "react";
 
 const benefits = [
   {
@@ -22,6 +22,12 @@ const benefits = [
 ];
 
 export default function Founders() {
+  const [displayName, setDisplayName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [reservedId, setReservedId] = useState("");
+  const [reservedName, setReservedName] = useState("");
+
   useEffect(() => {
     setPageMeta({
       title: "Cele One Founder's Pass",
@@ -29,28 +35,53 @@ export default function Founders() {
     });
   }, []);
 
-  const chariowUrl = APP.founders.chariowPassUrl;
-  const paymentUrl = chariowUrl || "https://dzrkqyqp.mychariow.shop/prd_htdw78o8";
+  const paymentUrl = APP.founders.chariowPassUrl || "https://dzrkqyqp.mychariow.shop/prd_htdw78o8";
+
+  const reserveFounderId = async () => {
+    const normalizedName = displayName.trim().replace(/\s+/g, " ");
+    if (!normalizedName) {
+      setError("Entrez votre nom pour generer votre Founder ID.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    try {
+      const response = await fetch("/api/founders/reserve", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ displayName: normalizedName }),
+      });
+      const body = await response.json().catch(() => ({})) as { founderReferenceId?: string; publicFounderId?: string; error?: string };
+      if (!response.ok) throw new Error(body.error || "FOUNDER_ID_RESERVATION_FAILED");
+      setReservedId(String(body.founderReferenceId || body.publicFounderId || "").trim());
+      setReservedName(normalizedName);
+    } catch {
+      setError("Impossible de generer votre Founder ID pour le moment.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const copyFounderId = async () => {
+    if (!reservedId) return;
+    await navigator.clipboard?.writeText(reservedId).catch(() => null);
+  };
 
   return (
     <div className="space-y-8 py-6">
-      <section className="overflow-hidden rounded-[2rem] border border-[#d4c295] bg-[linear-gradient(135deg,#0d2d33_0%,#15434c_52%,#2FA5A9_100%)] text-white shadow-sm">
-        <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
+      <section className="overflow-hidden rounded-[2rem] border border-[#d4c295] bg-[linear-gradient(135deg,#071e22_0%,#103840_48%,#2FA5A9_100%)] text-white shadow-sm">
+        <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="p-8 md:p-12">
             <div className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-black tracking-[0.22em]">CELE ONE</div>
             <h1 className="mt-5 text-4xl font-black leading-tight md:text-6xl">Founder&apos;s Pass</h1>
             <p className="mt-4 max-w-3xl text-base font-semibold leading-8 text-white/85">
               Une adhesion fondatrice premium pour les premiers soutiens verifies du projet Cele One, avec un parcours clair:
-              achat du produit officiel, verification backend, puis activation des identifiants fondateurs.
+              generez votre Founder ID, finalisez le paiement officiel, puis revenez pour activer votre pass.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href={paymentUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-2xl bg-[#f5d36d] px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-[#efc850]"
-              >
+              <a href={paymentUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-[#f5d36d] px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-[#efc850]">
                 Acheter le Founder&apos;s Pass
               </a>
               <Link to="/founders/activate" className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-slate-100">
@@ -62,31 +93,63 @@ export default function Founders() {
             </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
-              <Stat title="Paiement officiel" value="Produit Chariow" />
-              <Stat title="Activation" value="Recu ou id d'achat" />
+              <Stat title="Etape 1" value="Founder ID reserve" />
+              <Stat title="Etape 2" value="Produit Chariow" />
               <Stat title="Sortie premium" value="Certificat + carte" />
             </div>
           </div>
 
-          <div className="border-t border-white/10 bg-white/[0.08] p-8 backdrop-blur lg:border-l lg:border-t-0">
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-amber-200">Lien produit</div>
-            <div className="mt-3 rounded-[1.5rem] border border-white/10 bg-white/10 p-5">
-              <div className="text-lg font-black">Cele One Founder&apos;s Pass</div>
-              <p className="mt-2 text-sm font-semibold leading-7 text-white/82">
-                Utilisez ce lien pour finaliser votre contribution Founder&apos;s Pass sur la boutique officielle Chariow.
+          <div className="border-t border-white/10 bg-white/[0.06] p-8 backdrop-blur lg:border-l lg:border-t-0">
+            <div className="rounded-[1.75rem] border border-white/12 bg-[#07181b]/55 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+              <div className="text-xs font-black uppercase tracking-[0.2em] text-amber-200">Avant paiement</div>
+              <div className="mt-3 text-2xl font-black">Reserve your Founder ID</div>
+              <p className="mt-2 text-sm font-semibold leading-7 text-white/80">
+                Entrez votre nom. Nous generons un Founder ID provisoire avec statut non verifie. Vous pourrez le copier puis le coller pendant la finalisation du paiement.
               </p>
-              <a href={paymentUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex rounded-2xl bg-[#123b40] px-5 py-3 text-sm font-extrabold text-white hover:bg-[#0d2d33]">
-                Ouvrir le produit
-              </a>
-              <div className="mt-4 break-all text-sm font-bold text-white/78">{paymentUrl}</div>
+
+              <div className="mt-5 space-y-3">
+                <input
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  placeholder="Ex: Jean Dupont"
+                  className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-semibold text-white outline-none placeholder:text-white/45 focus:border-white/30"
+                />
+                <button
+                  type="button"
+                  onClick={reserveFounderId}
+                  disabled={saving}
+                  className="w-full rounded-2xl bg-[#f5d36d] px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-[#efc850] disabled:opacity-60"
+                >
+                  {saving ? "Generation..." : "Generer mon Founder ID"}
+                </button>
+              </div>
+
+              {error ? <div className="mt-3 rounded-2xl bg-rose-500/12 px-4 py-3 text-sm font-bold text-rose-100">{error}</div> : null}
+
+              {reservedId ? (
+                <div className="mt-4 rounded-[1.4rem] border border-amber-300/35 bg-[#fff8ea] p-4 text-slate-900">
+                  <div className="text-xs font-black uppercase tracking-[0.16em] text-[#a76f1f]">Founder ID reserve</div>
+                  <div className="mt-2 font-mono text-xl font-black text-slate-950">{reservedId}</div>
+                  <div className="mt-1 text-sm font-semibold text-slate-600">{reservedName} - statut non verifie</div>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button type="button" onClick={copyFounderId} className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800">
+                      Copier l&apos;ID
+                    </button>
+                    <a href={paymentUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-[#123b40] px-4 py-3 text-sm font-extrabold text-white hover:bg-[#0d2d33]">
+                      Proceder au paiement
+                    </a>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-[#fff8ea] p-5 text-slate-900">
-              <div className="text-xs font-black uppercase tracking-[0.16em] text-[#a76f1f]">Parcours simple</div>
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-[#a76f1f]">Processus</div>
               <div className="mt-3 space-y-3">
-                <Step label="1" text="Achetez le Founder&apos;s Pass avec le lien produit." />
-                <Step label="2" text="Gardez votre recu, votre id d'achat ou une capture de la finalisation du paiement." />
-                <Step label="3" text="Activez votre pass dans le portail Cele One." />
+                <Step label="1" text="Generez votre Founder ID et copiez-le." />
+                <Step label="2" text="Ouvrez le produit Founder&apos;s Pass et collez cet ID dans le champ ajoute a la finalisation du paiement." />
+                <Step label="3" text="Gardez votre id d'achat ou une capture de la finalisation du paiement." />
+                <Step label="4" text="Revenez sur Cele One pour activer votre pass avec le Founder ID et votre preuve de paiement." />
               </div>
             </div>
           </div>
@@ -108,7 +171,7 @@ export default function Founders() {
             <div className="text-xs font-black uppercase tracking-[0.2em] text-[#a76f1f]">Activation et verification</div>
             <h2 className="mt-2 text-2xl font-black text-slate-900">Un parcours plus propre, sans confusion</h2>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-700">
-              Le Founder&apos;s Pass n&apos;est pas une promesse financiere. C&apos;est une adhesion de soutien verifiee, rattachee a un paiement officiel,
+              Le Founder&apos;s Pass n&apos;est pas une promesse financiere. C&apos;est une adhesion de soutien verifiee, rattachee a un Founder ID provisoire,
               puis transformee en identifiants premium apres verification et approbation.
             </p>
           </div>
@@ -116,7 +179,7 @@ export default function Founders() {
             <div className="grid gap-4 md:grid-cols-2">
               <ActionCard
                 title="Apres paiement"
-                desc="Ouvrez la page d'activation et collez votre recu, votre id d'achat ou une capture de la finalisation du paiement."
+                desc="Ouvrez la page d'activation et collez votre Founder ID, puis votre id d'achat ou votre capture de paiement."
                 link="/founders/activate"
                 label="Aller a l'activation"
               />

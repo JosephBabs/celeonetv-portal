@@ -358,13 +358,20 @@ async function history(env: PortalEnv, founderId: string, credentialType: string
   });
 }
 
-async function nextPublicFounderId(env: PortalEnv) {
-  const listing = await listDocuments(env, "founders", 500);
-  const max = listing.rows.reduce((highest, row) => {
+function maxFounderSuffix(rows: Array<Record<string, unknown>>) {
+  return rows.reduce((highest, row) => {
     const publicId = String((row as { publicFounderId?: string }).publicFounderId || "");
     const suffix = Number(publicId.split("-").pop() || 0);
     return Number.isFinite(suffix) && suffix > highest ? suffix : highest;
   }, 0);
+}
+
+export async function nextPublicFounderId(env: PortalEnv) {
+  const [founders, reservations] = await Promise.all([
+    listDocuments(env, "founders", 500),
+    listDocuments(env, "founderReservations", 500).catch(() => ({ rows: [] as Array<Record<string, unknown>> })),
+  ]);
+  const max = Math.max(maxFounderSuffix(founders.rows), maxFounderSuffix(reservations.rows));
   return `COF-${new Date().getFullYear()}-${String(max + 1).padStart(6, "0")}`;
 }
 
@@ -599,7 +606,8 @@ export async function approveFounderApplicationTrusted(env: PortalEnv, applicati
     await generateCertificate(env, existingFounders[0].id, adminId);
     return { founderId: existingFounders[0].id, publicFounderId: String((existingFounders[0] as { publicFounderId?: string }).publicFounderId || "") };
   }
-  const publicFounderId = await nextPublicFounderId(env);
+  const reservedPublicFounderId = String(application.publicFounderId || "").trim().toUpperCase();
+  const publicFounderId = reservedPublicFounderId || await nextPublicFounderId(env);
   const founderId = `founder_${publicFounderId.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
   const now = new Date().toISOString();
   const founderDoc = {
@@ -643,9 +651,24 @@ export async function approveFounderApplicationTrusted(env: PortalEnv, applicati
   await updateDocument(env, `founderPayments/${payment.id}`, {
     founderId,
     userId: application.userId,
+    founderReferenceId: publicFounderId,
     activationStatus: "active",
     updatedAt: now,
   });
+  if (reservedPublicFounderId) {
+    const reservations = await queryEquals(env, "founderReservations", "publicFounderId", reservedPublicFounderId, 1).catch(() => []);
+    if (reservations[0]?.id) {
+      await updateDocument(env, `founderReservations/${reservations[0].id}`, {
+        status: "approved",
+        founderId,
+        paymentId: payment.id,
+        applicationId,
+        userId: application.userId,
+        email: String(application.email || ""),
+        updatedAt: now,
+      }).catch(() => null);
+    }
+  }
   await addDocument(env, "founderAuditLogs", {
     action: "application_approved",
     entityType: "founderApplication",

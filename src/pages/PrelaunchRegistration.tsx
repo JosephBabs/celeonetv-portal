@@ -237,7 +237,7 @@ export default function PrelaunchRegistration() {
         <OptionCard
           active={intent === "donate"}
           title={t("prelaunch.donate_title", "Donate to support project")}
-          desc="Entrez vos informations, ouvrez le produit officiel Founder's Pass sur Chariow, payez, puis activez votre pass avec le recu dans le portail."
+          desc="Generez d'abord votre Founder ID sur l'espace Founder's Pass, ouvrez ensuite le produit officiel sur Chariow, payez, puis revenez activer votre pass."
           action={() => selectIntent("donate")}
         />
       </section>
@@ -249,7 +249,7 @@ export default function PrelaunchRegistration() {
               <div className="text-xs font-black uppercase tracking-[0.2em] text-amber-200">Produit officiel Chariow</div>
               <h2 className="mt-2 text-3xl font-black">Cele One Founder&apos;s Pass</h2>
               <p className="mt-3 text-sm font-semibold leading-7 text-white/85">
-                Soutenez le projet via le produit officiel Founder&apos;s Pass, puis revenez avec votre recu pour l&apos;activation dans le portail.
+                Generez d&apos;abord votre Founder ID, utilisez-le pendant la finalisation du paiement, puis revenez avec votre id d&apos;achat ou votre capture de paiement pour l&apos;activation.
               </p>
             </div>
             <a
@@ -263,15 +263,18 @@ export default function PrelaunchRegistration() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <SimpleFeature title="1. Paiement" desc="Ouvrez le produit et terminez le paiement sur Chariow." />
-            <SimpleFeature title="2. Recu" desc="Gardez votre recu, votre id d'achat ou une capture de la finalisation du paiement." />
-            <SimpleFeature title="3. Activation" desc="Revenez dans le portail pour activer votre pass." />
+            <SimpleFeature title="1. Founder ID" desc="Generez puis copiez votre Founder ID depuis la page Founder&apos;s Pass." />
+            <SimpleFeature title="2. Paiement" desc="Ouvrez le produit et collez votre Founder ID pendant la finalisation sur Chariow." />
+            <SimpleFeature title="3. Activation" desc="Revenez avec votre id d'achat ou votre capture de paiement pour activer votre pass." />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <a href={founderPassUrl} target="_blank" rel="noreferrer" className="rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/15">
               {founderPassUrl}
             </a>
+            <Link to="/founders" className="rounded-2xl border border-white/20 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
+              Generer mon Founder ID
+            </Link>
             <Link to="/founders/activate" className="rounded-2xl border border-white/20 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
               Activer mon pass apres paiement
             </Link>
