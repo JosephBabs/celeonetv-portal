@@ -320,7 +320,7 @@ export default function PrelaunchRegistration() {
               type="button"
               onClick={() => selectIntent("reserve")}
               className={`inline-flex min-h-[54px] items-center justify-center rounded-full px-7 text-[15px] font-bold transition ${
-                intent === "reserve" ? "bg-white text-[#081828]" : "border border-white/20 bg-white/10 text-white hover:bg-white/16"
+                intent === "reserve" ? "bg-white text-[#081828] shadow-[0_12px_26px_rgba(255,255,255,0.18)]" : "border border-white/30 bg-[#123145] text-white hover:bg-[#173b52]"
               }`}
             >
               {t("prelaunch.reserve_cta", "Reserve my place")}
@@ -329,7 +329,7 @@ export default function PrelaunchRegistration() {
               type="button"
               onClick={() => selectIntent("donate")}
               className={`inline-flex min-h-[54px] items-center justify-center rounded-full px-7 text-[15px] font-bold transition ${
-                intent === "donate" ? "bg-[#2ed06e] text-white" : "border border-white/20 bg-white/10 text-white hover:bg-white/16"
+                intent === "donate" ? "bg-[#2ed06e] text-white shadow-[0_12px_26px_rgba(46,208,110,0.2)]" : "border border-white/30 bg-[#123145] text-white hover:bg-[#173b52]"
               }`}
             >
               {t("prelaunch.donate_cta", "Donate to support project")}

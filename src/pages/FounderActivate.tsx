@@ -139,22 +139,35 @@ export default function FounderActivate() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 py-6">
-      <section className="rounded-[2rem] bg-gradient-to-br from-[#0f3c40] to-[#2FA5A9] p-8 text-white">
-        <div className="text-xs font-black uppercase tracking-wide text-white/75">Founder activation</div>
-        <h1 className="mt-2 text-3xl font-black md:text-5xl">Activer mon Founder's Pass</h1>
-        <p className="mt-3 max-w-2xl text-sm font-semibold text-white/85">
+      <section
+        className="relative overflow-hidden rounded-[28px] bg-[#081828] px-8 py-14 text-white"
+        style={{ backgroundImage: "url('/spark/banner-bg.svg')", backgroundPosition: "center", backgroundSize: "cover" }}
+      >
+        <div className="relative max-w-3xl">
+          <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-[12px] font-bold tracking-[0.18em] text-white/86">FOUNDER ACTIVATION</div>
+          <h1 className="mt-4 text-[36px] font-bold leading-tight md:text-[54px]">Activer mon Founder&apos;s Pass</h1>
+          <p className="mt-4 max-w-2xl text-[15px] font-medium leading-8 text-white/78">
           Collez votre id d'achat, votre recu ou une capture de la finalisation du paiement. Si vous avez bien ajoute votre Founder ID pendant le paiement, nous le recuperons automatiquement.
-        </p>
+          </p>
+        </div>
       </section>
 
       {success ? (
-        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
-          <div className="text-lg font-black text-emerald-900">Votre demande d'activation a ete soumise.</div>
-          <p className="mt-2 text-sm font-bold text-emerald-800">Le paiement a ete relie a votre Founder ID et votre pass passe maintenant en revue d'activation.</p>
-          <Link to="/founders/dashboard" className="mt-4 inline-flex rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white">Ouvrir mon dashboard</Link>
+        <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-6 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+          <div className="text-lg font-bold text-emerald-900">Votre demande d&apos;activation a ete soumise.</div>
+          <p className="mt-2 text-sm font-medium leading-7 text-emerald-800">Le paiement a ete relie a votre Founder ID et votre pass passe maintenant en revue d&apos;activation.</p>
+          <Link to="/founders/dashboard" className="mt-5 inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white">Ouvrir mon dashboard</Link>
         </div>
       ) : (
-        <form onSubmit={submit} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={submit} className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+          <div className="mb-6">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#0f8c68]">Verification details</div>
+            <h2 className="mt-3 text-[32px] font-bold leading-tight text-[#081828]">Soumettre l&apos;activation</h2>
+            <p className="mt-2 text-[15px] font-medium leading-8 text-slate-600">
+              Utilisez votre Founder ID si necessaire, puis ajoutez votre id d&apos;achat, votre recu ou votre capture de paiement.
+            </p>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <Field
               label="Founder ID de secours"
@@ -171,17 +184,17 @@ export default function FounderActivate() {
             />
           </div>
 
-          <div className="mt-5 rounded-3xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">
+          <div className="mt-5 rounded-[22px] bg-[#f8fbfd] p-5 text-sm font-medium leading-7 text-slate-600">
             Le recu doit correspondre au paiement reussi du Founder's Pass officiel et utiliser la meme adresse email que votre compte Cele One. Le champ Founder ID reste disponible seulement si vous devez corriger ou completer la verification.
-            {existingStatus ? <div className="mt-2 font-extrabold text-slate-900">Statut actuel: {existingStatus}</div> : null}
+            {existingStatus ? <div className="mt-3 font-bold text-slate-900">Statut actuel: {existingStatus}</div> : null}
           </div>
 
-          {error ? <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{error}</div> : null}
-          <button disabled={saving} className="mt-5 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60">
+          {error ? <div className="mt-4 rounded-[18px] bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{error}</div> : null}
+          <button disabled={saving} className="mt-6 inline-flex min-h-[56px] items-center justify-center rounded-full bg-[#2ed06e] px-7 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(46,208,110,0.22)] hover:bg-[#28c464] disabled:opacity-60">
             {saving ? "Verification..." : "Soumettre l'activation"}
           </button>
-          <div className="mt-4 text-sm font-semibold text-slate-500">
-            <Link to="/founders" className="text-[#2FA5A9] hover:underline">Retour a l'espace Founder's Pass</Link>
+          <div className="mt-5 text-sm font-medium text-slate-500">
+            <Link to="/founders" className="font-bold text-[#0f8c68] hover:underline">Retour a l'espace Founder&apos;s Pass</Link>
           </div>
         </form>
       )}
@@ -206,14 +219,14 @@ function Field({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-sm font-extrabold text-slate-800">{label}{required ? " *" : ""}</span>
+      <span className="text-sm font-bold text-slate-800">{label}{required ? " *" : ""}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         type={type}
         placeholder={placeholder}
         required={required}
-        className="rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        className="rounded-[18px] border border-slate-200 bg-[#f8fafc] px-5 py-4 font-medium outline-none focus:border-[#2ed06e]"
       />
     </label>
   );

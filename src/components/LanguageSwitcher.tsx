@@ -18,8 +18,8 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
             onClick={() => setLang(item.code)}
             className={`rounded-[14px] px-4 py-2 text-[13px] font-bold transition ${
               lang === item.code
-                ? "bg-[#081828] text-white"
-                : "bg-[#f4f7fa] text-slate-700 hover:bg-[#edf6f1]"
+                ? "bg-[#2ed06e] text-white shadow-[0_8px_20px_rgba(46,208,110,0.18)]"
+                : "border border-[#d7e2ea] bg-[#f8fbfd] text-slate-700 hover:bg-white"
             }`}
           >
             {item.label}
@@ -42,8 +42,8 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
               onClick={() => setLang(item.code)}
               className={`rounded-[10px] px-4 py-2 text-xs font-extrabold transition ${
                 lang === item.code
-                  ? "bg-[#081828] text-white"
-                  : "bg-[#f4f7fa] text-slate-700 hover:bg-[#e9f9ef]"
+                  ? "bg-[#2ed06e] text-white shadow-[0_8px_20px_rgba(46,208,110,0.18)]"
+                  : "border border-[#d7e2ea] bg-[#f8fbfd] text-slate-700 hover:bg-white"
               }`}
             >
               {item.label}

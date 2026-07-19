@@ -65,9 +65,9 @@ function navActionClass(variant: "primary" | "outline" | "dark") {
     return `${base} bg-[#2ed06e] text-white shadow-[0_10px_24px_rgba(46,208,110,0.2)] hover:bg-[#28c464]`;
   }
   if (variant === "dark") {
-    return `${base} bg-[#081828] text-white hover:bg-[#0d2238]`;
+    return `${base} bg-[#081828] text-white shadow-[0_10px_24px_rgba(8,24,40,0.14)] hover:bg-[#0d2238]`;
   }
-  return `${base} border border-[#e6ecf1] bg-white text-slate-800 hover:border-[#d3dce5] hover:bg-[#f8fbfd]`;
+  return `${base} border border-[#d7e2ea] bg-[#f8fbfd] text-[#081828] hover:border-[#bfd0dc] hover:bg-white`;
 }
 
 function DesktopLinks({ t }: { user: unknown; isAdmin: boolean; t: (k: string, f?: string) => string }) {

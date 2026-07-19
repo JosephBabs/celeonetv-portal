@@ -41,44 +41,49 @@ export default function FounderVerify() {
   if (!founderId) {
     return (
       <div className="mx-auto max-w-4xl py-10">
-        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-          <div className="bg-[linear-gradient(135deg,#10313a_0%,#164751_58%,#2FA5A9_100%)] px-8 py-10 text-white">
-            <div className="text-xs font-black uppercase tracking-[0.22em] text-amber-200">Verification officielle</div>
-            <h1 className="mt-3 text-4xl font-black">Verifier un certificat Founder</h1>
-            <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-white/85">
+        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+          <div
+            className="relative px-8 py-12 text-white"
+            style={{ backgroundImage: "url('/spark/banner-bg.svg')", backgroundPosition: "center", backgroundSize: "cover", backgroundColor: "#081828" }}
+          >
+            <div className="relative max-w-3xl">
+              <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-[12px] font-bold tracking-[0.18em] text-white/86">VERIFICATION OFFICIELLE</div>
+              <h1 className="mt-4 text-[38px] font-bold leading-tight">Verifier un certificat Founder</h1>
+              <p className="mt-4 max-w-2xl text-[15px] font-medium leading-8 text-white/78">
               Entrez un numero de certificat comme `CERT-COF-2026-000018` ou scannez le QR code du certificat pour ouvrir la verification publique Cele One.
-            </p>
+              </p>
+            </div>
           </div>
 
           <div className="grid gap-6 px-8 py-8 lg:grid-cols-[1fr_0.82fr]">
-            <form onSubmit={openVerification} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6">
-              <div className="text-sm font-black uppercase tracking-[0.18em] text-[#2FA5A9]">Recherche manuelle</div>
+            <form onSubmit={openVerification} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_10px_24px_rgba(8,24,40,0.04)]">
+              <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#0f8c68]">Recherche manuelle</div>
               <label className="mt-4 grid gap-2">
-                <span className="text-sm font-extrabold text-slate-800">Numero de certificat</span>
+                <span className="text-sm font-bold text-slate-800">Numero de certificat</span>
                 <input
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   placeholder="CERT-COF-2026-000018"
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold uppercase outline-none focus:ring-2 focus:ring-teal-200"
+                  className="rounded-[18px] border border-slate-200 bg-[#f8fafc] px-5 py-4 font-medium uppercase outline-none focus:border-[#2ed06e]"
                 />
               </label>
-              <button className="mt-5 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white hover:bg-slate-800">
+              <button className="mt-5 inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(46,208,110,0.22)] hover:bg-[#28c464]">
                 Ouvrir la verification
               </button>
-              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex text-sm font-extrabold text-[#2FA5A9] hover:underline">
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex text-sm font-bold text-[#0f8c68] hover:underline">
                 En cas d&apos;erreur, ecrire sur WhatsApp
               </a>
             </form>
 
-            <div className="rounded-[1.5rem] border border-amber-200 bg-[linear-gradient(135deg,#fff9ec_0%,#fff4dd_100%)] p-6">
-              <div className="text-sm font-black uppercase tracking-[0.18em] text-[#a76f1f]">Ce que la page verifie</div>
+            <div className="rounded-[24px] border border-slate-200 bg-[#f8fbfd] p-6">
+              <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#0f8c68]">Ce que la page verifie</div>
               <div className="mt-4 space-y-3">
                 <VerifyStep text="Le numero de certificat public" />
                 <VerifyStep text="Le niveau fondateur enregistre" />
                 <VerifyStep text="Le numero de certificat actif" />
                 <VerifyStep text="Le statut actuel du certificat" />
               </div>
-              <div className="mt-5 text-sm font-semibold leading-6 text-slate-700">
+              <div className="mt-5 text-sm font-medium leading-7 text-slate-700">
                 La verification publique n&apos;affiche ni email, ni telephone, ni montant de contribution, ni reference Chariow.
               </div>
             </div>
@@ -93,12 +98,12 @@ export default function FounderVerify() {
 
   return (
     <div className="mx-auto max-w-3xl py-10">
-      <div className={`rounded-[2rem] border p-8 ${founder ? active ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50" : "border-rose-200 bg-rose-50"}`}>
-        <div className="text-xs font-black uppercase tracking-wide text-[#2FA5A9]">Cele One Founder's Pass</div>
-        <h1 className="mt-3 text-3xl font-black text-slate-900">
+      <div className={`rounded-[28px] border p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)] ${founder ? active ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50" : "border-rose-200 bg-rose-50"}`}>
+        <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#0f8c68]">Cele One Founder&apos;s Pass</div>
+        <h1 className="mt-3 text-[34px] font-bold leading-tight text-slate-900">
           {!founder ? "Certificat invalide" : active ? "Certificat verifie" : "Certificat actuellement inactif"}
         </h1>
-        <p className="mt-2 text-sm font-bold text-slate-700">
+        <p className="mt-3 text-sm font-medium leading-7 text-slate-700">
           {!founder
             ? "Ce certificat n'existe pas dans la base officielle Cele One."
             : active
@@ -118,25 +123,25 @@ export default function FounderVerify() {
           </div>
         ) : null}
         {!founder || !active ? (
-          <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50">
+          <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-[52px] items-center justify-center rounded-full border border-slate-300 bg-white px-6 text-[15px] font-bold text-slate-800 hover:bg-slate-50">
             Ecrire sur WhatsApp: +2290141193144
           </a>
         ) : null}
-        <Link to="/founders" className="mt-6 inline-flex rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white">Retour Founder's Pass</Link>
+        <Link to="/founders" className="mt-6 inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#081828] px-6 text-[15px] font-bold text-white">Retour Founder&apos;s Pass</Link>
       </div>
     </div>
   );
 }
 
 function Info({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-2xl bg-white/70 p-4"><div className="text-xs font-black uppercase text-slate-500">{label}</div><div className="mt-1 font-extrabold text-slate-900">{value}</div></div>;
+  return <div className="rounded-[18px] bg-white/75 p-4"><div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{label}</div><div className="mt-1 font-bold text-slate-900">{value}</div></div>;
 }
 
 function VerifyStep({ text }: { text: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl bg-white/75 p-3">
-      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#123b40] text-xs font-black text-white">CO</div>
-      <div className="text-sm font-semibold leading-6 text-slate-700">{text}</div>
+    <div className="flex items-start gap-3 rounded-[18px] bg-white p-4">
+      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#edf9f1] text-xs font-bold text-[#0f8c68]">CO</div>
+      <div className="text-sm font-medium leading-7 text-slate-700">{text}</div>
     </div>
   );
 }
