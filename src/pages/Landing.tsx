@@ -30,116 +30,115 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="space-y-8">
-      <section className="portal-grid-bg overflow-hidden rounded-[36px] bg-[#081828] text-white shadow-[0_28px_80px_rgba(8,24,40,0.18)]">
-        <div className="relative grid gap-10 px-8 py-10 md:px-12 md:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.24),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(245,196,81,0.18),transparent_22%)]" />
-          <div className="relative">
-            <div className="portal-badge !bg-white/10 !text-[#8be0d6]">{t("landing.badge", "CELEONE ECC PLATFORM")}</div>
-            <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-[1.02] md:text-6xl">
-              {t("landing.title", "CeleOne platform")}
+    <div className="space-y-10">
+      <section className="overflow-hidden rounded-[20px] bg-[#f4f7fa] px-6 py-10 md:px-10 md:py-14">
+        <div className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <div className="portal-badge">{t("landing.badge", "CELEONE ECC PLATFORM")}</div>
+            <h1 className="mt-5 max-w-2xl text-4xl font-bold leading-[1.02] text-[#081828] md:text-6xl">
+              Best app for your Christian community, streaming and founder experience
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-semibold leading-8 text-white/78">
+            <p className="mt-5 max-w-2xl text-base font-semibold leading-8 text-slate-600">
               {t("landing.p1", "CeleOne description")}
             </p>
-            <p className="mt-3 max-w-2xl text-base font-semibold leading-8 text-white/72">
+            <p className="mt-3 max-w-2xl text-base font-semibold leading-8 text-slate-600">
               {t("landing.p2", "CeleOne mission")}
             </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/creator/request" className="portal-btn portal-btn-gold">
-                {t("landing.cta_tv", "Create TV Channel")}
-              </Link>
-              <Link to="/spiritual-program" className="portal-btn portal-btn-outline !border-white/12 !bg-white/8 !text-white">
-                {t("landing.cta_spiritual", "Open Spiritual Program")}
-              </Link>
+            <div className="mt-7 flex flex-wrap gap-3">
               <Link to="/prelaunch-registration" className="portal-btn portal-btn-primary">
                 {t("landing.cta_prelaunch", "Prelaunch registration")}
               </Link>
-            </div>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <MiniStat title="Live TV" value="Streaming ready" />
-              <MiniStat title="Founder&apos;s Pass" value="Official activation flow" />
-              <MiniStat title="Portal" value="Multi-language access" />
+              <Link to="/founders" className="portal-btn portal-btn-dark">
+                Founder&apos;s Pass
+              </Link>
             </div>
           </div>
 
-          <div className="relative">
-            <div className="portal-soft-card p-5 text-slate-900">
-              <div className="text-xs font-black uppercase tracking-[0.18em] text-teal-700">
-                {t("landing.info_title", "Key Information")}
-              </div>
-              <div className="mt-5 grid gap-4">
-                <InfoCard title={t("landing.five_lang_title", "In five languages")} value={t("landing.five_lang_value", "French, English, Yoruba, Fon, Spanish")} />
-                <InfoCard title={t("landing.docs_title", "ECC Documents")} value={t("landing.docs_value", "ECC public documents")} />
-                <InfoCard title={t("landing.spiritual_title", "Spiritual Program")} value={t("landing.spiritual_value", "Weekly themes, services, Bible lessons and hymn programs.")} />
-                <InfoCard title={t("landing.live_title", "Live transmission")} value={t("landing.live_value", "TV/Web TV and radio can stream")} />
-              </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="portal-card p-5 md:translate-y-8">
+              <div className="rounded-[12px] bg-[#e9f9ef] px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Streaming</div>
+              <h3 className="mt-4 text-2xl font-bold text-[#081828]">Live channels and approved creators</h3>
+              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">Broadcast TV, web TV, radio, posts and creator content in one app-aligned portal.</p>
+            </div>
+            <div className="portal-card p-5">
+              <div className="rounded-[12px] bg-[#eef4f7] px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-slate-700">Founder</div>
+              <h3 className="mt-4 text-2xl font-bold text-[#081828]">Founder&apos;s Pass activation flow</h3>
+              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">Reserve ID, pay through Chariow, activate the pass, then verify and download certificate.</p>
+            </div>
+            <div className="portal-card p-5">
+              <div className="rounded-[12px] bg-[#eef4f7] px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-slate-700">Spiritual</div>
+              <h3 className="mt-4 text-2xl font-bold text-[#081828]">Themes, hymns and official documentation</h3>
+              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">Structured access to spiritual program content, guidance, documents and church information.</p>
+            </div>
+            <div className="portal-card p-5 md:-translate-y-6">
+              <div className="rounded-[12px] bg-[#e9f9ef] px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Community</div>
+              <h3 className="mt-4 text-2xl font-bold text-[#081828]">Prelaunch access and account readiness</h3>
+              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">Prepare user accounts before launch while preserving the real Cele One registration and data flows.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-5 md:grid-cols-3">
-        <Feature title={t("landing.f1_title", "Trusted news")} desc={t("landing.f1_desc", "Validated information")} />
-        <Feature title={t("landing.f2_title", "Community space")} desc={t("landing.f2_desc", "Chatrooms and comments")} />
-        <Feature title={t("landing.f3_title", "Affordable streaming system")} desc={t("landing.f3_desc", "Accessible infrastructure")} />
+      <section className="text-center">
+        <div className="portal-badge">What we offer</div>
+        <h2 className="mt-4 text-4xl font-bold text-[#081828]">Our Services</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-sm font-semibold leading-8 text-slate-600">
+          Cele One combines community streaming, founder activation, public documentation, and spiritual guidance into one structured portal experience.
+        </p>
+      </section>
+
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <ServiceCard title="Create TV Channel" desc="Onboard approved TV, web TV, radio and creator channels." />
+        <ServiceCard title="Spiritual Program" desc="Publish weekly themes, lessons, services and hymn guidance." />
+        <ServiceCard title="Founder Activation" desc="Use the official Founder&apos;s Pass purchase and activation flow." />
+        <ServiceCard title="Prelaunch Registration" desc="Register future users before full public launch." />
+        <ServiceCard title="Documentation Access" desc="Offer public-facing guidance and trusted official content." />
+        <ServiceCard title="Live Experiences" desc="Watch, route and manage live content from approved channels." />
       </section>
 
       <section className="portal-card p-6 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="portal-badge">Cele One channels</div>
-            <h2 className="mt-4 text-3xl font-bold text-[#081828]">{t("landing.channels_title", "Channels in app")}</h2>
+            <div className="portal-badge">Cele One app</div>
+            <h2 className="mt-4 text-3xl font-bold text-[#081828]">Portal pages that reflect the app experience</h2>
             <p className="mt-2 max-w-2xl text-sm font-semibold leading-7 text-slate-600">
-              {t("landing.channels_desc", "Channels can request placement and stream directly.")}
+              Use the portal to present the app, explain its functionalities, and guide users into the right workflows without losing the underlying data and pages you already built.
             </p>
           </div>
-          <Link to="/creator/request" className="portal-btn portal-btn-dark">
-            {t("landing.channels_cta", "Request streaming")}
+          <Link to="/documentation" className="portal-btn portal-btn-outline">
+            Open documentation
           </Link>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {featuredChannels.map((c) => (
-            <Link key={c.id} to={`/${c.channelName || "channel"}/live`} className="portal-card group rounded-[26px] p-5 transition hover:-translate-y-1">
-              <div className="flex items-center justify-between gap-3">
-                <div className="rounded-2xl bg-teal-50 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-teal-700">
-                  Live
-                </div>
-                <div className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Channel</div>
-              </div>
-              <div className="mt-5 text-xl font-bold text-[#081828] group-hover:text-teal-700">
-                {c.displayName || c.name || c.channelName}
-              </div>
-              <div className="mt-2 line-clamp-3 text-sm font-semibold leading-7 text-slate-600">
+            <Link key={c.id} to={`/${c.channelName || "channel"}/live`} className="portal-card p-5 transition hover:-translate-y-1">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Channel</div>
+              <div className="mt-3 text-xl font-bold text-[#081828]">{c.displayName || c.name || c.channelName}</div>
+              <div className="mt-2 text-sm font-semibold leading-7 text-slate-600">
                 {c.description || t("landing.channel_default_desc", "Live channel available on CeleOne.")}
               </div>
             </Link>
           ))}
           {featuredChannels.length === 0 ? (
-            <div className="portal-card rounded-[26px] p-5 text-sm font-semibold text-slate-600">
+            <div className="portal-card p-5 text-sm font-semibold text-slate-600">
               {t("landing.channels_empty", "No channels found for now.")}
             </div>
           ) : null}
         </div>
       </section>
 
-      <section className="portal-card overflow-hidden bg-[linear-gradient(135deg,#f8fbfd_0%,#eef7f6_100%)] p-6 md:p-8">
-        <div className="grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+      <section className="rounded-[20px] bg-[#081828] px-6 py-10 text-white md:px-10">
+        <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
           <div>
-            <div className="portal-badge">Portal access</div>
-            <h2 className="mt-4 text-3xl font-bold text-[#081828]">Une plateforme plus claire pour chaque parcours</h2>
-            <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-600">
-              Que vous veniez pour la diffusion, la documentation, la preinscription ou le Founder&apos;s Pass, le portail Cele One garde vos pages et vos donnees, mais avec une experience plus nette, plus moderne et plus lisible.
+            <h2 className="text-3xl font-bold">Start your Cele One journey today.</h2>
+            <p className="mt-3 max-w-2xl text-sm font-semibold leading-8 text-white/76">
+              Create your account, reserve your place before launch, or enter the Founder&apos;s Pass process from the official portal.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Callout title="Documentation" href="/documentation" />
-            <Callout title="Founder's Pass" href="/founders" />
-            <Callout title="Prelaunch registration" href="/prelaunch-registration" />
-            <Callout title="Login portal" href="/login" />
+          <div className="flex flex-wrap gap-3">
+            <Link to="/register" className="portal-btn portal-btn-primary">Create account</Link>
+            <Link to="/prelaunch-registration" className="portal-btn portal-btn-outline !border-white/14 !bg-white/8 !text-white">Reserve my place</Link>
           </div>
         </div>
       </section>
@@ -147,38 +146,11 @@ export default function Landing() {
   );
 }
 
-function InfoCard({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-      <div className="text-xs font-black uppercase tracking-[0.16em] text-teal-700">{title}</div>
-      <div className="mt-2 text-sm font-semibold leading-7 text-slate-700">{value}</div>
-    </div>
-  );
-}
-
-function Feature({ title, desc }: { title: string; desc: string }) {
+function ServiceCard({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="portal-card p-6">
-      <div className="text-lg font-bold text-[#081828]">{title}</div>
+      <div className="text-xl font-bold text-[#081828]">{title}</div>
       <div className="mt-3 text-sm font-semibold leading-7 text-slate-600">{desc}</div>
     </div>
-  );
-}
-
-function MiniStat({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-[24px] border border-white/10 bg-white/8 p-4">
-      <div className="text-xs font-black uppercase tracking-[0.16em] text-[#8be0d6]">{title}</div>
-      <div className="mt-2 text-base font-bold text-white">{value}</div>
-    </div>
-  );
-}
-
-function Callout({ title, href }: { title: string; href: string }) {
-  return (
-    <Link to={href} className="portal-card rounded-[24px] p-5 transition hover:-translate-y-1 hover:border-teal-200">
-      <div className="text-lg font-bold text-[#081828]">{title}</div>
-      <div className="mt-2 text-sm font-semibold text-slate-600">Open section</div>
-    </Link>
   );
 }

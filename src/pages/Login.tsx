@@ -35,46 +35,33 @@ export default function Login() {
   };
 
   return (
-    <div className="grid min-h-[78vh] items-center gap-8 lg:grid-cols-[0.98fr_0.82fr]">
-      <section className="portal-grid-bg overflow-hidden rounded-[36px] bg-[#081828] px-8 py-10 text-white shadow-[0_28px_80px_rgba(8,24,40,0.18)] md:px-12 md:py-14">
-        <div className="relative max-w-xl">
-          <div className="portal-badge !bg-white/10 !text-[#8be0d6]">{t("login.badge", "Creator Access")}</div>
-          <h1 className="mt-5 text-4xl font-bold leading-[1.02] md:text-6xl">
-            {t("login.hero_title", "Welcome back to Cele One")}
-          </h1>
-          <p className="mt-5 text-base font-semibold leading-8 text-white/76">
-            {t("login.hero_desc", "Manage your channel and content.")}
-          </p>
-
-          <div className="mt-8 grid gap-4">
-            <HeroPoint title="Secure access" text="Connect to your existing portal identity and continue exactly where you left off." />
-            <HeroPoint title="Creator workflow" text="Reach your channel, content, founder, and documentation tools from one cleaner interface." />
-            <HeroPoint title="Portal continuity" text="Same Cele One data and pages, with a better visual experience." />
-          </div>
+    <div className="grid min-h-[78vh] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]">
+      <section className="space-y-5">
+        <div className="portal-badge">{t("login.badge", "Creator Access")}</div>
+        <h1 className="max-w-xl text-4xl font-bold leading-[1.05] text-[#081828] md:text-6xl">
+          {t("login.hero_title", "Welcome back to Cele One")}
+        </h1>
+        <p className="max-w-xl text-base font-semibold leading-8 text-slate-600">
+          {t("login.hero_desc", "Manage your channel and content.")}
+        </p>
+        <div className="grid gap-4">
+          <HeroPoint title="Secure sign in" text="Access the same portal data, creator tools and founder workflows through the upgraded interface." />
+          <HeroPoint title="Cleaner experience" text="The visual system now follows the lighter Spark-style product presentation you selected." />
         </div>
       </section>
 
-      <form onSubmit={login} className="portal-card p-8 md:p-10">
-        <div className="portal-badge">Sign in</div>
-        <h2 className="mt-4 text-3xl font-bold text-[#081828]">{t("login.title", "Login")}</h2>
-        <p className="mt-2 text-sm font-semibold leading-7 text-slate-600">
-          Access your Cele One portal account securely.
-        </p>
-
+      <form onSubmit={login} className="portal-card bg-white p-8 md:p-10">
+        <div className="text-sm font-black uppercase tracking-[0.18em] text-[#25b860]">{t("login.title", "Login")}</div>
+        <h2 className="mt-3 text-3xl font-bold text-[#081828]">Sign in to your portal</h2>
         <div className="mt-6 space-y-4">
           <input placeholder={t("login.email", "Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
           <input type="password" placeholder={t("login.password", "Password")} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
-
         <button disabled={saving} className="portal-btn portal-btn-primary mt-6 w-full disabled:opacity-60">
           {saving ? t("login.loading", "Logging in...") : t("login.title", "Login")}
         </button>
-
         <div className="mt-5 text-center text-sm font-semibold text-slate-600">
-          {t("login.no_account", "No account?")}{" "}
-          <Link to="/register" className="font-extrabold text-teal-700 hover:text-teal-800">
-            {t("login.create_one", "Create one")}
-          </Link>
+          {t("login.no_account", "No account?")} <Link to="/register" className="font-extrabold text-[#25b860]">{t("login.create_one", "Create one")}</Link>
         </div>
       </form>
     </div>
@@ -83,9 +70,9 @@ export default function Login() {
 
 function HeroPoint({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-[24px] border border-white/10 bg-white/8 p-5">
-      <div className="text-sm font-bold text-white">{title}</div>
-      <div className="mt-2 text-sm font-semibold leading-7 text-white/72">{text}</div>
+    <div className="portal-card bg-white p-5">
+      <div className="text-lg font-bold text-[#081828]">{title}</div>
+      <div className="mt-2 text-sm font-semibold leading-7 text-slate-600">{text}</div>
     </div>
   );
 }

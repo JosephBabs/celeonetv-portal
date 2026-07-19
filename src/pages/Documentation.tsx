@@ -50,16 +50,16 @@ export default function Documentation() {
 
   return (
     <div className="space-y-8">
-      <section className="portal-grid-bg overflow-hidden rounded-[36px] bg-[#081828] px-8 py-10 text-white shadow-[0_28px_80px_rgba(8,24,40,0.18)] md:px-12 md:py-14">
-        <div className="relative max-w-3xl">
-          <div className="portal-badge !bg-white/10 !text-[#8be0d6]">Cele One guide</div>
-          <h1 className="mt-5 text-4xl font-bold leading-[1.02] md:text-6xl">{t("docs.title", "CeleOne Public Guide")}</h1>
-          <p className="mt-5 text-base font-semibold leading-8 text-white/76">
+      <section className="rounded-[20px] bg-[#f4f7fa] px-8 py-10 md:px-12 md:py-14">
+        <div className="max-w-3xl">
+          <div className="portal-badge">Cele One guide</div>
+          <h1 className="mt-5 text-4xl font-bold leading-[1.02] text-[#081828] md:text-6xl">{t("docs.title", "CeleOne Public Guide")}</h1>
+          <p className="mt-5 text-base font-semibold leading-8 text-slate-600">
             {t("docs.subtitle", "Everything users should know.")}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/prelaunch-registration" className="portal-btn portal-btn-primary">Prelaunch registration</Link>
-            <Link to="/founders" className="portal-btn portal-btn-outline !border-white/12 !bg-white/8 !text-white">Founder&apos;s Pass</Link>
+            <Link to="/founders" className="portal-btn portal-btn-dark">Founder&apos;s Pass</Link>
           </div>
         </div>
       </section>
