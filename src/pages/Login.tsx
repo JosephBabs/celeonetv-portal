@@ -35,24 +35,57 @@ export default function Login() {
   };
 
   return (
-    <div className="mx-auto grid min-h-[70vh] max-w-5xl items-center gap-8 py-8 md:grid-cols-2">
-      <section className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-700 p-8 text-white">
-        <div className="inline-flex rounded-full bg-white/20 px-3 py-1 text-xs font-black">{t("login.badge", "Creator Access")}</div>
-        <h1 className="mt-4 text-4xl font-black">{t("login.hero_title", "Welcome back to Cele One")}</h1>
-        <p className="mt-3 text-white/80">{t("login.hero_desc", "Manage your channel and content.")}</p>
+    <div className="grid min-h-[78vh] items-center gap-8 lg:grid-cols-[0.98fr_0.82fr]">
+      <section className="portal-grid-bg overflow-hidden rounded-[36px] bg-[#081828] px-8 py-10 text-white shadow-[0_28px_80px_rgba(8,24,40,0.18)] md:px-12 md:py-14">
+        <div className="relative max-w-xl">
+          <div className="portal-badge !bg-white/10 !text-[#8be0d6]">{t("login.badge", "Creator Access")}</div>
+          <h1 className="mt-5 text-4xl font-bold leading-[1.02] md:text-6xl">
+            {t("login.hero_title", "Welcome back to Cele One")}
+          </h1>
+          <p className="mt-5 text-base font-semibold leading-8 text-white/76">
+            {t("login.hero_desc", "Manage your channel and content.")}
+          </p>
+
+          <div className="mt-8 grid gap-4">
+            <HeroPoint title="Secure access" text="Connect to your existing portal identity and continue exactly where you left off." />
+            <HeroPoint title="Creator workflow" text="Reach your channel, content, founder, and documentation tools from one cleaner interface." />
+            <HeroPoint title="Portal continuity" text="Same Cele One data and pages, with a better visual experience." />
+          </div>
+        </div>
       </section>
 
-      <form onSubmit={login} className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h2 className="text-2xl font-black text-slate-900">{t("login.title", "Login")}</h2>
+      <form onSubmit={login} className="portal-card p-8 md:p-10">
+        <div className="portal-badge">Sign in</div>
+        <h2 className="mt-4 text-3xl font-bold text-[#081828]">{t("login.title", "Login")}</h2>
+        <p className="mt-2 text-sm font-semibold leading-7 text-slate-600">
+          Access your Cele One portal account securely.
+        </p>
+
         <div className="mt-6 space-y-4">
-          <input className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200" placeholder={t("login.email", "Email")} onChange={(e) => setEmail(e.target.value)} />
-          <input type="password" className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200" placeholder={t("login.password", "Password")} onChange={(e) => setPassword(e.target.value)} />
+          <input placeholder={t("login.email", "Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input type="password" placeholder={t("login.password", "Password")} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
-        <button disabled={saving} className="mt-5 w-full rounded-2xl bg-teal-600 px-4 py-3 font-extrabold text-white hover:bg-teal-700 disabled:opacity-60">{saving ? t("login.loading", "Logging in...") : t("login.title", "Login")}</button>
-        <div className="mt-4 text-center text-sm text-slate-600">
-          {t("login.no_account", "No account?")} <Link to="/register" className="font-extrabold text-teal-700">{t("login.create_one", "Create one")}</Link>
+
+        <button disabled={saving} className="portal-btn portal-btn-primary mt-6 w-full disabled:opacity-60">
+          {saving ? t("login.loading", "Logging in...") : t("login.title", "Login")}
+        </button>
+
+        <div className="mt-5 text-center text-sm font-semibold text-slate-600">
+          {t("login.no_account", "No account?")}{" "}
+          <Link to="/register" className="font-extrabold text-teal-700 hover:text-teal-800">
+            {t("login.create_one", "Create one")}
+          </Link>
         </div>
       </form>
+    </div>
+  );
+}
+
+function HeroPoint({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/10 bg-white/8 p-5">
+      <div className="text-sm font-bold text-white">{title}</div>
+      <div className="mt-2 text-sm font-semibold leading-7 text-white/72">{text}</div>
     </div>
   );
 }

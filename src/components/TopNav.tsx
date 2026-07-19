@@ -16,78 +16,90 @@ export default function TopNav() {
   const closeMobile = () => setMobileOpen(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-      <div className="mx-auto max-w-6xl px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center" onClick={closeMobile}>
-            <img
-              src={APP.brand.logoWordmark}
-              alt="Celeone"
-              className="h-12 w-auto max-w-[180px] object-contain"
-            />
-          </Link>
+    <header className="sticky top-0 z-40 bg-[#081828]/92 text-white shadow-[0_18px_50px_rgba(8,24,40,0.16)] backdrop-blur-xl">
+      <div className="portal-container py-4">
+        <div className="rounded-[32px] border border-white/10 bg-white/6 px-4 py-3 backdrop-blur">
+          <div className="flex items-center justify-between gap-4">
+            <Link to="/" className="flex items-center gap-3" onClick={closeMobile}>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 p-2">
+                <img
+                  src={APP.brand.logoWordmark}
+                  alt="Celeone"
+                  className="h-10 w-auto max-w-[160px] object-contain"
+                />
+              </div>
+              <div className="hidden md:block">
+                <div className="text-xs font-black uppercase tracking-[0.2em] text-[#7dd3c9]">Cele One</div>
+                <div className="text-sm font-bold text-white/75">Portal experience</div>
+              </div>
+            </Link>
 
-          <button
-            onClick={() => setMobileOpen((v) => !v)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-extrabold text-slate-800 md:hidden"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? "Close" : "Menu"}
-          </button>
+            <button
+              onClick={() => setMobileOpen((v) => !v)}
+              className="rounded-full border border-white/14 bg-white/10 px-4 py-2 text-sm font-extrabold text-white lg:hidden"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? "Close" : "Menu"}
+            </button>
 
-          <nav className="hidden items-center gap-2 md:flex">
-            <DesktopLinks user={user} isAdmin={isAdmin} t={t} />
-          </nav>
+            <nav className="hidden items-center gap-2 lg:flex">
+              <DesktopLinks user={user} isAdmin={isAdmin} t={t} />
+            </nav>
+          </div>
+
+          {mobileOpen ? (
+            <nav className="mt-4 grid gap-2 rounded-[24px] border border-white/10 bg-white/8 p-3 lg:hidden">
+              <MobileLinks user={user} isAdmin={isAdmin} onClose={closeMobile} t={t} />
+            </nav>
+          ) : null}
         </div>
-
-        {mobileOpen ? (
-          <nav className="mt-3 grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 md:hidden">
-            <MobileLinks user={user} isAdmin={isAdmin} onClose={closeMobile} t={t} />
-          </nav>
-        ) : null}
       </div>
     </header>
   );
 }
 
+function navLinkClass() {
+  return "rounded-full px-4 py-3 text-sm font-extrabold text-white/82 transition hover:bg-white/10 hover:text-white";
+}
+
 function DesktopLinks({ user, isAdmin, t }: { user: unknown; isAdmin: boolean; t: (k: string, f?: string) => string }) {
   return (
     <>
-      <Link to="/creator/request" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link to="/creator/request" className={navLinkClass()}>
         {t("nav.create_tv", "Create TV Channel")}
       </Link>
-      <Link to="/spiritual-program" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link to="/spiritual-program" className={navLinkClass()}>
         {t("nav.spiritual_program", "Spiritual Program")}
       </Link>
-      <Link to="/prelaunch-registration" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link to="/prelaunch-registration" className={navLinkClass()}>
         {t("nav.prelaunch_registration", "Prelaunch Registration")}
       </Link>
-      <Link to="/founders" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link to="/founders" className={navLinkClass()}>
         Founder's Pass
       </Link>
-      <Link to="/documentation" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link to="/documentation" className={navLinkClass()}>
         {t("nav.documentation", "Documentation")}
       </Link>
       {user ? (
         <>
           {isAdmin ? (
-            <Link to="/admin" className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white hover:bg-slate-800">
+            <Link to="/admin" className="portal-btn portal-btn-gold">
               {t("nav.admin", "Admin")}
             </Link>
           ) : null}
           <button
             onClick={() => signOut(auth)}
-            className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-extrabold text-white hover:bg-rose-700"
+            className="portal-btn border border-white/14 bg-white/10 text-white"
           >
             {t("nav.logout", "Logout")}
           </button>
         </>
       ) : (
         <>
-          <Link to="/login" className="rounded-2xl px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+          <Link to="/login" className="portal-btn portal-btn-outline !border-white/14 !bg-white/8 !text-white">
             {t("nav.login", "Login")}
           </Link>
-          <Link to="/register" className="rounded-2xl bg-teal-600 px-4 py-2 text-sm font-extrabold text-white hover:bg-teal-700">
+          <Link to="/register" className="portal-btn portal-btn-primary">
             {t("nav.signup", "Sign Up")}
           </Link>
         </>
@@ -107,27 +119,28 @@ function MobileLinks({
   onClose: () => void;
   t: (k: string, f?: string) => string;
 }) {
+  const itemClass = "rounded-2xl px-4 py-3 text-sm font-extrabold text-white/85 hover:bg-white/10";
   return (
     <>
-      <Link onClick={onClose} to="/creator/request" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link onClick={onClose} to="/creator/request" className={itemClass}>
         {t("nav.create_tv", "Create TV Channel")}
       </Link>
-      <Link onClick={onClose} to="/spiritual-program" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link onClick={onClose} to="/spiritual-program" className={itemClass}>
         {t("nav.spiritual_program", "Spiritual Program")}
       </Link>
-      <Link onClick={onClose} to="/prelaunch-registration" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link onClick={onClose} to="/prelaunch-registration" className={itemClass}>
         {t("nav.prelaunch_registration", "Prelaunch Registration")}
       </Link>
-      <Link onClick={onClose} to="/founders" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link onClick={onClose} to="/founders" className={itemClass}>
         Founder's Pass
       </Link>
-      <Link onClick={onClose} to="/documentation" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+      <Link onClick={onClose} to="/documentation" className={itemClass}>
         {t("nav.documentation", "Documentation")}
       </Link>
       {user ? (
         <>
           {isAdmin ? (
-            <Link onClick={onClose} to="/admin" className="rounded-xl bg-slate-900 px-3 py-3 text-sm font-extrabold text-white">
+            <Link onClick={onClose} to="/admin" className="portal-btn portal-btn-gold">
               {t("nav.admin", "Admin")}
             </Link>
           ) : null}
@@ -136,17 +149,17 @@ function MobileLinks({
               onClose();
               signOut(auth);
             }}
-            className="rounded-xl bg-rose-600 px-3 py-3 text-left text-sm font-extrabold text-white"
+            className="portal-btn border border-white/14 bg-white/10 text-left text-white"
           >
             {t("nav.logout", "Logout")}
           </button>
         </>
       ) : (
         <>
-          <Link onClick={onClose} to="/login" className="rounded-xl px-3 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-100">
+          <Link onClick={onClose} to="/login" className="portal-btn portal-btn-outline !border-white/14 !bg-white/8 !text-white">
             {t("nav.login", "Login")}
           </Link>
-          <Link onClick={onClose} to="/register" className="rounded-xl bg-teal-600 px-3 py-3 text-sm font-extrabold text-white">
+          <Link onClick={onClose} to="/register" className="portal-btn portal-btn-primary">
             {t("nav.signup", "Sign Up")}
           </Link>
         </>

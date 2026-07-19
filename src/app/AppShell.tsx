@@ -98,10 +98,10 @@ export default function AppShell() {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="portal-theme min-h-screen">
       <LanguageSwitcher />
       {!hideTopNav ? <TopNav /> : null}
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main className="portal-main">
         <Outlet />
       </main>
       <Footer />
