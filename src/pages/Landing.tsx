@@ -3,6 +3,7 @@ import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { db } from "../lib/firebase";
+import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
@@ -31,7 +32,10 @@ export default function Landing() {
 
   return (
     <div className="space-y-10">
-      <section className="overflow-hidden rounded-[20px] bg-[#f4f7fa] px-6 py-10 md:px-10 md:py-14">
+      <section
+        className="overflow-hidden rounded-[20px] border border-[#f4eefb] bg-white bg-cover bg-right-top bg-no-repeat px-6 py-10 md:px-10 md:py-14"
+        style={{ backgroundImage: "url('/spark/banner-bg.svg')" }}
+      >
         <div className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
             <div className="portal-badge">{t("landing.badge", "CELEONE ECC PLATFORM")}</div>
@@ -54,26 +58,48 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <div className="portal-card p-5 md:translate-y-8">
-              <div className="rounded-[12px] bg-[#e9f9ef] px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Streaming</div>
-              <h3 className="mt-4 text-2xl font-bold text-[#081828]">Live channels and approved creators</h3>
-              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">Broadcast TV, web TV, radio, posts and creator content in one app-aligned portal.</p>
-            </div>
-            <div className="portal-card p-5">
-              <div className="rounded-[12px] bg-[#eef4f7] px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-slate-700">Founder</div>
-              <h3 className="mt-4 text-2xl font-bold text-[#081828]">Founder&apos;s Pass activation flow</h3>
-              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">Reserve ID, pay through Chariow, activate the pass, then verify and download certificate.</p>
-            </div>
-            <div className="portal-card p-5">
-              <div className="rounded-[12px] bg-[#eef4f7] px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-slate-700">Spiritual</div>
-              <h3 className="mt-4 text-2xl font-bold text-[#081828]">Themes, hymns and official documentation</h3>
-              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">Structured access to spiritual program content, guidance, documents and church information.</p>
-            </div>
-            <div className="portal-card p-5 md:-translate-y-6">
-              <div className="rounded-[12px] bg-[#e9f9ef] px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Community</div>
-              <h3 className="mt-4 text-2xl font-bold text-[#081828]">Prelaunch access and account readiness</h3>
-              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">Prepare user accounts before launch while preserving the real Cele One registration and data flows.</p>
+          <div className="relative">
+            <div className="mx-auto max-w-[520px]">
+              <div className="rounded-[32px] bg-[#081828] p-4 shadow-[0_30px_70px_rgba(8,24,40,0.18)]">
+                <div className="rounded-[26px] bg-white p-5">
+                  <div className="flex items-center justify-between">
+                    <img src={APP.brand.logoWordmark} alt="Cele One" className="h-10 w-auto object-contain" />
+                    <div className="rounded-full bg-[#e9f9ef] px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Live portal</div>
+                  </div>
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <div className="portal-card border-[#eef2f6] bg-[#f8fbfd] p-4 shadow-none">
+                      <div className="text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Streaming</div>
+                      <div className="mt-3 text-lg font-bold text-[#081828]">Approved channels</div>
+                      <div className="mt-2 text-sm font-semibold leading-7 text-slate-600">Live TV, creator access and media publishing.</div>
+                    </div>
+                    <div className="portal-card border-[#eef2f6] bg-[#f8fbfd] p-4 shadow-none">
+                      <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Founder</div>
+                      <div className="mt-3 text-lg font-bold text-[#081828]">Pass activation</div>
+                      <div className="mt-2 text-sm font-semibold leading-7 text-slate-600">Reserve, pay, activate and verify.</div>
+                    </div>
+                    <div className="portal-card border-[#eef2f6] bg-[#f8fbfd] p-4 shadow-none">
+                      <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Spiritual</div>
+                      <div className="mt-3 text-lg font-bold text-[#081828]">Themes and hymns</div>
+                      <div className="mt-2 text-sm font-semibold leading-7 text-slate-600">Weekly themes, services and documentation.</div>
+                    </div>
+                    <div className="portal-card border-[#eef2f6] bg-[#f8fbfd] p-4 shadow-none">
+                      <div className="text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Community</div>
+                      <div className="mt-3 text-lg font-bold text-[#081828]">Prelaunch access</div>
+                      <div className="mt-2 text-sm font-semibold leading-7 text-slate-600">Account readiness before launch.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute -left-5 top-12 hidden rounded-[16px] bg-white p-4 shadow-[0_20px_45px_rgba(8,24,40,0.08)] md:block">
+                <div className="text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Theme de la semaine</div>
+                <div className="mt-2 text-sm font-bold text-[#081828]">Weekly spiritual guidance</div>
+              </div>
+
+              <div className="absolute -bottom-5 right-0 hidden rounded-[16px] bg-white p-4 shadow-[0_20px_45px_rgba(8,24,40,0.08)] md:block">
+                <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Portal contact</div>
+                <div className="mt-2 text-sm font-bold text-[#081828]">celeoneofficiel@gmail.com</div>
+              </div>
             </div>
           </div>
         </div>
@@ -94,6 +120,34 @@ export default function Landing() {
         <ServiceCard title="Prelaunch Registration" desc="Register future users before full public launch." />
         <ServiceCard title="Documentation Access" desc="Offer public-facing guidance and trusted official content." />
         <ServiceCard title="Live Experiences" desc="Watch, route and manage live content from approved channels." />
+      </section>
+
+      <section className="text-center">
+        <div className="portal-badge">Pricing style cards</div>
+        <h2 className="mt-4 text-4xl font-bold text-[#081828]">Founder&apos;s Pass levels</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-sm font-semibold leading-8 text-slate-600">
+          The Spark pricing-card pattern can present real Cele One support levels while preserving your founder activation flow.
+        </p>
+      </section>
+
+      <section className="grid gap-5 lg:grid-cols-4">
+        {APP.founders.levels.map((level, index) => (
+          <div key={level.id} className={`portal-card p-6 ${index === 1 ? "border-[#25b860] shadow-[0_18px_50px_rgba(46,208,110,0.16)]" : ""}`}>
+            {index === 1 ? <div className="mb-3 inline-flex rounded-full bg-[#e9f9ef] px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-[#25b860]">Popular</div> : null}
+            <div className="text-xl font-bold text-[#081828]">{level.label}</div>
+            <div className="mt-3 text-4xl font-bold text-[#081828]">{level.minAmount.toLocaleString("fr-FR")}</div>
+            <div className="mt-1 text-sm font-semibold text-slate-500">{level.currency}</div>
+            <div className="mt-4 space-y-2 text-sm font-semibold text-slate-600">
+              <div>Founder ID reservation</div>
+              <div>Chariow activation path</div>
+              <div>Verification-ready flow</div>
+              <div>Certificate and founder recognition</div>
+            </div>
+            <Link to="/founders" className={`portal-btn mt-6 w-full ${index === 1 ? "portal-btn-primary" : "portal-btn-outline"}`}>
+              Choose {level.label}
+            </Link>
+          </div>
+        ))}
       </section>
 
       <section className="portal-card p-6 md:p-8">
