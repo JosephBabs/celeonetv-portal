@@ -55,57 +55,60 @@ export default function Landing() {
 
   return (
     <div className="space-y-10">
-      <section className="overflow-hidden rounded-[28px] bg-[#2ed06e] px-6 py-12 text-white md:px-10 md:py-16">
+      <section className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white px-6 py-12 md:px-10 md:py-16">
+        <div className="absolute -left-16 top-10 h-64 w-64 rounded-full bg-[#ecfbf3]" />
+        <div className="absolute -right-12 bottom-8 h-56 w-56 rounded-full bg-[#eef4ff]" />
+        <div className="absolute left-1/3 top-1/2 h-28 w-28 rounded-full bg-[#f8eaff]" />
         <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="max-w-2xl">
-            <div className="text-sm font-bold tracking-[0.18em] text-white/86">{t("landing.badge", "CELEONE ECC PLATFORM")}</div>
-            <h1 className="mt-5 text-[42px] font-bold leading-[1.02] md:text-[66px]">
+          <div className="relative z-10 max-w-2xl">
+            <div className="text-sm font-bold tracking-[0.18em] text-[#0f8c68]">{t("landing.badge", "CELEONE ECC PLATFORM")}</div>
+            <h1 className="mt-5 text-[42px] font-bold leading-[1.02] text-[#081828] md:text-[66px]">
               {t("landing.title", "CeleOne, a mobile social platform for the Celestial Christian community.")}
             </h1>
-            <p className="mt-5 max-w-xl text-base font-medium leading-8 text-white/84">{t("landing.p1", "CeleOne description")}</p>
-            <p className="mt-3 max-w-xl text-base font-medium leading-8 text-white/78">{t("landing.p2", "CeleOne mission")}</p>
+            <p className="mt-5 max-w-xl text-base font-medium leading-8 text-slate-600">{t("landing.p1", "CeleOne description")}</p>
+            <p className="mt-3 max-w-xl text-base font-medium leading-8 text-slate-600">{t("landing.p2", "CeleOne mission")}</p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/prelaunch-registration" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-white px-7 text-[15px] font-bold text-[#081828]">
+              <Link to="/prelaunch-registration" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#2ed06e] px-7 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(46,208,110,0.22)]">
                 {t("landing.cta_prelaunch", "Prelaunch registration")}
               </Link>
-              <Link to="/founders" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-white/22 bg-white/10 px-7 text-[15px] font-bold text-white">
+              <Link to="/founders" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-[15px] font-bold text-[#081828]">
                 Founder&apos;s Pass
               </Link>
             </div>
           </div>
 
-          <div className="relative min-h-[460px]">
-            <div className="absolute right-4 top-0 hidden h-[340px] w-[240px] rounded-[42px] border-[10px] border-[#081828] bg-white shadow-[0_35px_70px_rgba(8,24,40,0.25)] md:block">
+          <div className="relative z-10 min-h-[500px]">
+            <div className="absolute right-6 top-6 hidden h-[350px] w-[246px] rounded-[42px] border-[10px] border-white bg-white shadow-[0_35px_70px_rgba(8,24,40,0.18)] md:block">
               <div className="flex h-full flex-col p-5">
-                <div className="rounded-[22px] bg-[#edf9f1] p-4">
-                  <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#2ed06e]">Cele One</div>
-                  <div className="mt-2 text-lg font-bold text-[#081828]">Streaming + community</div>
+                <div className="rounded-[22px] bg-[#f6fffa] p-4 shadow-[0_8px_18px_rgba(15,140,104,0.07)]">
+                  <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#0f8c68]">Cele One</div>
+                  <div className="mt-2 text-lg font-bold text-[#081828]">Menu rapide</div>
                 </div>
                 <div className="mt-4 grid gap-3">
-                  <div className="rounded-[18px] bg-[#f8fbfd] p-4 text-sm font-medium text-slate-600">Theme de la semaine</div>
-                  <div className="rounded-[18px] bg-[#f8fbfd] p-4 text-sm font-medium text-slate-600">Founder activation</div>
-                  <div className="rounded-[18px] bg-[#f8fbfd] p-4 text-sm font-medium text-slate-600">Documentation</div>
+                  <AppTile title="Live TV" text="Cele One live broadcasts" />
+                  <AppTile title="Cantiques" text="Multilingual hymn books" />
+                  <AppTile title="Discussions" text="Private messages and groups" />
                 </div>
                 <div className="mt-auto rounded-full bg-[#2ed06e] px-4 py-3 text-center text-sm font-bold text-white">Continue</div>
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 h-[390px] w-[260px] rotate-[-9deg] rounded-[46px] border-[10px] border-[#081828] bg-white shadow-[0_35px_70px_rgba(8,24,40,0.25)]">
+            <div className="absolute bottom-0 left-4 h-[410px] w-[268px] rotate-[-9deg] rounded-[46px] border-[10px] border-[#1f1f24] bg-white shadow-[0_35px_70px_rgba(8,24,40,0.2)]">
               <div className="flex h-full flex-col p-5">
                 <img src={APP.brand.logoWordmark} alt="Cele One" className="h-11 w-auto object-contain" />
-                <div className="mt-6 rounded-[24px] bg-[#f4f7fa] p-5">
-                  <div className="text-sm font-bold text-[#081828]">{t("landing.spiritual_title", "Spiritual Program")}</div>
-                  <div className="mt-2 text-sm font-medium leading-7 text-slate-600">{t("landing.spiritual_value", "Weekly themes, services, Bible lessons and hymn programs.")}</div>
+                <div className="mt-6 rounded-[24px] bg-[#f8fbfd] p-5 shadow-[0_8px_18px_rgba(8,24,40,0.05)]">
+                  <div className="text-sm font-bold text-[#081828]">Cantiques & documents</div>
+                  <div className="mt-2 text-sm font-medium leading-7 text-slate-600">Search hymn books, doctrinal resources and official documents.</div>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-[18px] bg-[#f8fbfd] p-4">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#2ed06e]">Live</div>
-                    <div className="mt-2 text-sm font-bold text-[#081828]">TV</div>
+                  <div className="rounded-[18px] bg-[#f6fffa] p-4 shadow-[0_8px_18px_rgba(15,140,104,0.06)]">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#0f8c68]">Theme</div>
+                    <div className="mt-2 text-sm font-bold text-[#081828]">Semaine</div>
                   </div>
-                  <div className="rounded-[18px] bg-[#f8fbfd] p-4">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#2ed06e]">Pass</div>
-                    <div className="mt-2 text-sm font-bold text-[#081828]">Founder</div>
+                  <div className="rounded-[18px] bg-[#f6fffa] p-4 shadow-[0_8px_18px_rgba(15,140,104,0.06)]">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#0f8c68]">Founder</div>
+                    <div className="mt-2 text-sm font-bold text-[#081828]">Pass</div>
                   </div>
                 </div>
                 <div className="mt-auto rounded-full bg-[#081828] px-4 py-3 text-center text-sm font-bold text-white">Cele One</div>
@@ -118,7 +121,7 @@ export default function Landing() {
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         {featureCards.map((item) => (
           <div key={item.title} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
-            <div className="inline-flex rounded-full bg-[#edf9f1] px-3 py-2 text-[11px] font-bold tracking-[0.16em] text-[#2ed06e]">{item.eyebrow}</div>
+            <div className="inline-flex rounded-full bg-[#edf9f1] px-3 py-2 text-[11px] font-bold tracking-[0.16em] text-[#0f8c68]">{item.eyebrow}</div>
             <div className="mt-5 text-[28px] font-bold leading-tight text-[#081828]">{item.title}</div>
             <div className="mt-3 text-sm font-medium leading-8 text-slate-600">{item.text}</div>
           </div>
@@ -127,7 +130,7 @@ export default function Landing() {
 
       <section className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
         <div className="text-center">
-          <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Pricing</div>
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#0f8c68]">Pricing</div>
           <h2 className="mt-4 text-[38px] font-bold leading-tight text-[#081828]">Founder&apos;s Pass support levels</h2>
           <p className="mx-auto mt-3 max-w-2xl text-[15px] font-medium leading-8 text-slate-600">
             The Spark pricing-card rhythm works well here to present the different Cele One founder support levels while preserving your real activation flow.
@@ -137,7 +140,7 @@ export default function Landing() {
         <div className="mt-8 grid gap-5 lg:grid-cols-4">
           {APP.founders.levels.map((level, index) => (
             <div key={level.id} className={`rounded-[24px] border p-7 ${index === 1 ? "border-[#2ed06e] bg-[#081828] text-white" : "border-slate-200 bg-white text-[#081828]"}`}>
-              {index === 1 ? <div className="text-sm font-bold uppercase tracking-[0.16em] text-[#2ed06e]">Most popular</div> : <div className="text-sm font-bold uppercase tracking-[0.16em] text-[#2ed06e]">Founder level</div>}
+              {index === 1 ? <div className="text-sm font-bold uppercase tracking-[0.16em] text-[#2ed06e]">Most popular</div> : <div className="text-sm font-bold uppercase tracking-[0.16em] text-[#0f8c68]">Founder level</div>}
               <div className="mt-4 text-[30px] font-bold">{level.label}</div>
               <div className="mt-4 text-[52px] font-bold leading-none">{level.minAmount.toLocaleString("fr-FR")}</div>
               <div className={`mt-2 text-sm font-medium ${index === 1 ? "text-white/72" : "text-slate-500"}`}>{level.currency}</div>
@@ -186,6 +189,16 @@ export default function Landing() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function AppTile({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-[18px] bg-[#f8fbfd] p-4 shadow-[0_8px_18px_rgba(8,24,40,0.05)]">
+      <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-[#edf9f1] text-sm font-bold text-[#0f8c68]">CO</div>
+      <div className="mt-3 text-base font-bold text-[#081828]">{title}</div>
+      <div className="mt-1 text-sm font-medium leading-6 text-slate-600">{text}</div>
     </div>
   );
 }

@@ -34,13 +34,13 @@ export default function Register() {
   };
 
   return (
-    <div className="grid min-h-[78vh] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]">
+    <div className="grid min-h-[78vh] items-center gap-10 lg:grid-cols-[0.96fr_1.04fr]">
       <section className="space-y-5">
-        <div className="portal-badge">{t("register.badge", "Start Creating")}</div>
+        <div className="portal-badge !bg-[#edf9f1] !text-[#0f8c68]">{t("register.badge", "Start Creating")}</div>
         <h1 className="max-w-xl text-4xl font-bold leading-[1.05] text-[#081828] md:text-6xl">
           {t("register.hero_title", "Join Cele One")}
         </h1>
-        <p className="max-w-xl text-base font-semibold leading-8 text-slate-600">
+        <p className="max-w-xl text-base font-medium leading-8 text-slate-600">
           {t("register.hero_desc", "Open your channel and publish content.")}
         </p>
         <div className="grid gap-4">
@@ -49,18 +49,21 @@ export default function Register() {
         </div>
       </section>
 
-      <form onSubmit={register} className="portal-card bg-white p-8 md:p-10">
-        <div className="text-sm font-black uppercase tracking-[0.18em] text-[#25b860]">{t("register.title", "Create account")}</div>
-        <h2 className="mt-3 text-3xl font-bold text-[#081828]">Open your Cele One access</h2>
-        <div className="mt-6 space-y-4">
-          <input placeholder={t("register.email", "Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input type="password" placeholder={t("register.password", "Password")} value={password} onChange={(e) => setPassword(e.target.value)} />
+      <form onSubmit={register} className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-[0_16px_40px_rgba(8,24,40,0.06)] md:p-10">
+        <div className="text-center">
+          <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#0f8c68]">{t("register.title", "Create account")}</div>
+          <h2 className="mt-3 text-3xl font-bold text-[#081828]">Open your Cele One access</h2>
+          <p className="mt-2 text-sm font-medium text-slate-500">Prepare your account for launch, streaming, founders and community access.</p>
         </div>
-        <button disabled={saving} className="portal-btn portal-btn-primary mt-6 w-full disabled:opacity-60">
+        <div className="mt-6 space-y-4">
+          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" placeholder={t("register.email", "Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" type="password" placeholder={t("register.password", "Password")} value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
+        <button disabled={saving} className="mt-6 inline-flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(46,208,110,0.22)] disabled:opacity-60">
           {saving ? t("register.loading", "Creating...") : t("register.signup", "Sign Up")}
         </button>
-        <div className="mt-5 text-center text-sm font-semibold text-slate-600">
-          {t("register.have_account", "Already have an account?")} <Link to="/login" className="font-extrabold text-[#25b860]">{t("register.login", "Login")}</Link>
+        <div className="mt-5 text-center text-sm font-medium text-slate-600">
+          {t("register.have_account", "Already have an account?")} <Link to="/login" className="font-bold text-[#0f8c68]">{t("register.login", "Login")}</Link>
         </div>
       </form>
     </div>
@@ -69,9 +72,9 @@ export default function Register() {
 
 function HeroPoint({ title, text }: { title: string; text: string }) {
   return (
-    <div className="portal-card bg-white p-5">
+    <div className="rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_10px_24px_rgba(8,24,40,0.04)]">
       <div className="text-lg font-bold text-[#081828]">{title}</div>
-      <div className="mt-2 text-sm font-semibold leading-7 text-slate-600">{text}</div>
+      <div className="mt-2 text-sm font-medium leading-7 text-slate-600">{text}</div>
     </div>
   );
 }
