@@ -132,40 +132,41 @@ export default function SpiritualProgram() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[2rem] border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-teal-50 p-8">
-        <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-amber-200/40 blur-3xl" />
-        <div className="absolute -bottom-20 left-10 h-56 w-56 rounded-full bg-teal-200/40 blur-3xl" />
-        <div className="relative grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <section
+        className="relative overflow-hidden rounded-[28px] bg-[#081828] px-6 py-16 text-white md:px-10"
+        style={{ backgroundImage: "url('/spark/banner-bg.svg')", backgroundPosition: "center", backgroundSize: "cover" }}
+      >
+        <div className="relative grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <div className="inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-black tracking-wide text-white">
+            <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-[12px] font-bold tracking-[0.18em] text-white/86">
               {t("spiritual.badge", "SPIRITUAL CALENDAR")}
             </div>
-            <h1 className="mt-4 text-3xl font-black text-slate-900 md:text-5xl">
+            <h1 className="mt-6 text-[38px] font-bold leading-[1.08] text-white md:text-[54px]">
               {t("spiritual.title", "Weekly Themes and Hymn Programs")}
             </h1>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-700 md:text-base">
+            <p className="mt-4 max-w-3xl text-base font-medium leading-8 text-white/78">
               {t("spiritual.subtitle", "Browse the annual church spiritual program by year, month, week, services, and special celebrations.")}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/documentation" className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white hover:bg-slate-800">
+              <Link to="/documentation" className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-white px-6 text-[15px] font-bold text-[#081828]">
                 {t("spiritual.read_docs", "Read documentation")}
               </Link>
-              <Link to="/admin/spiritual-program" className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-extrabold text-slate-800 hover:bg-slate-50">
+              <Link to="/admin/spiritual-program" className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-6 text-[15px] font-bold text-white">
                 {t("spiritual.admin_link", "Open admin workflow")}
               </Link>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 backdrop-blur">
-            <div className="text-sm font-black text-slate-900">{t("spiritual.current_week", "Current Week")}</div>
+          <div className="rounded-[24px] bg-white p-7 text-slate-900 shadow-[0_18px_48px_rgba(8,24,40,0.18)]">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">{t("spiritual.current_week", "Current Week")}</div>
             {currentRange ? (
-              <div className="mt-4 space-y-2">
-                <div className="text-2xl font-black text-slate-900">{currentTitle || "-"}</div>
+              <div className="mt-4 space-y-3">
+                <div className="text-[30px] font-bold leading-tight text-[#081828]">{currentTitle || "-"}</div>
                 <div className="text-sm font-bold text-slate-600">
                   {currentRange.startDate} - {currentRange.endDate} - {t("spiritual.week", "Week")} {currentRange.weekNumber}
                 </div>
-                <div className="text-sm text-slate-700">{currentDescription || "-"}</div>
-                <div className="rounded-2xl bg-teal-50 p-3 text-sm text-teal-900">
+                <div className="text-sm font-medium leading-7 text-slate-700">{currentDescription || "-"}</div>
+                <div className="rounded-[18px] bg-[#edf9f1] p-4 text-sm font-medium text-[#14623a]">
                   {currentThemeWeek?.hymns.length
                     ? `${currentThemeWeek.hymns.length} ${t("spiritual.hymns", "Hymns")}`
                     : currentLegacyWeek?.hymnProgram?.title || t("spiritual.no_hymn", "No hymn program attached yet.")}
@@ -188,11 +189,12 @@ export default function SpiritualProgram() {
         />
       </section>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-6">
+      <section className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-xl font-black text-slate-900">{t("spiritual.browse", "Browse Spiritual Program")}</div>
-            <div className="mt-1 text-sm text-slate-600">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Theme de la semaine</div>
+            <div className="mt-3 text-[34px] font-bold leading-tight text-[#081828]">{t("spiritual.browse", "Browse Spiritual Program")}</div>
+            <div className="mt-2 text-[15px] font-medium leading-8 text-slate-600">
               {hasMobileThemeData
                 ? t("spiritual.mobile_source", "Connected to the mobile Theme de la semaine Firebase schema.")
                 : t("spiritual.browse_desc", "Search themes, Bible references, and past weekly programs.")}
@@ -203,12 +205,12 @@ export default function SpiritualProgram() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("spiritual.search", "Search by theme or scripture")}
-              className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              className="rounded-full border border-slate-200 bg-[#f8fafc] px-5 py-3 text-sm font-medium outline-none"
             />
             <select
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              className="rounded-full border border-slate-200 bg-[#f8fafc] px-5 py-3 text-sm font-medium outline-none"
             >
               <option value="">{t("spiritual.all_years", "All years")}</option>
               {yearOptions.map((item) => (
@@ -223,8 +225,8 @@ export default function SpiritualProgram() {
         {loading ? (
           <div className="mt-6 text-sm text-slate-600">{t("spiritual.loading", "Loading spiritual program...")}</div>
         ) : (
-          <div className="mt-6 grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-            <div className="space-y-4">
+          <div className="mt-8 grid gap-4 xl:grid-cols-3">
+            <div className="space-y-4 xl:col-span-2">
               {filteredWeeks.slice(0, 18).map((week) =>
                 hasMobileThemeData ? (
                   <ThemeWeekCard key={week.id} week={week as ResolvedThemeWeek} lang={lang} />
@@ -240,44 +242,44 @@ export default function SpiritualProgram() {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                <div className="text-lg font-black text-slate-900">{t("spiritual.special_celebrations", "Special Celebrations")}</div>
+              <div className="rounded-[24px] border border-slate-200 bg-[#f8fbfd] p-6">
+                <div className="text-[22px] font-bold text-[#081828]">{t("spiritual.special_celebrations", "Special Celebrations")}</div>
                 <div className="mt-4 space-y-3">
                   {hasMobileThemeData
                     ? bundle.eventDays
                         .filter((item) => item.serviceType === "special_celebration" || item.specialCelebrationId)
                         .slice(0, 8)
                         .map((item) => (
-                          <div key={item.id} className="rounded-2xl bg-slate-50 p-4">
-                            <div className="font-black text-slate-900">{getLocalizedText(item.title, item.titleTranslations, lang) || "Celebration"}</div>
-                            <div className="mt-1 text-xs font-bold uppercase tracking-wide text-amber-700">{item.serviceType || "special"}</div>
-                            <div className="mt-1 text-sm text-slate-600">{item.date || item.serviceDate}</div>
+                          <div key={item.id} className="rounded-[18px] border border-slate-200 bg-white p-4">
+                            <div className="font-bold text-slate-900">{getLocalizedText(item.title, item.titleTranslations, lang) || "Celebration"}</div>
+                            <div className="mt-1 text-xs font-bold uppercase tracking-wide text-[#2ed06e]">{item.serviceType || "special"}</div>
+                            <div className="mt-1 text-sm font-medium text-slate-600">{item.date || item.serviceDate}</div>
                           </div>
                         ))
                     : bundle.celebrations.slice(0, 8).map((item) => (
-                        <div key={item.id} className="rounded-2xl bg-slate-50 p-4">
-                          <div className="font-black text-slate-900">{item.title}</div>
-                          <div className="mt-1 text-xs font-bold uppercase tracking-wide text-amber-700">{item.category || item.type || "custom"}</div>
-                          <div className="mt-1 text-sm text-slate-600">{item.startDate} - {item.endDate}</div>
+                        <div key={item.id} className="rounded-[18px] border border-slate-200 bg-white p-4">
+                          <div className="font-bold text-slate-900">{item.title}</div>
+                          <div className="mt-1 text-xs font-bold uppercase tracking-wide text-[#2ed06e]">{item.category || item.type || "custom"}</div>
+                          <div className="mt-1 text-sm font-medium text-slate-600">{item.startDate} - {item.endDate}</div>
                         </div>
                       ))}
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                <div className="text-lg font-black text-slate-900">{hasMobileThemeData ? t("spiritual.hymn_programs", "Hymn Programs") : t("spiritual.regular_schedule", "Regular Schedule")}</div>
+              <div className="rounded-[24px] border border-slate-200 bg-[#f8fbfd] p-6">
+                <div className="text-[22px] font-bold text-[#081828]">{hasMobileThemeData ? t("spiritual.hymn_programs", "Hymn Programs") : t("spiritual.regular_schedule", "Regular Schedule")}</div>
                 <div className="mt-4 space-y-3">
                   {hasMobileThemeData
                     ? bundle.hymns.slice(0, 10).map((item) => (
-                        <div key={item.id} className="rounded-2xl bg-slate-50 p-4 text-sm">
-                          <div className="font-black text-slate-900">{item.title || `Cantique ${item.hymnNumber || ""}`}</div>
-                          <div className="mt-1 text-slate-600">{[item.date, item.time].filter(Boolean).join(" - ")}</div>
+                        <div key={item.id} className="rounded-[18px] border border-slate-200 bg-white p-4 text-sm">
+                          <div className="font-bold text-slate-900">{item.title || `Cantique ${item.hymnNumber || ""}`}</div>
+                          <div className="mt-1 font-medium text-slate-600">{[item.date, item.time].filter(Boolean).join(" - ")}</div>
                         </div>
                       ))
                     : bundle.schedules.map((item) => (
-                        <div key={item.id} className="rounded-2xl bg-slate-50 p-4 text-sm">
-                          <div className="font-black text-slate-900">{item.label || item.dayName}</div>
-                          <div className="mt-1 text-slate-600">{item.dayName} - {item.time}</div>
+                        <div key={item.id} className="rounded-[18px] border border-slate-200 bg-white p-4 text-sm">
+                          <div className="font-bold text-slate-900">{item.label || item.dayName}</div>
+                          <div className="mt-1 font-medium text-slate-600">{item.dayName} - {item.time}</div>
                         </div>
                       ))}
                 </div>
@@ -297,34 +299,34 @@ function ThemeWeekCard({ week, lang }: { week: ResolvedThemeWeek; lang: string }
   const bibleTheme = getLocalizedText(week.bibleTheme || week.description, week.bibleThemeTranslations || week.descriptionTranslations, lang);
 
   return (
-    <div className="rounded-3xl border border-slate-200 p-5">
+    <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-xl font-black text-slate-900">{title || "Theme non defini"}</div>
-          <div className="mt-1 text-sm font-bold text-slate-600">
+          <div className="text-[28px] font-bold leading-tight text-[#081828]">{title || "Theme non defini"}</div>
+          <div className="mt-2 text-sm font-bold text-slate-600">
             {week.year || "-"} - {week.monthName || "-"} - Week {week.weekNumber}
           </div>
-          <div className="mt-1 text-sm text-slate-600">{week.startDate} - {week.endDate}</div>
+          <div className="mt-1 text-sm font-medium text-slate-600">{week.startDate} - {week.endDate}</div>
         </div>
-        {week.isActive ? <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">Active</span> : null}
+        {week.isActive ? <span className="rounded-full bg-[#edf9f1] px-3 py-1 text-xs font-bold text-[#14623a]">Active</span> : null}
       </div>
 
-      <p className="mt-3 text-sm leading-7 text-slate-700">{bibleTheme || week.description || "-"}</p>
+      <p className="mt-4 text-sm font-medium leading-8 text-slate-700">{bibleTheme || week.description || "-"}</p>
 
       {!!week.scriptureReferences.length && (
-        <div className="mt-3 text-sm font-semibold text-slate-600">Scripture: {week.scriptureReferences.join(", ")}</div>
+        <div className="mt-4 text-sm font-medium text-slate-600">Scripture: {week.scriptureReferences.join(", ")}</div>
       )}
 
-      <div className="mt-4 grid gap-2">
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
         {services.slice(0, 5).map((service) => (
-          <div key={service.id} className="rounded-2xl bg-slate-50 px-4 py-3 text-sm">
-            <div className="font-black text-slate-900">
+          <div key={service.id} className="rounded-[18px] border border-slate-200 bg-[#f8fbfd] px-4 py-4 text-sm">
+            <div className="font-bold text-slate-900">
               {getLocalizedText(service.title, service.titleTranslations, lang) || "Service"}
             </div>
-            <div className="mt-1 text-slate-600">
+            <div className="mt-1 font-medium text-slate-600">
               {[service.dayOfWeek || service.dayKey, service.date || service.serviceDate, service.time || service.serviceTime].filter(Boolean).join(" - ")}
             </div>
-            <div className="mt-1 text-slate-600">
+            <div className="mt-1 font-medium text-slate-600">
               {getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang) || "-"}
             </div>
           </div>
@@ -333,8 +335,8 @@ function ThemeWeekCard({ week, lang }: { week: ResolvedThemeWeek; lang: string }
 
       {celebrations.length || week.hymns.length ? (
         <div className="mt-4 flex flex-wrap gap-2">
-          {celebrations.length ? <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">{celebrations.length} celebrations</span> : null}
-          {week.hymns.length ? <span className="rounded-full bg-teal-100 px-3 py-1 text-xs font-black text-teal-800">{week.hymns.length} hymns</span> : null}
+          {celebrations.length ? <span className="rounded-full bg-[#eef6ff] px-3 py-1 text-xs font-bold text-[#245f9b]">{celebrations.length} celebrations</span> : null}
+          {week.hymns.length ? <span className="rounded-full bg-[#edf9f1] px-3 py-1 text-xs font-bold text-[#14623a]">{week.hymns.length} hymns</span> : null}
         </div>
       ) : null}
     </div>
@@ -343,26 +345,26 @@ function ThemeWeekCard({ week, lang }: { week: ResolvedThemeWeek; lang: string }
 
 function LegacyWeekCard({ week }: { week: ResolvedWeek }) {
   return (
-    <div className="rounded-3xl border border-slate-200 p-5">
+    <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-xl font-black text-slate-900">{week.title}</div>
-          <div className="mt-1 text-sm font-bold text-slate-600">
+          <div className="text-[28px] font-bold leading-tight text-[#081828]">{week.title}</div>
+          <div className="mt-2 text-sm font-bold text-slate-600">
             {week.year?.yearName || "-"} - {week.month?.monthName || "-"} - Week {week.weekNumber}
           </div>
-          <div className="mt-1 text-sm text-slate-600">{week.startDate} - {week.endDate}</div>
+          <div className="mt-1 text-sm font-medium text-slate-600">{week.startDate} - {week.endDate}</div>
         </div>
-        {week.isActive ? <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">Active</span> : null}
+        {week.isActive ? <span className="rounded-full bg-[#edf9f1] px-3 py-1 text-xs font-bold text-[#14623a]">Active</span> : null}
       </div>
-      <p className="mt-3 text-sm leading-7 text-slate-700">{week.description || week.bibleTheme || "-"}</p>
+      <p className="mt-4 text-sm font-medium leading-8 text-slate-700">{week.description || week.bibleTheme || "-"}</p>
       {!!week.scriptureReferences?.length && (
-        <div className="mt-3 text-sm font-semibold text-slate-600">Scripture: {week.scriptureReferences.join(", ")}</div>
+        <div className="mt-4 text-sm font-medium text-slate-600">Scripture: {week.scriptureReferences.join(", ")}</div>
       )}
-      <div className="mt-4 grid gap-2">
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
         {week.services.slice(0, 5).map((service) => (
-          <div key={service.id} className="rounded-2xl bg-slate-50 px-4 py-3 text-sm">
-            <div className="font-black text-slate-900">{service.serviceName}</div>
-            <div className="mt-1 text-slate-600">{service.date} - {service.time} - {service.theme || "-"}</div>
+          <div key={service.id} className="rounded-[18px] border border-slate-200 bg-[#f8fbfd] px-4 py-4 text-sm">
+            <div className="font-bold text-slate-900">{service.serviceName}</div>
+            <div className="mt-1 font-medium text-slate-600">{service.date} - {service.time} - {service.theme || "-"}</div>
           </div>
         ))}
       </div>
@@ -372,9 +374,9 @@ function LegacyWeekCard({ week }: { week: ResolvedWeek }) {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6">
-      <div className="text-sm font-extrabold uppercase tracking-wide text-slate-500">{label}</div>
-      <div className="mt-2 text-3xl font-black text-slate-900">{value}</div>
+    <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+      <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#2ed06e]">{label}</div>
+      <div className="mt-3 text-[34px] font-bold text-[#081828]">{value}</div>
     </div>
   );
 }

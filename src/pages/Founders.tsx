@@ -7,19 +7,31 @@ import { setPageMeta } from "../lib/seo";
 
 const benefits = [
   {
-    title: "Identifiants premium",
-    desc: "Carte Founder, certificat verifie, badge digital et QR de verification apres approbation.",
-    accent: "Teal",
+    title: "Founder ID reserve",
+    desc: "Un identifiant provisoire que vous copiez avant paiement pour relier votre soutien au bon dossier Founder.",
   },
   {
-    title: "Acces prioritaire",
-    desc: "Ouvertures selectives vers certaines actualites, rencontres, visites et evenements reserves.",
-    accent: "Gold",
+    title: "Activation verifiee",
+    desc: "Apres paiement, votre id d'achat ou capture est controle pour activer correctement le pass fondateur.",
   },
   {
-    title: "Reconnaissance officielle",
-    desc: "Presence eligible sur le mur des fondateurs et rattachement a la base Founder officielle Cele One.",
-    accent: "Slate",
+    title: "Certificat et verification",
+    desc: "Le certificat et la carte Founder restent consultables et verifiables depuis les routes officielles Cele One.",
+  },
+];
+
+const stepCards = [
+  {
+    title: "Reserve",
+    desc: "Entrez simplement votre nom pour generer votre Founder ID.",
+  },
+  {
+    title: "Pay",
+    desc: "Collez cet identifiant pendant la finalisation du paiement Chariow.",
+  },
+  {
+    title: "Activate",
+    desc: "Revenez avec votre id d'achat ou capture de paiement pour activer le pass.",
   },
 ];
 
@@ -96,197 +108,143 @@ export default function Founders() {
 
   return (
     <div className="space-y-8 py-6">
-      <section className="overflow-hidden rounded-[2rem] border border-[#d4c295] bg-[linear-gradient(135deg,#071e22_0%,#103840_48%,#2FA5A9_100%)] text-white shadow-sm">
-        <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="order-2 p-8 md:p-12 lg:order-1">
-            <div className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs font-black tracking-[0.22em]">CELE ONE</div>
-            <h1 className="mt-5 text-4xl font-black leading-tight md:text-6xl">Founder&apos;s Pass</h1>
-            <p className="mt-4 max-w-3xl text-base font-semibold leading-8 text-white/85">
-              Une adhesion fondatrice premium pour les premiers soutiens verifies du projet Cele One, avec un parcours clair:
-              generez votre Founder ID, finalisez le paiement officiel, puis revenez pour activer votre pass.
+      <section
+        className="relative overflow-hidden rounded-[28px] bg-[#081828] px-6 py-16 text-white md:px-10"
+        style={{ backgroundImage: "url('/spark/banner-bg.svg')", backgroundPosition: "center", backgroundSize: "cover" }}
+      >
+        <div className="relative grid items-center gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="max-w-3xl">
+            <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-[12px] font-bold tracking-[0.18em] text-white/86">
+              CELE ONE FOUNDER&apos;S PASS
+            </div>
+            <h1 className="mt-6 text-[40px] font-bold leading-[1.04] md:text-[58px]">A cleaner founder flow, built around your real process</h1>
+            <p className="mt-4 max-w-2xl text-base font-medium leading-8 text-white/78">
+              Generez votre Founder ID, finalisez le paiement officiel sur Chariow, puis revenez activer et verifier votre pass sans confusion.
             </p>
-
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#founder-id-reserve" className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-slate-100 lg:hidden">
-                Generer mon Founder ID
-              </a>
-              <a href={paymentUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-[#f5d36d] px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-[#efc850]">
+              <a href={paymentUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#2ed06e] px-7 text-[15px] font-bold text-white">
                 Acheter le Founder&apos;s Pass
               </a>
-              <Link to="/founders/activate" className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-slate-100">
+              <Link to="/founders/activate" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-white px-7 text-[15px] font-bold text-[#081828]">
                 Activer mon pass
               </Link>
-              <Link to="/founders/verify" className="rounded-2xl border border-white/25 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
+              <Link to="/founders/verify" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-7 text-[15px] font-bold text-white">
                 Verifier un pass
               </Link>
             </div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              <Stat title="Etape 1" value="Founder ID reserve" />
-              <Stat title="Etape 2" value="Produit Chariow" />
-              <Stat title="Sortie premium" value="Certificat + carte" />
-            </div>
           </div>
 
-          <div className="order-1 border-b border-white/10 bg-white/[0.06] p-8 backdrop-blur lg:order-2 lg:border-b-0 lg:border-l lg:border-t-0">
-            <div id="founder-id-reserve" className="rounded-[1.75rem] border border-white/12 bg-[#07181b]/55 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
-              <div className="text-xs font-black uppercase tracking-[0.2em] text-amber-200">Avant paiement</div>
-              <div className="mt-3 text-2xl font-black">Reserve your Founder ID</div>
-              <p className="mt-2 text-sm font-semibold leading-7 text-white/80">
-                Entrez votre nom. Nous generons un Founder ID provisoire avec statut non verifie. Vous pourrez le copier puis le coller pendant la finalisation du paiement.
-              </p>
+          <div className="rounded-[24px] bg-white p-7 text-slate-900 shadow-[0_18px_48px_rgba(8,24,40,0.18)]">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Avant paiement</div>
+            <h2 className="mt-4 text-[32px] font-bold leading-tight text-[#081828]">Reserve your Founder ID</h2>
+            <p className="mt-3 text-[15px] font-medium leading-8 text-slate-600">
+              Entrez votre nom. Nous generons un Founder ID provisoire avec statut non verifie. Vous pourrez le coller pendant la finalisation du paiement.
+            </p>
 
-              <div className="mt-5 space-y-3">
-                <input
-                  value={displayName}
-                  onChange={(event) => setDisplayName(event.target.value)}
-                  placeholder="Ex: Jean Dupont"
-                  className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-semibold text-white outline-none placeholder:text-white/45 focus:border-white/30"
-                />
-                <button
-                  type="button"
-                  onClick={reserveFounderId}
-                  disabled={saving}
-                  className="w-full rounded-2xl bg-[#f5d36d] px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-[#efc850] disabled:opacity-60"
-                >
-                  {saving ? "Generation..." : "Generer mon Founder ID"}
-                </button>
-              </div>
+            <div className="mt-6 space-y-4">
+              <input
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                placeholder="Ex: Jean Dupont"
+                className="w-full rounded-[18px] border border-slate-200 bg-[#f8fafc] px-5 py-4 font-medium outline-none focus:border-[#2ed06e]"
+              />
+              <button
+                type="button"
+                onClick={reserveFounderId}
+                disabled={saving}
+                className="inline-flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#081828] px-7 text-[15px] font-bold text-white disabled:opacity-60"
+              >
+                {saving ? "Generation..." : "Generer mon Founder ID"}
+              </button>
+            </div>
 
-              {error ? <div className="mt-3 rounded-2xl bg-rose-500/12 px-4 py-3 text-sm font-bold text-rose-100">{error}</div> : null}
+            {error ? <div className="mt-4 rounded-[18px] bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">{error}</div> : null}
 
-              {reservedId ? (
-                <div className="mt-4 rounded-[1.4rem] border border-amber-300/35 bg-[#fff8ea] p-4 text-slate-900">
-                  <div className="text-xs font-black uppercase tracking-[0.16em] text-[#a76f1f]">Founder ID reserve</div>
-                  <div className="mt-2 font-mono text-xl font-black text-slate-950">{reservedId}</div>
-                  <div className="mt-1 text-sm font-semibold text-slate-600">{reservedName} - statut non verifie</div>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <button type="button" onClick={copyFounderId} className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800">
-                      Copier l&apos;ID
-                    </button>
-                    <a href={paymentUrl} target="_blank" rel="noreferrer" className="rounded-2xl bg-[#123b40] px-4 py-3 text-sm font-extrabold text-white hover:bg-[#0d2d33]">
-                      Proceder au paiement
-                    </a>
-                  </div>
+            {reservedId ? (
+              <div className="mt-5 rounded-[22px] border border-slate-200 bg-[#f8fbfd] p-5">
+                <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#2ed06e]">Founder ID reserve</div>
+                <div className="mt-3 font-mono text-[24px] font-bold text-[#081828]">{reservedId}</div>
+                <div className="mt-2 text-sm font-medium text-slate-600">{reservedName} - statut non verifie</div>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button type="button" onClick={copyFounderId} className="inline-flex min-h-[50px] items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-[15px] font-bold text-slate-700">
+                    Copier l&apos;ID
+                  </button>
+                  <a href={paymentUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[50px] items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white">
+                    Proceder au paiement
+                  </a>
                 </div>
-              ) : null}
-            </div>
-
-            <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-[#fff8ea] p-5 text-slate-900">
-              <div className="text-xs font-black uppercase tracking-[0.16em] text-[#a76f1f]">Processus</div>
-              <div className="mt-3 space-y-3">
-                <Step label="1" text="Generez votre Founder ID et copiez-le." />
-                <Step label="2" text="Ouvrez le produit Founder&apos;s Pass et collez cet ID dans le champ ajoute a la finalisation du paiement." />
-                <Step label="3" text="Gardez votre id d'achat ou une capture de la finalisation du paiement." />
-                <Step label="4" text="Revenez sur Cele One pour activer votre pass avec le Founder ID et votre preuve de paiement." />
               </div>
-            </div>
+            ) : null}
           </div>
         </div>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="text-xs font-black uppercase tracking-[0.2em] text-[#2FA5A9]">Ce que vous recevez</div>
-          <div className="mt-5 grid gap-4">
+      <section className="grid gap-5 md:grid-cols-3">
+        {stepCards.map((step, index) => (
+          <div key={step.title} className="rounded-[24px] border border-slate-200 bg-white p-7 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+            <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#2ed06e]">Etape {index + 1}</div>
+            <div className="mt-4 text-[28px] font-bold text-[#081828]">{step.title}</div>
+            <p className="mt-3 text-[15px] font-medium leading-8 text-slate-600">{step.desc}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+        <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Ce que vous recevez</div>
+          <h2 className="mt-4 text-[34px] font-bold leading-tight text-[#081828]">Founder benefits presented with a cleaner Spark card rhythm</h2>
+          <div className="mt-6 grid gap-4">
             {benefits.map((benefit) => (
-              <BenefitCard key={benefit.title} title={benefit.title} desc={benefit.desc} accent={benefit.accent} />
+              <div key={benefit.title} className="rounded-[22px] border border-slate-200 bg-[#f8fbfd] p-5">
+                <div className="text-[20px] font-bold text-[#081828]">{benefit.title}</div>
+                <div className="mt-2 text-sm font-medium leading-7 text-slate-600">{benefit.desc}</div>
+              </div>
             ))}
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[2rem] border border-amber-200 bg-[linear-gradient(135deg,#fff9ec_0%,#fff4dd_100%)] shadow-sm">
-          <div className="border-b border-amber-200/70 bg-[linear-gradient(135deg,#fff7e7_0%,#f8ecd0_100%)] p-6">
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-[#a76f1f]">Activation et verification</div>
-            <h2 className="mt-2 text-2xl font-black text-slate-900">Un parcours plus propre, sans confusion</h2>
-            <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-700">
-              Le Founder&apos;s Pass n&apos;est pas une promesse financiere. C&apos;est une adhesion de soutien verifiee, rattachee a un Founder ID provisoire,
-              puis transformee en identifiants premium apres verification et approbation.
-            </p>
-          </div>
-          <div className="p-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <ActionCard
-                title="Apres paiement"
-                desc="Ouvrez la page d'activation et collez votre Founder ID, puis votre id d'achat ou votre capture de paiement."
-                link="/founders/activate"
-                label="Aller a l'activation"
-              />
-              <ActionCard
-                title="Verification publique"
-                desc="Chaque certificat et chaque carte Founder peuvent etre verifies depuis la route officielle Cele One."
-                link="/founders/verify"
-                label="Ouvrir la verification"
-              />
-            </div>
+        <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Activation et verification</div>
+          <h2 className="mt-4 text-[34px] font-bold leading-tight text-[#081828]">Un parcours plus propre, sans confusion</h2>
+          <p className="mt-4 text-[15px] font-medium leading-8 text-slate-600">
+            Le Founder&apos;s Pass n&apos;est pas une promesse financiere. C&apos;est une adhesion de soutien verifiee, rattachee a un Founder ID provisoire,
+            puis transformee en identifiants premium apres verification et approbation.
+          </p>
 
-            <div className="mt-5 rounded-[1.5rem] border border-amber-200 bg-white/80 p-5">
-              <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#123b40] text-sm font-black text-white">CO</div>
-                <div>
-                  <div className="text-sm font-black uppercase tracking-[0.16em] text-[#a76f1f]">Important</div>
-                  <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
-                    Les avantages peuvent varier selon les disponibilites, les evenements, les partenaires, la localisation et le niveau de soutien.
-                    Le Founder&apos;s Pass ne constitue ni une action, ni un investissement, ni une garantie de rendement.
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ActionCard
+              title="Apres paiement"
+              desc="Ouvrez la page d'activation et collez votre Founder ID, puis votre id d'achat ou votre capture de paiement."
+              link="/founders/activate"
+              label="Aller a l'activation"
+            />
+            <ActionCard
+              title="Verification publique"
+              desc="Chaque certificat et chaque carte Founder peuvent etre verifies depuis la route officielle Cele One."
+              link="/founders/verify"
+              label="Ouvrir la verification"
+            />
+          </div>
+
+          <div className="mt-6 rounded-[22px] border border-slate-200 bg-[#f8fbfd] p-5">
+            <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#2ed06e]">Important</div>
+            <p className="mt-3 text-sm font-medium leading-7 text-slate-600">
+              Gardez votre id d&apos;achat ou une capture de la finalisation du paiement. Les avantages peuvent varier selon la disponibilite,
+              les evenements, les partenaires, la localisation et le niveau de soutien.
+            </p>
           </div>
         </div>
       </section>
-    </div>
-  );
-}
-
-function BenefitCard({ title, desc, accent }: { title: string; desc: string; accent: string }) {
-  const accents: Record<string, string> = {
-    Teal: "from-[#10343b] via-[#1c5560] to-[#2FA5A9]",
-    Gold: "from-[#6f4b10] via-[#a76f1f] to-[#d5a33d]",
-    Slate: "from-[#1a2d33] via-[#31474d] to-[#607178]",
-  };
-  return (
-    <div className="group overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className={`h-2 w-full bg-gradient-to-r ${accents[accent] || accents.Teal}`} />
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="text-lg font-black text-slate-900">{title}</div>
-            <div className="mt-2 max-w-xl text-sm font-semibold leading-6 text-slate-600">{desc}</div>
-          </div>
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-sm font-black text-slate-700">
-            CO
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Stat({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-4">
-      <div className="text-xs font-black uppercase tracking-[0.16em] text-amber-200">{title}</div>
-      <div className="mt-2 text-lg font-black text-white">{value}</div>
-    </div>
-  );
-}
-
-function Step({ label, text }: { label: string; text: string }) {
-  return (
-    <div className="flex gap-3 rounded-[1rem] bg-white p-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#123b40] text-sm font-black text-white">{label}</div>
-      <div className="text-sm font-semibold leading-6 text-slate-700">{text}</div>
     </div>
   );
 }
 
 function ActionCard({ title, desc, link, label }: { title: string; desc: string; link: string; label: string }) {
   return (
-    <div className="rounded-[1.4rem] border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-base font-black text-slate-900">{title}</div>
-      <div className="mt-2 text-sm font-semibold leading-6 text-slate-600">{desc}</div>
-      <Link to={link} className="mt-4 inline-flex rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800">
+    <div className="rounded-[22px] border border-slate-200 bg-[#f8fbfd] p-5">
+      <div className="text-[20px] font-bold text-[#081828]">{title}</div>
+      <div className="mt-2 text-sm font-medium leading-7 text-slate-600">{desc}</div>
+      <Link to={link} className="mt-5 inline-flex min-h-[50px] items-center justify-center rounded-full bg-[#081828] px-6 text-[15px] font-bold text-white">
         {label}
       </Link>
     </div>

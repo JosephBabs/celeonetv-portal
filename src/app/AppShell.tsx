@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import TopNav from "../components/TopNav";
 import Footer from "../components/Footer";
-import LanguageSwitcher from "../components/LanguageSwitcher";
 import { setPageMeta } from "../lib/seo";
 
 export default function AppShell() {
@@ -99,7 +98,6 @@ export default function AppShell() {
 
   return (
     <div className="portal-theme min-h-screen">
-      <LanguageSwitcher />
       {!hideTopNav ? <TopNav /> : null}
       <main className="portal-main">
         <Outlet />

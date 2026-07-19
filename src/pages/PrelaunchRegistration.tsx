@@ -301,30 +301,36 @@ export default function PrelaunchRegistration() {
 
   return (
     <div className="space-y-8 py-6">
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-950 via-teal-900 to-amber-700 p-8 text-white md:p-12">
-        <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="relative max-w-3xl">
-          <div className="inline-flex rounded-full bg-white/15 px-4 py-1 text-xs font-black tracking-wide">
+      <section
+        className="relative overflow-hidden rounded-[28px] bg-[#081828] px-6 py-16 text-white md:px-10"
+        style={{ backgroundImage: "url('/spark/banner-bg.svg')", backgroundPosition: "center", backgroundSize: "cover" }}
+      >
+        <div className="relative mx-auto max-w-3xl text-center">
+          <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-[12px] font-bold tracking-[0.18em] text-white/86">
             {t("prelaunch.badge", "PRELAUNCH REGISTRATION")}
           </div>
-          <h1 className="mt-4 text-3xl font-black leading-tight md:text-5xl">
+          <h1 className="mt-6 text-[38px] font-bold leading-[1.08] md:text-[54px]">
             {t("prelaunch.title", "Create your CeleOne account before launch.")}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm text-white/90 md:text-base">
-            {t("prelaunch.subtitle", "Reserve your place now, save your details in Firebase, and choose whether you also want to support the project.")}
+          <p className="mx-auto mt-4 max-w-2xl text-base font-medium leading-8 text-white/78">
+            {t("prelaunch.subtitle", "Reserve your place now, or leave donor details and continue to the project payment link.")}
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <button
               type="button"
               onClick={() => selectIntent("reserve")}
-              className={`rounded-2xl px-5 py-3 text-sm font-extrabold ${intent === "reserve" ? "bg-white text-slate-950" : "border border-white/40 text-white hover:bg-white/10"}`}
+              className={`inline-flex min-h-[54px] items-center justify-center rounded-full px-7 text-[15px] font-bold transition ${
+                intent === "reserve" ? "bg-white text-[#081828]" : "border border-white/20 bg-white/10 text-white hover:bg-white/16"
+              }`}
             >
               {t("prelaunch.reserve_cta", "Reserve my place")}
             </button>
             <button
               type="button"
               onClick={() => selectIntent("donate")}
-              className={`rounded-2xl px-5 py-3 text-sm font-extrabold ${intent === "donate" ? "bg-amber-300 text-slate-950" : "border border-white/40 text-white hover:bg-white/10"}`}
+              className={`inline-flex min-h-[54px] items-center justify-center rounded-full px-7 text-[15px] font-bold transition ${
+                intent === "donate" ? "bg-[#2ed06e] text-white" : "border border-white/20 bg-white/10 text-white hover:bg-white/16"
+              }`}
             >
               {t("prelaunch.donate_cta", "Donate to support project")}
             </button>
@@ -332,84 +338,79 @@ export default function PrelaunchRegistration() {
         </div>
       </section>
 
-      <section className="grid gap-5 md:grid-cols-2">
-        <OptionCard
-          active={intent === "reserve"}
-          title={t("prelaunch.reserve_title", "Reserve my place")}
-          desc={t("prelaunch.reserve_desc", "Create your account in advance and be ready when CeleOne opens.")}
-          action={() => selectIntent("reserve")}
-        />
-        <OptionCard
-          active={intent === "donate"}
-          title={t("prelaunch.donate_title", "Donate to support project")}
-          desc="Generez d'abord votre Founder ID sur l'espace Founder's Pass, ouvrez ensuite le produit officiel sur Chariow, payez, puis revenez activer votre pass."
-          action={() => selectIntent("donate")}
-        />
-      </section>
-
-      {donationMode ? (
-        <section className="rounded-[2rem] border border-[#d9c38c] bg-[linear-gradient(135deg,#10313a_0%,#164751_55%,#2FA5A9_100%)] p-6 text-white shadow-xl">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div className="max-w-2xl">
-              <div className="text-xs font-black uppercase tracking-[0.2em] text-amber-200">Produit officiel Chariow</div>
-              <h2 className="mt-2 text-3xl font-black">Cele One Founder&apos;s Pass</h2>
-              <p className="mt-3 text-sm font-semibold leading-7 text-white/85">
-                Generez d&apos;abord votre Founder ID, utilisez-le pendant la finalisation du paiement, puis revenez avec votre id d&apos;achat ou votre capture de paiement pour l&apos;activation.
-              </p>
-            </div>
-            <a
-              href={founderPassUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex rounded-2xl bg-[#f5d36d] px-5 py-3 text-sm font-extrabold text-slate-950 hover:bg-[#f0c84d]"
-            >
-              Ouvrir le produit Founder&apos;s Pass
-            </a>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <SimpleFeature title="1. Founder ID" desc="Generez puis copiez votre Founder ID depuis la page Founder&apos;s Pass." />
-            <SimpleFeature title="2. Paiement" desc="Ouvrez le produit et collez votre Founder ID pendant la finalisation sur Chariow." />
-            <SimpleFeature title="3. Activation" desc="Revenez avec votre id d'achat ou votre capture de paiement pour activer votre pass." />
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a href={founderPassUrl} target="_blank" rel="noreferrer" className="rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/15">
-              {founderPassUrl}
-            </a>
-            <Link to="/founders" className="rounded-2xl border border-white/20 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
-              Generer mon Founder ID
-            </Link>
-            <Link to="/founders/activate" className="rounded-2xl border border-white/20 px-5 py-3 text-sm font-extrabold text-white hover:bg-white/10">
-              Activer mon pass apres paiement
-            </Link>
-          </div>
-        </section>
-      ) : null}
-
-      <form onSubmit={submit} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="text-xs font-black uppercase tracking-wide text-teal-700">
+      <section className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+        <div className="space-y-6">
+          <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">
               {donationMode ? t("prelaunch.donate_badge", "Donation interest") : t("prelaunch.reserve_badge", "Reservation")}
             </div>
-            <h2 className="mt-2 text-2xl font-black text-slate-900">
-              {donationMode ? t("prelaunch.form_title_donate", "Add donor details") : t("prelaunch.form_title_reserve", "Create prelaunch account")}
+            <h2 className="mt-4 text-[34px] font-bold leading-tight text-[#081828]">
+              {donationMode ? t("prelaunch.donate_title", "Donate to support project") : t("prelaunch.reserve_title", "Reserve my place")}
             </h2>
-            <p className="mt-1 text-sm font-semibold text-slate-600">
+            <p className="mt-4 text-base font-medium leading-8 text-slate-600">
               {donationMode
-                ? "Les donateurs n'ont pas besoin de creer un compte. Nous enregistrons vos informations, puis nous vous renvoyons vers le produit officiel Founder&apos;s Pass pour le paiement."
-                : t("prelaunch.form_desc", "These details are saved in Firebase using the CeleOne user registration schema.")}
+                ? "Generez d'abord votre Founder ID sur l'espace Founder's Pass, ouvrez ensuite le produit officiel sur Chariow, payez, puis revenez activer votre pass."
+                : t("prelaunch.reserve_desc", "Create your account in advance and be ready when CeleOne opens.")}
             </p>
+
+            <div className="mt-6 grid gap-4">
+              <OptionCard
+                active={intent === "reserve"}
+                title={t("prelaunch.reserve_title", "Reserve my place")}
+                desc={t("prelaunch.form_desc", "These details are saved in Firebase using the CeleOne user registration schema.")}
+                action={() => selectIntent("reserve")}
+              />
+              <OptionCard
+                active={intent === "donate"}
+                title={t("prelaunch.donate_title", "Donate to support project")}
+                desc="Les donateurs n'ont pas besoin de creer un compte. Entrez seulement vos coordonnees puis poursuivez vers le paiement."
+                action={() => selectIntent("donate")}
+              />
+            </div>
           </div>
-          {!donationMode ? (
-            <Link to="/login" className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-extrabold text-slate-700 hover:bg-slate-50">
-              {t("prelaunch.have_account", "Already registered? Login")}
-            </Link>
-          ) : null}
+
+          <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Founder&apos;s Pass</div>
+            <h3 className="mt-4 text-[28px] font-bold text-[#081828]">Spark flow adapted to your support process</h3>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <SimpleFeature title="01" desc="Generez votre Founder ID depuis l'espace Founder&apos;s Pass." />
+              <SimpleFeature title="02" desc="Payez sur Chariow avec cet identifiant pendant la finalisation." />
+              <SimpleFeature title="03" desc="Revenez activer le pass avec votre id d'achat ou capture de paiement." />
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/founders" className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#081828] px-6 text-[15px] font-bold text-white">
+                Generer mon Founder ID
+              </Link>
+              <a href={founderPassUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white">
+                Ouvrir le produit
+              </a>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <form onSubmit={submit} className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)] md:p-10">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">
+                {donationMode ? t("prelaunch.donate_badge", "Donation interest") : t("prelaunch.reserve_badge", "Reservation")}
+              </div>
+              <h2 className="mt-4 text-[34px] font-bold leading-tight text-[#081828]">
+                {donationMode ? t("prelaunch.form_title_donate", "Add donor details") : t("prelaunch.form_title_reserve", "Create prelaunch account")}
+              </h2>
+              <p className="mt-3 max-w-2xl text-[15px] font-medium leading-8 text-slate-600">
+                {donationMode
+                  ? t("prelaunch.donor_form_desc", "Donors do not need to create an account. We save your donor details, then show the payment link.")
+                  : t("prelaunch.form_desc", "These details are saved in Firebase using the CeleOne user registration schema.")}
+              </p>
+            </div>
+            {!donationMode ? (
+              <Link to="/login" className="inline-flex min-h-[50px] items-center justify-center rounded-full border border-slate-200 px-6 text-[15px] font-bold text-slate-700 hover:bg-slate-50">
+                {t("prelaunch.have_account", "Already registered? Login")}
+              </Link>
+            ) : null}
+          </div>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
           <Field label={t("prelaunch.first_name", "First name")} placeholder={t("prelaunch.first_name_ph", "John")} value={form.firstName} onChange={(v) => setField("firstName", v)} required />
           <Field label={t("prelaunch.last_name", "Last name")} placeholder={t("prelaunch.last_name_ph", "Doe")} value={form.lastName} onChange={(v) => setField("lastName", v)} required />
           <Field label={t("prelaunch.email", "Email")} placeholder={t("prelaunch.email_ph", "name@example.com")} value={form.email} onChange={(v) => setField("email", v)} type="email" required={!donationMode} />
@@ -434,7 +435,7 @@ export default function PrelaunchRegistration() {
               value={form.message}
               placeholder={donationMode ? t("prelaunch.donor_message_ph", "Optional note for the CeleOne project team") : t("prelaunch.message_ph", "Optional message")}
               onChange={(event) => setField("message", event.target.value)}
-              className="min-h-28 rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+              className="min-h-28 rounded-[18px] border border-slate-200 bg-[#f8fafc] px-5 py-4 font-medium outline-none focus:border-[#2ed06e] focus:ring-0"
             />
           </label>
         </div>
@@ -451,41 +452,42 @@ export default function PrelaunchRegistration() {
           </div>
         ) : null}
         {paymentReady ? (
-          <div className="mt-4 rounded-[2rem] border border-[#d9c38c] bg-[linear-gradient(135deg,#fff9ec_0%,#fff4da_100%)] p-5">
-            <div className="text-sm font-black uppercase tracking-wide text-[#a76f1f]">Founder&apos;s Pass payment</div>
-            <p className="mt-1 text-sm font-semibold text-slate-800">
+          <div className="mt-6 rounded-[24px] border border-slate-200 bg-[#f8fbfd] p-6">
+            <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Founder&apos;s Pass payment</div>
+            <p className="mt-3 text-[15px] font-medium leading-8 text-slate-700">
               Vos informations ont ete enregistrees. Continuez maintenant vers le produit officiel Founder&apos;s Pass sur Chariow, puis revenez dans le portail avec votre recu pour l&apos;activation.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <a href={founderPassUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-2xl bg-[#123b40] px-5 py-3 text-sm font-extrabold text-white hover:bg-[#0d2c30]">
+              <a href={founderPassUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white hover:bg-[#28c464]">
                 Ouvrir le produit Founder&apos;s Pass
               </a>
-              <Link to="/founders/activate" className="inline-flex rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-50">
+              <Link to="/founders/activate" className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-[15px] font-bold text-slate-700 hover:bg-slate-50">
                 Activer mon pass apres paiement
               </Link>
             </div>
-            <div className="mt-4 rounded-2xl bg-white/80 p-4 text-sm font-semibold text-slate-700">
+            <div className="mt-4 rounded-[18px] bg-white p-4 text-sm font-medium leading-7 text-slate-700">
               Important: conservez le recu Chariow, votre id d&apos;achat ou une capture de la finalisation du paiement. Cela sera demande pendant l&apos;activation du Founder&apos;s Pass.
             </div>
-            <a href={founderPassUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-extrabold text-[#123b40] hover:underline">
+            <a href={founderPassUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-bold text-[#081828] hover:underline">
               {founderPassUrl}
             </a>
           </div>
         ) : null}
 
-        <button disabled={saving || passwordMismatch} className="mt-6 w-full rounded-2xl bg-slate-900 px-4 py-3 font-extrabold text-white hover:bg-slate-800 disabled:opacity-60 md:w-auto">
+        <button disabled={saving || passwordMismatch} className="mt-8 inline-flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#2ed06e] px-7 text-[15px] font-bold text-white hover:bg-[#28c464] disabled:opacity-60 md:w-auto">
           {saving ? t("prelaunch.saving", "Saving...") : donationMode ? t("prelaunch.submit_donate", "Save details and show payment link") : t("prelaunch.submit_reserve", "Create prelaunch account")}
         </button>
-      </form>
+        </form>
+      </section>
     </div>
   );
 }
 
 function SimpleFeature({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-4">
-      <div className="text-sm font-black text-amber-200">{title}</div>
-      <div className="mt-2 text-sm font-semibold leading-6 text-white/82">{desc}</div>
+    <div className="rounded-[22px] border border-slate-200 bg-[#f8fbfd] p-5">
+      <div className="text-[13px] font-bold uppercase tracking-[0.16em] text-[#2ed06e]">{title}</div>
+      <div className="mt-3 text-sm font-medium leading-7 text-slate-700">{desc}</div>
     </div>
   );
 }
@@ -495,10 +497,10 @@ function OptionCard({ active, title, desc, action }: { active: boolean; title: s
     <button
       type="button"
       onClick={action}
-      className={`rounded-3xl border p-6 text-left transition ${active ? "border-teal-300 bg-teal-50 shadow-sm" : "border-slate-200 bg-white hover:bg-slate-50"}`}
+      className={`rounded-[22px] border p-5 text-left transition ${active ? "border-[#2ed06e] bg-[#edf9f1] shadow-sm" : "border-slate-200 bg-white hover:bg-slate-50"}`}
     >
-      <div className="text-lg font-black text-slate-900">{title}</div>
-      <div className="mt-2 text-sm font-semibold text-slate-600">{desc}</div>
+      <div className="text-lg font-bold text-slate-900">{title}</div>
+      <div className="mt-2 text-sm font-medium leading-7 text-slate-600">{desc}</div>
     </button>
   );
 }
@@ -520,14 +522,14 @@ function Field({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-sm font-extrabold text-slate-800">{label}</span>
+      <span className="text-sm font-bold text-slate-800">{label}</span>
       <input
         required={required}
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-teal-200"
+        className="w-full rounded-[18px] border border-slate-200 bg-[#f8fafc] px-5 py-4 font-medium outline-none focus:border-[#2ed06e] focus:ring-0"
       />
     </label>
   );

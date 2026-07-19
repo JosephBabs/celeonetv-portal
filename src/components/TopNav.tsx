@@ -6,6 +6,7 @@ import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { useAuthUser } from "../lib/useAuthUser";
 import { useUserRole } from "../lib/useUserRole";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function TopNav() {
   const { user } = useAuthUser();
@@ -16,7 +17,7 @@ export default function TopNav() {
   const closeMobile = () => setMobileOpen(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#f4eefb] bg-white/96 shadow-[0_8px_30px_rgba(8,24,40,0.04)] backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-[#eef2f6] bg-white shadow-[0_8px_30px_rgba(8,24,40,0.04)]">
       <div className="portal-container py-3">
         <div className="flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-3" onClick={closeMobile}>
@@ -27,6 +28,15 @@ export default function TopNav() {
             />
           </Link>
 
+          <div className="hidden flex-1 items-center justify-center gap-9 lg:flex">
+            <DesktopLinks user={user} isAdmin={isAdmin} t={t} />
+          </div>
+
+          <div className="hidden items-center gap-3 lg:flex">
+            <LanguageSwitcher compact />
+            <DesktopActions user={user} isAdmin={isAdmin} t={t} />
+          </div>
+
           <button
             onClick={() => setMobileOpen((v) => !v)}
             className="rounded-[10px] border border-[#e8edf3] bg-white px-4 py-2 text-[15px] font-bold text-slate-800 lg:hidden"
@@ -34,10 +44,6 @@ export default function TopNav() {
           >
             {mobileOpen ? "Close" : "Menu"}
           </button>
-
-          <nav className="hidden items-center gap-7 lg:flex">
-            <DesktopLinks user={user} isAdmin={isAdmin} t={t} />
-          </nav>
         </div>
 
         {mobileOpen ? (
@@ -66,7 +72,7 @@ function navActionClass(variant: "primary" | "outline" | "dark") {
   return `${base} border border-[#e6ecf1] bg-white text-slate-800 hover:border-[#d3dce5] hover:bg-[#f8fbfd]`;
 }
 
-function DesktopLinks({ user, isAdmin, t }: { user: unknown; isAdmin: boolean; t: (k: string, f?: string) => string }) {
+function DesktopLinks({ t }: { user: unknown; isAdmin: boolean; t: (k: string, f?: string) => string }) {
   return (
     <>
       <Link to="/creator/request" className={navLinkClass()}>
@@ -84,30 +90,30 @@ function DesktopLinks({ user, isAdmin, t }: { user: unknown; isAdmin: boolean; t
       <Link to="/documentation" className={navLinkClass()}>
         {t("nav.documentation", "Documentation")}
       </Link>
-      {user ? (
-        <>
-          {isAdmin ? (
-            <Link to="/admin" className={navActionClass("dark")}>
-              {t("nav.admin", "Admin")}
-            </Link>
-          ) : null}
-          <button
-            onClick={() => signOut(auth)}
-            className={navActionClass("outline")}
-          >
-            {t("nav.logout", "Logout")}
-          </button>
-        </>
-      ) : (
-        <>
-          <Link to="/login" className={navActionClass("outline")}>
-            {t("nav.login", "Login")}
-          </Link>
-          <Link to="/register" className={navActionClass("primary")}>
-            {t("nav.signup", "Sign Up")}
-          </Link>
-        </>
-      )}
+    </>
+  );
+}
+
+function DesktopActions({ user, isAdmin, t }: { user: unknown; isAdmin: boolean; t: (k: string, f?: string) => string }) {
+  return user ? (
+    <>
+      {isAdmin ? (
+        <Link to="/admin" className={navActionClass("dark")}>
+          {t("nav.admin", "Admin")}
+        </Link>
+      ) : null}
+      <button onClick={() => signOut(auth)} className={navActionClass("outline")}>
+        {t("nav.logout", "Logout")}
+      </button>
+    </>
+  ) : (
+    <>
+      <Link to="/login" className={navActionClass("outline")}>
+        {t("nav.login", "Login")}
+      </Link>
+      <Link to="/register" className={navActionClass("primary")}>
+        {t("nav.signup", "Sign Up")}
+      </Link>
     </>
   );
 }
@@ -126,6 +132,9 @@ function MobileLinks({
   const itemClass = "rounded-[12px] px-4 py-3 text-[15px] font-medium text-slate-800 hover:bg-[#f4f7fa]";
   return (
     <>
+      <div className="px-1 pb-1">
+        <LanguageSwitcher compact />
+      </div>
       <Link onClick={onClose} to="/creator/request" className={itemClass}>
         {t("nav.create_tv", "Create TV Channel")}
       </Link>
