@@ -6,7 +6,6 @@ import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { useAuthUser } from "../lib/useAuthUser";
 import { useUserRole } from "../lib/useUserRole";
-import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function TopNav() {
   const { user } = useAuthUser();
@@ -19,21 +18,20 @@ export default function TopNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-[#eef2f6] bg-white shadow-[0_8px_30px_rgba(8,24,40,0.04)]">
       <div className="portal-container py-3">
-        <div className="flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-3" onClick={closeMobile}>
+        <div className="flex items-center justify-between gap-5">
+          <Link to="/" className="flex shrink-0 items-center gap-3" onClick={closeMobile}>
             <img
               src={APP.brand.logoWordmark}
               alt="Celeone"
-              className="h-10 w-auto max-w-[158px] object-contain"
+              className="h-11 w-auto max-w-[170px] object-contain"
             />
           </Link>
 
-          <div className="hidden flex-1 items-center justify-center gap-9 lg:flex">
+          <div className="hidden min-w-0 flex-1 items-center justify-center lg:flex">
             <DesktopLinks user={user} isAdmin={isAdmin} t={t} />
           </div>
 
-          <div className="hidden items-center gap-3 lg:flex">
-            <LanguageSwitcher compact />
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
             <DesktopActions user={user} isAdmin={isAdmin} t={t} />
           </div>
 
@@ -57,12 +55,12 @@ export default function TopNav() {
 }
 
 function navLinkClass() {
-  return "inline-flex items-center py-2 text-[15px] font-medium text-slate-800 transition hover:text-[#2ed06e]";
+  return "inline-flex shrink-0 items-center whitespace-nowrap py-2 text-[15px] font-medium text-slate-800 transition hover:text-[#2ed06e]";
 }
 
 function navActionClass(variant: "primary" | "outline" | "dark") {
   const base =
-    "inline-flex min-h-[50px] items-center justify-center rounded-[999px] px-7 text-[15px] font-bold transition";
+    "inline-flex shrink-0 min-h-[50px] items-center justify-center whitespace-nowrap rounded-[999px] px-6 text-[15px] font-bold transition";
   if (variant === "primary") {
     return `${base} bg-[#2ed06e] text-white shadow-[0_10px_24px_rgba(46,208,110,0.2)] hover:bg-[#28c464]`;
   }
@@ -74,7 +72,7 @@ function navActionClass(variant: "primary" | "outline" | "dark") {
 
 function DesktopLinks({ t }: { user: unknown; isAdmin: boolean; t: (k: string, f?: string) => string }) {
   return (
-    <>
+    <nav className="flex min-w-0 items-center justify-center gap-6 xl:gap-8">
       <Link to="/creator/request" className={navLinkClass()}>
         {t("nav.create_tv", "Create TV Channel")}
       </Link>
@@ -90,7 +88,7 @@ function DesktopLinks({ t }: { user: unknown; isAdmin: boolean; t: (k: string, f
       <Link to="/documentation" className={navLinkClass()}>
         {t("nav.documentation", "Documentation")}
       </Link>
-    </>
+    </nav>
   );
 }
 
@@ -132,9 +130,6 @@ function MobileLinks({
   const itemClass = "rounded-[12px] px-4 py-3 text-[15px] font-medium text-slate-800 hover:bg-[#f4f7fa]";
   return (
     <>
-      <div className="px-1 pb-1">
-        <LanguageSwitcher compact />
-      </div>
       <Link onClick={onClose} to="/creator/request" className={itemClass}>
         {t("nav.create_tv", "Create TV Channel")}
       </Link>
