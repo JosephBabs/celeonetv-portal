@@ -20,7 +20,11 @@ export interface Env {
 type WorkerEnv = Env & PortalEnv;
 
 const SITE_URL = "https://celeonetv.com";
-const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/logo.jpeg`;
+const DEFAULT_IMAGE_WIDTH = 679;
+const DEFAULT_IMAGE_HEIGHT = 559;
+const GENERATED_SHARE_IMAGE_WIDTH = 1200;
+const GENERATED_SHARE_IMAGE_HEIGHT = 630;
 const HOME_TITLE = "CeleOne | Plateforme Sociale Mobile Chretienne Celeste";
 const HOME_DESCRIPTION =
   "CeleOne rassemble actualites, reformes, decisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace securise.";
@@ -95,6 +99,8 @@ function stripExistingSocialMeta(html: string) {
   return html
     .replace(/<meta[^>]+property=["']og:[^"']+["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']twitter:[^"']+["'][^>]*>\s*/gi, "")
+    .replace(/<meta[^>]+itemprop=["'][^"']+["'][^>]*>\s*/gi, "")
+    .replace(/<meta[^>]+name=["']title["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']description["'][^>]*>\s*/gi, "")
     .replace(/<link[^>]+rel=["']canonical["'][^>]*>\s*/gi, "")
     .replace(/<title>.*?<\/title>\s*/gis, "");
@@ -127,19 +133,30 @@ function buildMeta({
   pageUrl: string;
   type: "website" | "article";
 }) {
+  const isDefaultImage = image === DEFAULT_IMAGE;
+  const imageWidth = isDefaultImage ? DEFAULT_IMAGE_WIDTH : GENERATED_SHARE_IMAGE_WIDTH;
+  const imageHeight = isDefaultImage ? DEFAULT_IMAGE_HEIGHT : GENERATED_SHARE_IMAGE_HEIGHT;
+  const imageType = image.toLowerCase().includes(".png") ? "image/png" : "image/jpeg";
+
   return `
 <title>${escapeHtml(title)}</title>
+<meta name="title" content="${escapeHtml(title)}" />
 <meta name="description" content="${escapeHtml(description)}" />
+<meta itemprop="name" content="${escapeHtml(title)}" />
+<meta itemprop="description" content="${escapeHtml(description)}" />
+<meta itemprop="image" content="${escapeHtml(image)}" />
 
 <meta property="og:type" content="${type}" />
+<meta property="og:locale" content="fr_FR" />
 <meta property="og:site_name" content="Celeone TV" />
 <meta property="og:title" content="${escapeHtml(title)}" />
 <meta property="og:description" content="${escapeHtml(description)}" />
+<meta property="og:image:url" content="${escapeHtml(image)}" />
 <meta property="og:image" content="${escapeHtml(image)}" />
 <meta property="og:image:secure_url" content="${escapeHtml(image)}" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="${imageWidth}" />
+<meta property="og:image:height" content="${imageHeight}" />
+<meta property="og:image:type" content="${imageType}" />
 <meta property="og:image:alt" content="${escapeHtml(title)}" />
 <meta property="og:url" content="${escapeHtml(pageUrl)}" />
 
@@ -170,7 +187,7 @@ function titleFromChannelSlug(pathname: string) {
 function htmlResponse(baseRes: Response, body: string) {
   const headers = new Headers(baseRes.headers);
   headers.set("content-type", "text/html; charset=UTF-8");
-  headers.set("cache-control", "no-store");
+  headers.set("cache-control", "public, max-age=300, s-maxage=300");
   return new Response(body, { status: baseRes.status, headers });
 }
 
@@ -424,7 +441,7 @@ export default {
         status: 200,
         headers: {
           "content-type": "text/html; charset=UTF-8",
-          "cache-control": "no-store",
+          "cache-control": "public, max-age=300, s-maxage=300",
         },
       });
     }
