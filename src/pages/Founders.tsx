@@ -117,15 +117,15 @@ export default function Founders() {
             <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-[12px] font-bold tracking-[0.18em] text-white/86">
               CELE ONE FOUNDER&apos;S PASS
             </div>
-            <h1 className="mt-6 text-[40px] font-bold leading-[1.04] md:text-[58px]">A cleaner founder flow, built around your real process</h1>
+            <h1 className="mt-6 text-[40px] font-bold leading-[1.04] md:text-[58px]">Pour soutenir le lancement de Célè One</h1>
             <p className="mt-4 max-w-2xl text-base font-medium leading-8 text-white/78">
-              Generez votre Founder ID, finalisez le paiement officiel sur Chariow, puis revenez activer et verifier votre pass sans confusion.
+              Generez votre Founder ID dans le formulaire ci-dessous, copiez le code généré (à inclure dans le formulaire sur chariow), achetez le pass à un pris libre selon votre volonté officiellement sur Chariow, puis revenez activer et verifier votre pass sans confusion.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href={paymentUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#2ed06e] px-7 text-[15px] font-bold text-white">
                 Acheter le Founder&apos;s Pass
               </a>
-              <Link to="/founders/activate" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-white px-7 text-[15px] font-bold text-[#081828]">
+              <Link to="/founders/activate" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-white px-7 text-[15px] font-bold text-[#000]">
                 Activer mon pass
               </Link>
               <Link to="/founders/verify" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-7 text-[15px] font-bold text-white">

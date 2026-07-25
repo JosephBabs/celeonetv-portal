@@ -52,7 +52,7 @@ export const router = createBrowserRouter([
       { path: "/register", element: <Register /> },
       { path: "/donate", element: <DonateRedirect /> },
       { path: "/prelaunch-registration", element: <PrelaunchRegistration /> },
-      { path: "/founders", element: <Founders /> },
+      { path: "/founder-pass", element: <Founders /> },
       { path: "/founders/activate", element: <FounderActivate /> },
       { path: "/founders/certificate", element: <FounderCertificate /> },
       { path: "/founders/dashboard", element: <FounderDashboard /> },
