@@ -36,10 +36,21 @@ const ROUTE_META: Array<
   ]
 > = [
   [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your TV, web TV, radio, podcast, or media channel request to join Celeone." }],
+  [/^\/creator\/?$/, { title: "Creator Portal | Celeone TV", description: "Access Celeone creator tools for channels, live media, posts, and community publishing." }],
+  [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create a Celeone community chatroom for focused conversations, groups, and ministry exchanges." }],
   [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly themes, services, Bible lessons, special celebrations, and hymn programs." }],
   [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
+  [/^\/jeunesse\/?$/, { title: "Jeunesse | CeleOne", description: "Discover youth-centered CeleOne content, community activities, programs, and spiritual resources." }],
   [/^\/prelaunch-registration\/?$/, { title: "Prelaunch Registration | CeleOne", description: "Reserve your CeleOne prelaunch account or share your donation interest before the official launch." }],
   [/^\/donate\/?$/, { title: "Support Cele One | Founder's Pass Payment", description: "Open the official Cele One Founder’s Pass payment page and support the project launch." }],
+  [/^\/founder-pass\/?$/, { title: "Founder Pass | CeleOne", description: "Join the CeleOne Founder Pass program and support the launch of a secure Christian Celestial community platform." }],
+  [/^\/founders\/activate\/?$/, { title: "Activate Founder Pass | CeleOne", description: "Activate your CeleOne Founder Pass and unlock your founder profile, certificate, and supporter access." }],
+  [/^\/founders\/certificate\/?$/, { title: "Founder Certificate | CeleOne", description: "View and download your official CeleOne Founder Pass certificate." }],
+  [/^\/founders\/dashboard\/?$/, { title: "Founder Dashboard | CeleOne", description: "Manage your CeleOne Founder Pass profile, credentials, certificate, and supporter information." }],
+  [/^\/founders\/wall\/?$/, { title: "Founder Wall | CeleOne", description: "Celebrate the CeleOne founders and supporters helping build the platform before launch." }],
+  [/^\/founders\/verify\/[^/]+\/?$/, { title: "Verify Founder Certificate | CeleOne", description: "Verify a CeleOne Founder Pass certificate and confirm founder authenticity." }],
+  [/^\/founders\/verify\/?$/, { title: "Verify Founder Certificate | CeleOne", description: "Verify CeleOne Founder Pass certificates using the official verification page." }],
+  [/^\/founders\/[^/]+\/?$/, { title: "Founder Hub | CeleOne", description: "Explore CeleOne founder resources, pass details, wall, certificates, and activation tools." }],
   [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools." }],
   [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out from your Celeone account securely." }],
   [/^\/register\/?$/, { title: "Register | Celeone TV", description: "Create your Celeone account to access posts, chatrooms, channels, and community tools." }],
@@ -50,6 +61,8 @@ const ROUTE_META: Array<
   [/^\/admin\/channel-requests\/?$/, { title: "Admin Channel Requests | Celeone TV", description: "Approve or reject creator channel requests for live streaming access." }],
   [/^\/admin\/chatrooms\/?$/, { title: "Admin Chatrooms | Celeone TV", description: "Moderate and configure community chatrooms across the platform." }],
   [/^\/admin\/spiritual-program\/?$/, { title: "Admin Spiritual Program | CeleOne", description: "Manage spiritual years, months, weeks, services, hymn programs, and special celebrations." }],
+  [/^\/admin\/founders\/members\/[^/]+\/certificate\/?$/, { title: "Admin Founder Certificate | CeleOne", description: "Review, verify, and manage a CeleOne founder member certificate." }],
+  [/^\/admin\/founders\/?$/, { title: "Admin Founders | CeleOne", description: "Manage CeleOne Founder Pass members, payments, credentials, certificates, and verification records." }],
   [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "View revenue, subscriptions, creators, and moderation operations in one dashboard." }],
   [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage portal collections, workflows, and publishing settings." }],
 ];
@@ -127,14 +140,18 @@ function buildMeta({
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:alt" content="${escapeHtml(title)}" />
 <meta property="og:url" content="${escapeHtml(pageUrl)}" />
 
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@celeonetv" />
 <meta name="twitter:title" content="${escapeHtml(title)}" />
 <meta name="twitter:description" content="${escapeHtml(description)}" />
 <meta name="twitter:image" content="${escapeHtml(image)}" />
+<meta name="twitter:image:alt" content="${escapeHtml(title)}" />
 
 <link rel="canonical" href="${escapeHtml(pageUrl)}" />
+<link rel="icon" href="${escapeHtml(DEFAULT_IMAGE)}" />
   `.trim();
 }
 
