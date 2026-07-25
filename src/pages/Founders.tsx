@@ -125,7 +125,7 @@ export default function Founders() {
               <a href={paymentUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#2ed06e] px-7 text-[15px] font-bold text-white">
                 Acheter le Founder&apos;s Pass
               </a>
-              <Link to="/founders/activate" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-white px-7 text-[15px] font-bold text-[#000]">
+              <Link to="/founders/activate" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-white px-7 text-[15px] font-bold text-black">
                 Activer mon pass
               </Link>
               <Link to="/founders/verify" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-7 text-[15px] font-bold text-white">
