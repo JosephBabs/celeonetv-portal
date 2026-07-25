@@ -136,7 +136,7 @@ export default function Founders() {
 
           <div className="rounded-[24px] bg-white p-7 text-slate-900 shadow-[0_18px_48px_rgba(8,24,40,0.18)]">
             <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Avant paiement</div>
-            <h2 className="mt-4 text-[32px] font-bold leading-tight text-[#081828]">Reserve your Founder ID</h2>
+            <h2 className="mt-4 text-[32px] font-bold leading-tight text-[#081828]">Reserve ton Founder ID</h2>
             <p className="mt-3 text-[15px] font-medium leading-8 text-slate-600">
               Entrez votre nom. Nous generons un Founder ID provisoire avec statut non verifie. Vous pourrez le coller pendant la finalisation du paiement.
             </p>
