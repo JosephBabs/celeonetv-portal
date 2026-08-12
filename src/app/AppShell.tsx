@@ -82,6 +82,7 @@ export default function AppShell() {
       [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
       [/^\/app\/privacy\/?$/, { title: "Privacy Policy | Cele One", description: "Read how Cele One collects, uses, shares, protects, retains, and deletes user information." }],
       [/^\/account\/request_delete\/?$/, { title: "Request Account Deletion | Cele One", description: "Request deletion of your Cele One account and associated personal data." }],
+      [/^\/app\/child-safety-standards\/?$/, { title: "Child Safety Standards | Cele One", description: "Read Cele One's standards against child sexual exploitation and abuse." }],
       [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "Manage all portal collections and moderation workflows." }],
       [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage functions, cantiques, posts, channel requests and chatrooms." }],
       [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools." }],

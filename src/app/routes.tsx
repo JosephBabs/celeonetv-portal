@@ -28,6 +28,7 @@ import AdminSpiritualProgram from "../pages/AdminSpiritualProgram";
 import RouteError from "../pages/RouteError";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import AccountDeletionRequest from "../pages/AccountDeletionRequest";
+import ChildSafetyStandards from "../pages/ChildSafetyStandards";
 
 export const router = createBrowserRouter([
   {
@@ -49,6 +50,7 @@ export const router = createBrowserRouter([
       { path: "/documentation", element: <Documentation /> },
       { path: "/app/privacy", element: <PrivacyPolicy /> },
       { path: "/account/request_delete", element: <AccountDeletionRequest /> },
+      { path: "/app/child-safety-standards", element: <ChildSafetyStandards /> },
       { path: "/spiritual-program", element: <SpiritualProgram /> },
       { path: "/jeunesse", element: <Navigate to="/" replace /> },
       { path: "/login", element: <Login /> },
