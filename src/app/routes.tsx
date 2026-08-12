@@ -26,6 +26,8 @@ import Documentation from "../pages/Documentation";
 import SpiritualProgram from "../pages/SpiritualProgram";
 import AdminSpiritualProgram from "../pages/AdminSpiritualProgram";
 import RouteError from "../pages/RouteError";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
+import AccountDeletionRequest from "../pages/AccountDeletionRequest";
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +47,8 @@ export const router = createBrowserRouter([
       { path: "/creator", element: <Navigate to="/" replace /> },
       { path: "/chatrooms/create", element: <Navigate to="/" replace /> },
       { path: "/documentation", element: <Documentation /> },
+      { path: "/app/privacy", element: <PrivacyPolicy /> },
+      { path: "/account/request_delete", element: <AccountDeletionRequest /> },
       { path: "/spiritual-program", element: <SpiritualProgram /> },
       { path: "/jeunesse", element: <Navigate to="/" replace /> },
       { path: "/login", element: <Login /> },

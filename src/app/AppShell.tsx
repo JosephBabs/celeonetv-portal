@@ -80,6 +80,8 @@ export default function AppShell() {
       [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your TV, web TV, radio, podcast, or media channel request to join Celeone." }],
       [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly themes, services, Bible lessons, special celebrations, and hymn programs." }],
       [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
+      [/^\/app\/privacy\/?$/, { title: "Privacy Policy | Cele One", description: "Read how Cele One collects, uses, shares, protects, retains, and deletes user information." }],
+      [/^\/account\/request_delete\/?$/, { title: "Request Account Deletion | Cele One", description: "Request deletion of your Cele One account and associated personal data." }],
       [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "Manage all portal collections and moderation workflows." }],
       [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage functions, cantiques, posts, channel requests and chatrooms." }],
       [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools." }],
