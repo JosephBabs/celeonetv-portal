@@ -119,6 +119,11 @@ service cloud.firestore {
       && request.resource.data.updatedAt == request.time;
     }
 
+    function canSavePublicParishRegistration(requestId) {
+      return requestId == request.resource.data.geoKey
+        && isValidPublicParishRegistration();
+    }
+
     function roomExists(roomId) {
       return exists(/databases/$(database)/documents/chatrooms/$(roomId));
     }
@@ -530,9 +535,14 @@ service cloud.firestore {
     }
 
     match /parish_registration_requests/{requestId} {
-      allow read, update, delete: if isAdmin();
-      allow create: if requestId == request.resource.data.geoKey
-        && isValidPublicParishRegistration();
+      allow read, delete: if isAdmin();
+      allow create: if canSavePublicParishRegistration(requestId);
+      allow update: if isAdmin()
+        || (
+          resource.data.status == 'pending'
+          && resource.data.geoKey == requestId
+          && canSavePublicParishRegistration(requestId)
+        );
     }
 
     match /parishHistory/{historyId} {

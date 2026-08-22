@@ -6,18 +6,20 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   limit,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
 } from "firebase/firestore";
 import { uploadToCeleoneCdn } from "../lib/cdnUpload";
-import { db } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
 
-type SectionKey = "functions" | "cantiques" | "posts" | "documents" | "channel-requests" | "chatrooms";
+type SectionKey = "functions" | "cantiques" | "posts" | "documents" | "channel-requests" | "chatrooms" | "parish-registrations";
 
 const SECTION_CONFIG: Record<
   SectionKey,
@@ -69,6 +71,14 @@ const SECTION_CONFIG: Record<
     secondary: "status",
     orderField: "createdAt",
     description: "Review and update creator channel requests.",
+  },
+  "parish-registrations": {
+    title: "Parish Registration Validation",
+    collection: "parish_registration_requests",
+    primary: "name",
+    secondary: "status",
+    orderField: "updatedAt",
+    description: "Validate public parish submissions and publish approved locations into the parishes map collection.",
   },
   chatrooms: {
     title: "Chatrooms",
@@ -221,6 +231,96 @@ export default function AdminManagePage() {
     if (!cfg || cfg.collection !== "channel_requests" || !selected?.id) return;
     await updateDoc(doc(db, cfg.collection, selected.id), {
       status: "rejected",
+      updatedAt: serverTimestamp(),
+    });
+    await load();
+  };
+
+  const approveParishRegistration = async () => {
+    if (!cfg || cfg.collection !== "parish_registration_requests" || !selected?.id || !draft) return;
+    const latitude = Number(draft.latitude ?? draft.location?.latitude);
+    const longitude = Number(draft.longitude ?? draft.location?.longitude);
+    if (!String(draft.name || draft.parishName || "").trim()) return alert("Parish name is required.");
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return alert("Valid latitude and longitude are required.");
+
+    const parishId = parishDocumentId(draft);
+    const parishRef = doc(db, "parishes", parishId);
+    const existingParish = await getDoc(parishRef);
+    if (existingParish.exists() && !confirm(`A parish document already exists at ${parishId}. Update it with this approved registration?`)) {
+      return;
+    }
+
+    const displayName = String(draft.name || draft.parishName).trim();
+    const address = String(draft.address || draft.locationText || "").trim();
+    const city = String(draft.city || "").trim();
+    const country = String(draft.country || "").trim();
+    const contactName = String(draft.contactName || "").trim();
+    const contactEmail = String(draft.contactEmail || draft.email || "").trim();
+    const contactPhone = String(draft.contactPhone || draft.phone || "").trim();
+    const notes = String(draft.notes || "").trim();
+
+    await setDoc(
+      parishRef,
+      {
+        id: parishId,
+        name: displayName,
+        title: displayName,
+        type: "Paroisse",
+        category: "Paroisse",
+        status: "active",
+        language: "fr",
+        address,
+        locationText: address,
+        city,
+        country,
+        countryCode: String(draft.countryCode || "").trim(),
+        contactName,
+        leaderName: contactName,
+        email: contactEmail,
+        phone: contactPhone,
+        description: notes || address || `Paroisse ${displayName}`,
+        summary: notes || address,
+        content: "",
+        contentHtml: "",
+        imageUrl: "",
+        linkUrl: "",
+        videoUrl: "",
+        latitude,
+        longitude,
+        location: { latitude, longitude },
+        geoKey: String(draft.geoKey || selected.id),
+        source: "public_portal_validation",
+        registrationRequestId: selected.id,
+        createdAt: existingParish.exists() ? existingParish.data().createdAt || draft.createdAt || serverTimestamp() : draft.createdAt || serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        approvedAt: serverTimestamp(),
+        approvedBy: auth.currentUser?.uid || "",
+        creationDate: "",
+        startDate: "",
+        endDate: "",
+      },
+      { merge: true },
+    );
+
+    await updateDoc(doc(db, "parish_registration_requests", selected.id), {
+      status: "approved",
+      approvedParishId: parishId,
+      approvedAt: serverTimestamp(),
+      approvedBy: auth.currentUser?.uid || "",
+      updatedAt: serverTimestamp(),
+    });
+
+    await load();
+    alert("Parish approved and published to parishes.");
+  };
+
+  const rejectParishRegistration = async () => {
+    if (!cfg || cfg.collection !== "parish_registration_requests" || !selected?.id) return;
+    if (!confirm("Reject this parish registration request?")) return;
+    await updateDoc(doc(db, "parish_registration_requests", selected.id), {
+      status: "rejected",
+      rejectedAt: serverTimestamp(),
+      rejectedBy: auth.currentUser?.uid || "",
       updatedAt: serverTimestamp(),
     });
     await load();
@@ -701,6 +801,24 @@ export default function AdminManagePage() {
                       </button>
                     </>
                   ) : null}
+                  {cfg.collection === "parish_registration_requests" ? (
+                    <>
+                      <button
+                        onClick={approveParishRegistration}
+                        disabled={String(draft.status || "") === "approved"}
+                        className="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-extrabold text-white hover:bg-emerald-700 disabled:opacity-60"
+                      >
+                        Approve to Parishes
+                      </button>
+                      <button
+                        onClick={rejectParishRegistration}
+                        disabled={String(draft.status || "") === "rejected"}
+                        className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-extrabold text-white hover:bg-rose-700 disabled:opacity-60"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  ) : null}
                   {cfg.collection === "posts" ? (
                     <button
                       onClick={applyPostShareMeta}
@@ -901,6 +1019,23 @@ function ToolBtn({ label, onClick }: { label: string; onClick: () => void }) {
 
 function stripHtml(html: string) {
   return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function slugify(value: string) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function parishDocumentId(row: any) {
+  const name = String(row?.name || row?.parishName || "").trim();
+  const city = String(row?.city || "").trim();
+  const slug = slugify([name, city].filter(Boolean).join("-"));
+  return slug || String(row?.geoKey || row?.id || `parish-${Date.now()}`).trim();
 }
 
 function safeStringify(v: any) {

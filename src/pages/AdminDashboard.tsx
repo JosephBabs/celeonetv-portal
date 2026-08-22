@@ -107,6 +107,7 @@ export default function AdminDashboard() {
     subscriptionPackages: 0,
     activeUserSubscriptions: 0,
     spiritualProgram: 0,
+    parishRegistrations: 0,
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [loadingCounts, setLoadingCounts] = useState(true);
@@ -134,6 +135,7 @@ export default function AdminDashboard() {
         spiritualServicesSnap,
         hymnProgramsSnap,
         celebrationsSnap,
+        parishRegistrationsSnap,
       ] = await Promise.all([
         getDocs(collection(db, "user_data")),
         getDocs(collection(db, "chatrooms")),
@@ -152,6 +154,7 @@ export default function AdminDashboard() {
         getDocs(collection(db, "spiritual_services")),
         getDocs(collection(db, "hymn_programs")),
         getDocs(collection(db, "special_celebrations")),
+        getDocs(collection(db, "parish_registration_requests")),
       ]);
 
       setCounts({
@@ -168,6 +171,7 @@ export default function AdminDashboard() {
         subscriptionPackages: subscriptionPackagesSnap.size,
         activeUserSubscriptions: userSubscriptionsSnap.docs.filter((d) => d.data()?.status === "active").length,
         spiritualProgram: spiritualYearsSnap.size + spiritualWeeksSnap.size + spiritualServicesSnap.size + hymnProgramsSnap.size + celebrationsSnap.size,
+        parishRegistrations: parishRegistrationsSnap.docs.filter((d) => d.data()?.status !== "approved").length,
       });
 
       setLastUpdated(new Date());
@@ -1004,6 +1008,12 @@ export default function AdminDashboard() {
             >
               + New Package
             </button>
+            <button
+              onClick={() => nav("/admin/parish-registrations")}
+              className="rounded-2xl bg-emerald-600 px-4 py-2 font-extrabold text-white hover:bg-emerald-700"
+            >
+              Parish Validation ({counts.parishRegistrations})
+            </button>
           </div>
         </div>
       </div>
@@ -1228,6 +1238,12 @@ export default function AdminDashboard() {
         </div>
 
         <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-700">
+          <button
+            onClick={() => nav("/admin/parish-registrations")}
+            className="mr-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-700"
+          >
+            Validate Parish Registrations
+          </button>
           Inside each modal: list (latest {PAGE_SIZE}), open item, edit fields, save, delete.
           For Join Requests / Platform Requests / Users / Channels you also get quick action buttons.
         </div>
