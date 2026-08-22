@@ -163,7 +163,7 @@ export default function Jeunesse() {
     <div className="space-y-5">
       <div className="rounded-3xl border border-slate-200 bg-white p-6">
         <div className="text-2xl font-black">{t("jeunesse.title", "Amis de Jesus - Jeunesse")}</div>
-        <div className="mt-1 text-slate-600">{t("jeunesse.subtitle", "Online child registration and concours results verification.")}</div>
+        <div className="mt-1 text-slate-600">{t("jeunesse.subtitle", "Online child registration and concours results vérification.")}</div>
         <div className="mt-4 flex flex-wrap gap-2">
           <button onClick={() => setTab("register")} className={`rounded-2xl px-4 py-2 text-sm font-extrabold ${tab === "register" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"}`}>{t("jeunesse.tab_register", "Registration")}</button>
           <button onClick={() => setTab("results")} className={`rounded-2xl px-4 py-2 text-sm font-extrabold ${tab === "results" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-800"}`}>{t("jeunesse.tab_results", "Verify Results")}</button>

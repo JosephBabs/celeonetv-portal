@@ -79,7 +79,7 @@ const indexedRoutes: RouteSeo[] = [
   {
     pattern: /^\/founder-pass\/?$/,
     title: "Founder's Pass | CeleOne",
-    description: "Support CeleOne and reserve your Founder recognition, certificate, verification route, and public wall presence.",
+    description: "Support CeleOne and reserve your Founder recognition, certificate, vérification route, and public wall presence.",
     canonicalPath: "/founder-pass",
   },
   {

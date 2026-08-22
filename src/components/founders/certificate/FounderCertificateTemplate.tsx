@@ -42,7 +42,7 @@ export function FounderCertificateTemplate({ data, mode = "live" }: { data: Temp
           </div>
           <div className="mt-[1.6vw] text-[1vw] font-bold uppercase tracking-[0.16em] text-[#4f6468]">En reconnaissance de son engagement en tant que</div>
           <div className="mt-[1vw] text-[2vw] font-black uppercase tracking-[0.1em] text-[#a76f1f]">{founderLevelLabel(data.founderLevel)} Founder</div>
-          <div className="mt-[0.8vw] text-[1vw] font-semibold uppercase tracking-[0.12em] text-[#4f6468]">Au developpement et a la vision de Cele One.</div>
+          <div className="mt-[0.8vw] text-[1vw] font-semibold uppercase tracking-[0.12em] text-[#4f6468]">Au développement et à la vision de Cele One.</div>
         </div>
 
         <div className="mt-auto grid grid-cols-[1.1fr_1.1fr_1.1fr_1fr] gap-[1vw] text-[0.9vw]">
@@ -54,7 +54,7 @@ export function FounderCertificateTemplate({ data, mode = "live" }: { data: Temp
 
         <div className="mt-[1.8vw] flex items-end justify-between gap-[2vw]">
           <div className="max-w-[28%]">
-            <div className="text-[0.9vw] font-black uppercase tracking-[0.18em] text-[#2fa5a9]">Verification officielle</div>
+            <div className="text-[0.9vw] font-black uppercase tracking-[0.18em] text-[#2fa5a9]">Vérification officielle</div>
             <div className="mt-[0.5vw] text-[0.9vw] font-semibold text-[#3d565b]">Scannez le QR code ou visitez:</div>
             <div className="mt-[0.3vw] break-words text-[0.88vw] font-black text-[#123b40]">{data.verificationUrl}</div>
           </div>
@@ -69,7 +69,7 @@ export function FounderCertificateTemplate({ data, mode = "live" }: { data: Temp
         </div>
 
         <div className="mt-[1.4vw] text-[0.74vw] font-semibold text-[#536568]">
-          Ce certificat confirme l'enregistrement de son detenteur en tant que soutien fondateur verifie de Cele One. Il ne constitue ni une action, ni un titre financier, ni une garantie de rendement.
+          Ce certificat confirme l'enregistrement de son détenteur en tant que soutien fondateur verifie de Cele One. Il ne constitue ni une action, ni un titre financier, ni une garantie de rendement.
         </div>
         {mode === "template" ? <div className="absolute bottom-6 right-8 rounded-full bg-white/85 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#123b40]">Template preview</div> : null}
       </div>

@@ -80,7 +80,7 @@ export default function AccountDeletionRequest() {
       <section className="portal-card mb-8 p-6 md:p-8">
         <h2 className="text-2xl font-bold text-[#081828]">Processing time</h2>
         <p className="mt-4 text-sm font-semibold leading-7 text-slate-700">
-          Cele One will review deletion requests and respond after identity verification. Deletion timing may vary depending on legal, safety, fraud-prevention, backup, and technical requirements.
+          Cele One will review deletion requests and respond after identity vérification. Deletion timing may vary depending on legal, safety, fraud-prevention, backup, and technical requirements.
         </p>
         <p className="mt-4 text-sm font-semibold leading-7 text-slate-700">
           Privacy contact:{" "}

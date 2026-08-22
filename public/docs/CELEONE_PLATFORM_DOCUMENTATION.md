@@ -12,7 +12,7 @@ Core goals:
 
 ## 2. Languages and Accessibility
 The platform is designed for multilingual access with primary support for:
-- Francais
+- Français
 - English
 - Yoruba
 - Espanol
@@ -201,7 +201,7 @@ Operational rule:
 Daily:
 - moderation review
 - failed stream checks
-- high-priority document verification
+- high-priority document vérification
 
 Weekly:
 - subscription and payout model review
@@ -217,7 +217,7 @@ Monthly:
 - dedicated public result portal for competitions (search by name/ID)
 - creator statement pages with payout traceability
 - multilingual editorial review workflow
-- official document signatures/hashes for authenticity verification
+- official document signatures/hashes for authenticity vérification
 
 ## 12. Spiritual Program Portal
 The web portal now includes a spiritual-program module aligned with the mobile app.
@@ -280,7 +280,7 @@ This section reconciles the platform description with the current `D:\celeOneApp
 - feast days, weekly programs, services, hymn programs, celebrations, and schedules
 
 ### 13.6 Member Services, Academy, and Donations
-- digital member card, member verification, counsel/accompaniment requests, profile, settings, subscriptions, and help
+- digital member card, member vérification, counsel/accompaniment requests, profile, settings, subscriptions, and help
 - academy courses, doctrine courses, Sunday school, evangelism/practical training, video lessons, exams, and certificates
 - donation projects, receipts, and donation history
 

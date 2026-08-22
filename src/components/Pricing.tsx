@@ -4,7 +4,7 @@ export default function Pricing() {
   const plans = [
     { name: "Starter", price: "5,000 FCFA", desc: "1 chaîne • Page live • Key RTMP • Stats de base" },
     { name: "Pro", price: "15,000 FCFA", desc: "Plus de visibilité • Meilleures stats • Support prioritaire" },
-    { name: "Enterprise", price: "Sur devis", desc: "Organisations • Multi-chaines • SLA • Intégrations" },
+    { name: "Enterprise", price: "Sur devis", desc: "Organisations • Multi-chaînes • SLA • Intégrations" },
   ];
 
   return (

@@ -110,7 +110,7 @@ Authorized admins can manage the spiritual calendar from the web portal admin ar
 Admin capabilities include:
 - create and manage spiritual years
 - create months inside a year
-- publish weekly themes
+- publish weekly thèmes
 - add services for Wednesday, Friday, Sunday morning, Sunday evening, first Thursday, and special services
 - attach hymn programs to a week
 - create special celebrations

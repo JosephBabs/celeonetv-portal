@@ -233,8 +233,8 @@ export default function PrelaunchRegistration() {
       await persistReserveAccount(uid, email, donationAmount);
       try {
         await sendEmailVerification(credential.user);
-      } catch (verificationError) {
-        console.warn("Unable to send verification email after preregistration", verificationError);
+      } catch (vérificationError) {
+        console.warn("Unable to send vérification email after preregistration", vérificationError);
       }
 
       setCreated(true);
@@ -254,8 +254,8 @@ export default function PrelaunchRegistration() {
           if (!recoveredCredential.user.emailVerified) {
             try {
               await sendEmailVerification(recoveredCredential.user);
-            } catch (verificationError) {
-              console.warn("Unable to resend verification email for existing preregistration", verificationError);
+            } catch (vérificationError) {
+              console.warn("Unable to resend vérification email for existing preregistration", vérificationError);
             }
           }
 
@@ -280,8 +280,8 @@ export default function PrelaunchRegistration() {
           if (!auth.currentUser.emailVerified) {
             try {
               await sendEmailVerification(auth.currentUser);
-            } catch (verificationError) {
-              console.warn("Unable to resend verification email after partial success", verificationError);
+            } catch (vérificationError) {
+              console.warn("Unable to resend vérification email after partial success", vérificationError);
             }
           }
           setCreated(true);

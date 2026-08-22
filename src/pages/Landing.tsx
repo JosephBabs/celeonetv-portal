@@ -123,7 +123,7 @@ export default function Landing() {
                 <div>Founder ID reservation</div>
                 <div>Official Chariow product payment</div>
                 <div>Manual activation with receipt</div>
-                <div>Certificate and public verification</div>
+                <div>Certificate and public vérification</div>
               </div>
               <Link
                 to="/founders"

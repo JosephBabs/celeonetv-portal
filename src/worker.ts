@@ -25,9 +25,9 @@ const DEFAULT_IMAGE_WIDTH = 679;
 const DEFAULT_IMAGE_HEIGHT = 559;
 const GENERATED_SHARE_IMAGE_WIDTH = 1200;
 const GENERATED_SHARE_IMAGE_HEIGHT = 630;
-const HOME_TITLE = "CeleOne | Plateforme Sociale Mobile Chretienne Celeste";
+const HOME_TITLE = "CeleOne | Plateforme Sociale Mobile Chrétienne Céleste";
 const HOME_DESCRIPTION =
-  "CeleOne rassemble actualites, reformes, decisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace securise.";
+  "CeleOne rassemble actualités, réformes, decisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace sécurisé.";
 
 const ROUTE_META: Array<
   [
@@ -42,7 +42,7 @@ const ROUTE_META: Array<
   [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your TV, web TV, radio, podcast, or media channel request to join Celeone." }],
   [/^\/creator\/?$/, { title: "Creator Portal | Celeone TV", description: "Access Celeone creator tools for channels, live media, posts, and community publishing." }],
   [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create a Celeone community chatroom for focused conversations, groups, and ministry exchanges." }],
-  [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly themes, services, Bible lessons, special celebrations, and hymn programs." }],
+  [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly thèmes, services, Bible lessons, special celebrations, and hymn programs." }],
   [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
   [/^\/jeunesse\/?$/, { title: "Jeunesse | CeleOne", description: "Discover youth-centered CeleOne content, community activities, programs, and spiritual resources." }],
   [/^\/prelaunch-registration\/?$/, { title: "Prelaunch Registration | CeleOne", description: "Reserve your CeleOne prelaunch account or share your donation interest before the official launch." }],
@@ -53,7 +53,7 @@ const ROUTE_META: Array<
   [/^\/founders\/dashboard\/?$/, { title: "Founder Dashboard | CeleOne", description: "Manage your CeleOne Founder Pass profile, credentials, certificate, and supporter information." }],
   [/^\/founders\/wall\/?$/, { title: "Founder Wall | CeleOne", description: "Celebrate the CeleOne founders and supporters helping build the platform before launch." }],
   [/^\/founders\/verify\/[^/]+\/?$/, { title: "Verify Founder Certificate | CeleOne", description: "Verify a CeleOne Founder Pass certificate and confirm founder authenticity." }],
-  [/^\/founders\/verify\/?$/, { title: "Verify Founder Certificate | CeleOne", description: "Verify CeleOne Founder Pass certificates using the official verification page." }],
+  [/^\/founders\/verify\/?$/, { title: "Verify Founder Certificate | CeleOne", description: "Verify CeleOne Founder Pass certificates using the official vérification page." }],
   [/^\/founders\/[^/]+\/?$/, { title: "Founder Hub | CeleOne", description: "Explore CeleOne founder resources, pass details, wall, certificates, and activation tools." }],
   [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools." }],
   [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out from your Celeone account securely." }],
@@ -66,7 +66,7 @@ const ROUTE_META: Array<
   [/^\/admin\/chatrooms\/?$/, { title: "Admin Chatrooms | Celeone TV", description: "Moderate and configure community chatrooms across the platform." }],
   [/^\/admin\/spiritual-program\/?$/, { title: "Admin Spiritual Program | CeleOne", description: "Manage spiritual years, months, weeks, services, hymn programs, and special celebrations." }],
   [/^\/admin\/founders\/members\/[^/]+\/certificate\/?$/, { title: "Admin Founder Certificate | CeleOne", description: "Review, verify, and manage a CeleOne founder member certificate." }],
-  [/^\/admin\/founders\/?$/, { title: "Admin Founders | CeleOne", description: "Manage CeleOne Founder Pass members, payments, credentials, certificates, and verification records." }],
+  [/^\/admin\/founders\/?$/, { title: "Admin Founders | CeleOne", description: "Manage CeleOne Founder Pass members, payments, credentials, certificates, and vérification records." }],
   [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "View revenue, subscriptions, creators, and moderation operations in one dashboard." }],
   [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage portal collections, workflows, and publishing settings." }],
 ];
@@ -176,12 +176,12 @@ function titleFromChannelSlug(pathname: string) {
   const m = pathname.match(/^\/([^/]+)\/live\/?$/);
   if (!m) return null;
   const slug = m[1];
-  const pretty = slug
+  const prêtty = slug
     .split("-")
     .filter(Boolean)
     .map((p) => p[0]?.toUpperCase() + p.slice(1))
     .join(" ");
-  return pretty || "Live Channel";
+  return prêtty || "Live Channel";
 }
 
 function htmlResponse(baseRes: Response, body: string) {

@@ -87,7 +87,7 @@ export async function buildFounderCertificatePdf(founder: Record<string, unknown
 
   centerText(page, "CERTIFICAT PASS-FONDATEUR", 470, 28, serif, gold);
   centerText(page, "Cele One Founder's Pass", 438, 14, sansBold, green);
-  centerText(page, "decerne officiellement a", 392, 13, sans, soft);
+  centerText(page, "décerné officiellement à", 392, 13, sans, soft);
 
   if (fit.lines.length === 1) {
     centerText(page, fit.lines[0], 314, Math.min(fit.fontSize + 18, 34), nameFont, dark);
@@ -97,7 +97,7 @@ export async function buildFounderCertificatePdf(founder: Record<string, unknown
   }
 
   centerText(page, `pour son soutien en tant que ${founderLevel} FOUNDER`, 232, 14, sansBold, green);
-  centerText(page, "au developpement et au lancement de Cele One.", 208, 12, sans, soft);
+  centerText(page, "au développement et au lancement de Cele One.", 208, 12, sans, soft);
 
   page.drawText("Founder ID", { x: 306, y: 126, size: 9, font: sansBold, color: gold });
   page.drawText(publicFounderId, { x: 306, y: 106, size: 14, font: sansBold, color: green });
@@ -108,7 +108,7 @@ export async function buildFounderCertificatePdf(founder: Record<string, unknown
   page.drawText("Issue Date", { x: 680, y: 126, size: 9, font: sansBold, color: gold });
   page.drawText(issued, { x: 680, y: 106, size: 11, font: sansBold, color: dark });
 
-  page.drawText("Verification", { x: 306, y: 74, size: 9, font: sansBold, color: gold });
+  page.drawText("Vérification", { x: 306, y: 74, size: 9, font: sansBold, color: gold });
   page.drawText(verify, { x: 306, y: 56, size: 7, font: sans, color: soft });
 
   const pdfBytes = await pdf.save();

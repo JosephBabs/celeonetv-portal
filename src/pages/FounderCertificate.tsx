@@ -58,7 +58,7 @@ export default function FounderCertificate() {
           const publicFounderId = String(draft?.founderReferenceId || verification?.founderReferenceId || "").trim();
           if (verification && publicFounderId) {
             data = {
-              displayName: String(draft?.displayName || verification.customerName || user.displayName || "").trim(),
+              displayName: String(draft?.displayName || verification?.customerName || user.displayName || "").trim(),
               publicFounderId,
               founderLevel: String(verification.founderLevel || "supporter"),
               issuedAt: String(verification.purchaseDate || new Date().toISOString()),

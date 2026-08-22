@@ -37,7 +37,7 @@ export default function Footer() {
           <FooterGroup
             title="Plateforme"
             links={[
-              ["Creer une chaine TV", "/creator/request"],
+              ["Créer une chaîne TV", "/creator/request"],
               ["Documentation", "/documentation"],
               ["Connexion", "/login"],
               ["Inscription", "/register"],
@@ -49,7 +49,7 @@ export default function Footer() {
               <div>celeoneofficiel@gmail.com</div>
               <div>+229 0141193144</div>
               <a href={APP.founders.verificationBaseUrl} className="inline-flex text-[#f5c451] hover:text-white">
-                Verification Founder&apos;s Pass
+                Vérification Founder&apos;s Pass
               </a>
             </div>
           </div>

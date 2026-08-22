@@ -17,15 +17,15 @@ export default function RouteError(props: Props) {
       : status === 404
       ? "Page introuvable"
       : status >= 500
-        ? "Service momentanement indisponible"
+        ? "Service momentanément indisponible"
         : "Une erreur est survenue");
   const message =
     props.message ||
     (isApiPath
-      ? "Cette adresse doit retourner du JSON. Si vous voyez cette page, la fonction Cloudflare n'a pas encore ete deployee sur ce chemin."
+      ? "Cette adresse doit retourner du JSON. Si vous voyez cette page, la fonction Cloudflare n'a pas encore été déployée sur ce chemin."
       : status === 404
-      ? "Le lien demande n'existe pas encore ou a ete deplace."
-      : "Veuillez reessayer dans un instant. Notre equipe peut verifier cette page si le probleme continue.");
+      ? "Le lien demandé n'existe pas encore ou a été déplacé."
+      : "Veuillez réessayer dans un instant. Notre équipe peut vérifier cette page si le problème continue.");
 
   return (
     <section className="mx-auto flex min-h-[58vh] max-w-2xl flex-col items-center justify-center px-4 py-16 text-center">
@@ -39,7 +39,7 @@ export default function RouteError(props: Props) {
           to="/"
           className="rounded-lg bg-teal-700 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-teal-800"
         >
-          Retour a l'accueil
+          Retour à l'accueil
         </Link>
         <Link
           to="/documentation"

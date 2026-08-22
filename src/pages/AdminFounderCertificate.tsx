@@ -36,7 +36,7 @@ export default function AdminFounderCertificate() {
   };
 
   useEffect(() => {
-    setPageMeta({ title: "Admin certificat fondateur | Cele One", description: "Apercu et regeneration admin du certificat fondateur." });
+    setPageMeta({ title: "Admin certificat fondateur | Cele One", description: "Apercu et regénération admin du certificat fondateur." });
     void load();
   }, [founderId]);
 
@@ -71,7 +71,7 @@ export default function AdminFounderCertificate() {
       </div>
 
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="text-xl font-black text-slate-900">Historique de generation</div>
+        <div className="text-xl font-black text-slate-900">Historique de génération</div>
         <div className="mt-4 space-y-3">
           {history.length ? history.map((entry, index) => (
             <div key={`${entry.createdAt || index}`} className="rounded-2xl bg-slate-50 p-4">

@@ -3,142 +3,142 @@
     "language": "Langue"
   },
   "nav": {
-    "create_tv": "Creer une chaine TV",
+    "create_tv": "Créer une chaîne TV",
     "my_panel": "Mon panel",
-    "create_chatroom": "Creer un chatroom",
-    "amis_de_jesus": "Amis de Jesus",
+    "create_chatroom": "Créer un chatroom",
+    "amis_de_jesus": "Amis de Jésus",
     "documentation": "Documentation",
     "admin": "Admin",
-    "logout": "Deconnexion",
+    "logout": "Déconnexion",
     "login": "Connexion",
     "signup": "Inscription",
     "spiritual_program": "Programme spirituel",
-    "prelaunch_registration": "Inscription pre-lancement",
+    "prelaunch_registration": "Inscription pré-lancement",
     "register_parish": "Ajouter une paroisse",
     "founders_pass": "Pass Founder",
     "more": "Plus",
-    "privacy_policy": "Politique de confidentialite",
-    "child_safety": "Securite des enfants",
+    "privacy_policy": "Politique de confidentialité",
+    "child_safety": "Sécurité des enfants",
     "account_deletion": "Suppression de compte"
   },
   "privacy": {
     "badge": "Cele One",
-    "title": "Politique de confidentialite",
-    "intro": "Cette politique explique comment Cele One accede aux informations, les collecte, les utilise, les partage, les protege, les conserve et les supprime lorsque vous utilisez l'application mobile Cele One, les services web, les fonctionnalites communautaires, le streaming, les appels, les abonnements et les services associes.",
-    "updated": "Derniere mise a jour : 12 aout 2026",
+    "title": "Politique de confidentialité",
+    "intro": "Cette politique explique comment Cele One accède aux informations, les collecte, les utilise, les partage, les protège, les conserve et les supprime lorsque vous utilisez l'application mobile Cele One, les services web, les fonctionnalités communautaires, le streaming, les appels, les abonnements et les services associés.",
+    "updated": "Dernière mise à jour : 12 août 2026",
     "contact_title": "Contact",
-    "contact_text": "Pour toute question de confidentialite, demande de suppression de compte, demande d'acces aux donnees ou reclamation, contactez Cele One a :",
+    "contact_text": "Pour toute question de confidentialité, demande de suppression de compte, demande d'accès aux données ou réclamation, contactez Cele One à :",
     "sections": {
       "collect": {
         "title": "Informations que nous collectons",
         "items": [
-          "Informations de compte telles que nom, adresse e-mail, numero de telephone, photo de profil, pays, langue, role, statut createur et identifiants d'authentification.",
-          "Informations de contacts lorsque vous donnez l'autorisation, limitees a la correspondance de numeros de telephone ou d'adresses e-mail avec des utilisateurs Cele One inscrits afin de lancer des chats et appels directs.",
-          "Contenu communautaire tel que messages, groupes, publications, signalements, commentaires, medias envoyes, metadonnees d'appel, statut d'abonnement et demandes createur ou administrateur.",
-          "Donnees d'appareil et d'utilisation telles que jetons de notification push, version de l'application, diagnostics, informations de crash, journaux de moderation, evenements de securite et metadonnees techniques approximatives necessaires au service.",
-          "Informations de paiement et d'abonnement traitees par les prestataires de paiement configures. Cele One ne stocke pas les numeros complets de carte."
+          "Informations de compte telles que nom, adresse e-mail, numéro de téléphone, photo de profil, pays, langue, rôle, statut créateur et identifiants d'authentification.",
+          "Informations de contacts lorsque vous donnez l'autorisation, limitées à la correspondance de numéros de téléphone ou d'adresses e-mail avec des utilisateurs Cele One inscrits afin de lancer des chats et appels directs.",
+          "Contenu communautaire tel que messages, groupes, publications, signalements, commentaires, médias envoyés, métadonnées d'appel, statut d'abonnement et demandes créateur ou administrateur.",
+          "Données d'appareil et d'utilisation telles que jetons de notification push, version de l'application, diagnostics, informations de crash, journaux de modération, événements de sécurité et métadonnées techniques approximatives nécessaires au service.",
+          "Informations de paiement et d'abonnement traitées par les prestataires de paiement configurés. Cele One ne stocke pas les numéros complets de carte."
         ]
       },
       "use": {
         "title": "Comment nous utilisons les informations",
         "items": [
-          "Pour creer et securiser les comptes, fournir chats, appels, groupes, streaming, outils createur, notifications, abonnements, support et moderation.",
-          "Pour mettre en relation les utilisateurs inscrits avec les contacts deja presents sur l'appareil de l'utilisateur apres autorisation.",
-          "Pour prevenir les abus, analyser les signalements, appliquer les regles communautaires, proteger les utilisateurs, corriger les erreurs et ameliorer la fiabilite.",
-          "Pour traiter achats, abonnements, demandes createur et actions administratives."
+          "Pour créer et sécuriser les comptes, fournir chats, appels, groupes, streaming, outils créateur, notifications, abonnements, support et modération.",
+          "Pour mettre en relation les utilisateurs inscrits avec les contacts déjà présents sur l'appareil de l'utilisateur après autorisation.",
+          "Pour prévenir les abus, analyser les signalements, appliquer les règles communautaires, protéger les utilisateurs, corriger les erreurs et améliorer la fiabilité.",
+          "Pour traiter achats, abonnements, demandes créateur et actions administratives."
         ]
       },
       "sharing": {
         "title": "Partage et prestataires",
         "items": [
-          "Nous pouvons partager des donnees avec des prestataires qui aident a faire fonctionner Cele One, notamment hebergement cloud, services Firebase, notifications push, stockage/CDN, analytics, rapports de crash, processeurs de paiement et outils de moderation.",
-          "Nous pouvons divulguer des informations lorsque la loi l'exige, pour proteger les utilisateurs et le service, ou lors d'un transfert d'activite avec information appropriee.",
-          "Nous ne vendons pas les donnees personnelles ou sensibles des utilisateurs."
+          "Nous pouvons partager des données avec des prestataires qui aident à faire fonctionner Cele One, notamment hébergement cloud, services Firebase, notifications push, stockage/CDN, analytics, rapports de crash, processeurs de paiement et outils de modération.",
+          "Nous pouvons divulguer des informations lorsque la loi l'exige, pour protéger les utilisateurs et le service, ou lors d'un transfert d'activité avec information appropriée.",
+          "Nous ne vendons pas les données personnelles ou sensibles des utilisateurs."
         ]
       },
       "permissions": {
         "title": "Autorisations",
         "items": [
-          "L'autorisation Contacts sert uniquement a vous aider a trouver des utilisateurs Cele One inscrits depuis vos contacts locaux et a demarrer des conversations directes.",
-          "Les autorisations camera, microphone, stockage, notifications et medias servent uniquement aux fonctionnalites que vous choisissez, comme appels video, envois, images de profil, streaming et alertes.",
-          "Vous pouvez refuser ou retirer les autorisations dans les reglages de votre appareil. Certaines fonctionnalites peuvent cesser de fonctionner si une autorisation est desactivee."
+          "L'autorisation Contacts sert uniquement à vous aider à trouver des utilisateurs Cele One inscrits depuis vos contacts locaux et à démarrer des conversations directes.",
+          "Les autorisations caméra, microphone, stockage, notifications et médias servent uniquement aux fonctionnalités que vous choisissez, comme appels vidéo, envois, images de profil, streaming et alertes.",
+          "Vous pouvez refuser ou retirer les autorisations dans les réglages de votre appareil. Certaines fonctionnalités peuvent cesser de fonctionner si une autorisation est désactivée."
         ]
       },
       "retention": {
         "title": "Conservation et suppression",
         "items": [
-          "Nous conservons les donnees de compte, contenu, transaction, securite et diagnostic seulement le temps necessaire pour fournir Cele One, respecter la loi, resoudre les litiges, prevenir les abus et appliquer les conditions.",
-          "Les utilisateurs peuvent demander la suppression du compte et des donnees associees depuis la page de demande de suppression. Certains enregistrements peuvent etre conserves pour des raisons legales, de securite, de prevention de fraude ou comptables."
+          "Nous conservons les données de compte, contenu, transaction, sécurité et diagnostic seulement le temps nécessaire pour fournir Cele One, respecter la loi, résoudre les litiges, prévenir les abus et appliquer les conditions.",
+          "Les utilisateurs peuvent demander la suppression du compte et des données associées depuis la page de demande de suppression. Certains enregistrements peuvent être conservés pour des raisons légales, de sécurité, de prévention de fraude ou comptables."
         ]
       },
       "security": {
-        "title": "Securite",
+        "title": "Sécurité",
         "items": [
-          "Nous utilisons des mesures techniques et organisationnelles telles que l'acces authentifie, les regles de securite Firestore et Storage, les controles d'acces et le transport chiffre lorsque disponible.",
-          "Aucun service internet ne peut etre garanti totalement securise, mais nous travaillons a proteger les informations personnelles et sensibles contre l'acces non autorise, la perte, l'utilisation abusive et l'alteration."
+          "Nous utilisons des mesures techniques et organisationnelles telles que l'accès authentifié, les règles de sécurité Firestore et Storage, les contrôles d'accès et le transport chiffré lorsque disponible.",
+          "Aucun service internet ne peut être garanti totalement sécurisé, mais nous travaillons à protéger les informations personnelles et sensibles contre l'accès non autorisé, la perte, l'utilisation abusive et l'altération."
         ]
       },
       "children": {
-        "title": "Enfants et securite communautaire",
+        "title": "Enfants et sécurité communautaire",
         "items": [
-          "Cele One comprend des fonctionnalites communautaires, educatives, medias et spirituelles. Les utilisateurs doivent utiliser le service seulement s'ils respectent les exigences d'age et de consentement applicables dans leur pays.",
-          "Les signalements, actions de moderation et examens de securite peuvent etre utilises pour proteger les utilisateurs et appliquer les standards communautaires."
+          "Cele One comprend des fonctionnalités communautaires, éducatives, médias et spirituelles. Les utilisateurs doivent utiliser le service seulement s'ils respectent les exigences d'âge et de consentement applicables dans leur pays.",
+          "Les signalements, actions de modération et examens de sécurité peuvent être utilisés pour protéger les utilisateurs et appliquer les standards communautaires."
         ]
       },
       "international": {
         "title": "Utilisation internationale et changements",
         "items": [
-          "Cele One peut traiter des informations dans les pays ou ses prestataires, infrastructures, administrateurs ou utilisateurs sont situes.",
-          "Nous pouvons mettre a jour cette politique lorsque Cele One evolue ou lorsque des exigences legales, de securite ou operationnelles changent. La derniere version sera publiee sur cette page."
+          "Cele One peut traiter des informations dans les pays où ses prestataires, infrastructures, administrateurs ou utilisateurs sont situés.",
+          "Nous pouvons mettre à jour cette politique lorsque Cele One évolue ou lorsque des exigences légales, de sécurité ou opérationnelles changent. La dernière version sera publiée sur cette page."
         ]
       }
     }
   },
   "child_safety": {
-    "badge": "Securite Cele One",
-    "title": "Standards de securite des enfants",
-    "intro": "Ces standards publies expliquent la politique de tolerance zero de Cele One contre l'exploitation et les abus sexuels sur enfants, y compris les contenus d'abus sexuels sur mineurs, le grooming, la sextorsion, le trafic et les contacts dangereux avec des mineurs.",
-    "updated": "Derniere mise a jour : 13 aout 2026",
-    "contact_title": "Contact securite",
-    "contact_text": "Pour signaler un probleme de securite concernant un enfant sur Cele One, contactez immediatement l'equipe securite. Incluez uniquement les details necessaires pour localiser le contenu ou le compte. Ne joignez pas et ne redistribuez pas de contenu illegal.",
+    "badge": "Sécurité Cele One",
+    "title": "Standards de sécurité des enfants",
+    "intro": "Ces standards publiés expliquent la politique de tolérance zéro de Cele One contre l'exploitation et les abus sexuels sur enfants, y compris les contenus d'abus sexuels sur mineurs, le grooming, la sextorsion, le trafic et les contacts dangereux avec des mineurs.",
+    "updated": "Dernière mise à jour : 13 août 2026",
+    "contact_title": "Contact sécurité",
+    "contact_text": "Pour signaler un problème de sécurité concernant un enfant sur Cele One, contactez immédiatement l'équipe sécurité. Incluez uniquement les détails nécessaires pour localiser le contenu ou le compte. Ne joignez pas et ne redistribuez pas de contenu illégal.",
     "sections": {
       "zero": {
-        "title": "Tolerance zero",
+        "title": "Tolérance zéro",
         "items": [
           "Cele One interdit les contenus d'abus sexuels sur enfants, l'exploitation sexuelle des enfants, le grooming, la sextorsion, le trafic, la sollicitation de mineurs et toute tentative de sexualiser ou mettre en danger des enfants.",
-          "Les utilisateurs ne peuvent pas envoyer, partager, demander, promouvoir, decrire, banaliser ou lier vers du contenu qui exploite ou abuse des mineurs.",
-          "Les comptes, groupes, publications, messages, streams, pages createur et medias qui violent ces standards peuvent etre supprimes et signales."
+          "Les utilisateurs ne peuvent pas envoyer, partager, demander, promouvoir, décrire, banaliser ou lier vers du contenu qui exploite ou abuse des mineurs.",
+          "Les comptes, groupes, publications, messages, streams, pages créateur et médias qui violent ces standards peuvent être supprimés et signalés."
         ]
       },
       "enforcement": {
-        "title": "Detection, examen et application",
+        "title": "Détection, examen et application",
         "items": [
-          "Cele One peut examiner les signalements utilisateurs, signaux de moderation, rapports administrateurs et indicateurs techniques d'abus pour identifier les risques lies aux enfants.",
-          "Les violations confirmees peuvent entrainer suppression de contenu, suspension ou cloture du compte, restrictions de groupe, retrait d'acces createur et conservation de preuves lorsque la loi l'exige.",
-          "Lorsque cela est approprie ou exige par la loi, Cele One peut signaler une exploitation ou un abus sexuel apparent sur enfant aux autorites ou organisations de protection de l'enfance competentes."
+          "Cele One peut examiner les signalements utilisateurs, signaux de modération, rapports administrateurs et indicateurs techniques d'abus pour identifier les risques liés aux enfants.",
+          "Les violations confirmées peuvent entraîner suppression de contenu, suspension ou clôture du compte, restrictions de groupe, retrait d'accès créateur et conservation de preuves lorsque la loi l'exige.",
+          "Lorsque cela est approprié ou exigé par la loi, Cele One peut signaler une exploitation ou un abus sexuel apparent sur enfant aux autorités ou organisations de protection de l'enfance compétentes."
         ]
       },
       "reporting": {
         "title": "Signalement par les utilisateurs",
         "items": [
-          "Les utilisateurs doivent signaler immediatement toute suspicion d'exploitation, grooming, abus ou comportement dangereux via les outils de signalement disponibles dans l'application.",
-          "Les utilisateurs peuvent aussi contacter l'equipe securite Cele One par e-mail avec le nom du compte, le lien, une capture, la date et une courte description du probleme.",
-          "Ne transferez pas, ne telechargez pas, ne sauvegardez pas et ne redistribuez pas de contenu suspect d'abus sexuel sur enfant. Signalez-le."
+          "Les utilisateurs doivent signaler immédiatement toute suspicion d'exploitation, grooming, abus ou comportement dangereux via les outils de signalement disponibles dans l'application.",
+          "Les utilisateurs peuvent aussi contacter l'équipe sécurité Cele One par e-mail avec le nom du compte, le lien, une capture, la date et une courte description du problème.",
+          "Ne transférez pas, ne téléchargez pas, ne sauvegardez pas et ne redistribuez pas de contenu suspect d'abus sexuel sur enfant. Signalez-le."
         ]
       },
       "prevention": {
-        "title": "Prevention et regles communautaires",
+        "title": "Prévention et règles communautaires",
         "items": [
-          "Les espaces communautaires Cele One, groupes, appels, publications, chats, streams et outils createur doivent etre utilises de maniere sure et legale.",
-          "Les adultes ne doivent pas demander de conversations sexuelles privees, d'images intimes, de rencontres ou d'informations personnelles a des mineurs.",
-          "Les createurs et administrateurs doivent maintenir des espaces surs, retirer les contenus nuisibles et faire remonter rapidement les problemes de securite des enfants."
+          "Les espaces communautaires Cele One, groupes, appels, publications, chats, streams et outils créateur doivent être utilisés de manière sûre et légale.",
+          "Les adultes ne doivent pas demander de conversations sexuelles privées, d'images intimes, de rencontres ou d'informations personnelles à des mineurs.",
+          "Les créateurs et administrateurs doivent maintenir des espaces sûrs, retirer les contenus nuisibles et faire remonter rapidement les problèmes de sécurité des enfants."
         ]
       },
       "improvement": {
-        "title": "Cooperation et amelioration continue",
+        "title": "Coopération et amélioration continue",
         "items": [
-          "Cele One travaille a ameliorer la moderation, les processus de signalement, les controles d'acces et les examens de securite au fur et a mesure de l'evolution de la plateforme.",
-          "Nous pouvons mettre a jour ces standards lorsque les lois, les fonctionnalites de la plateforme ou les bonnes pratiques de protection de l'enfance changent."
+          "Cele One travaille à améliorer la modération, les processus de signalement, les contrôles d'accès et les examens de sécurité au fur et à mesure de l'évolution de la plateforme.",
+          "Nous pouvons mettre à jour ces standards lorsque les lois, les fonctionnalités de la plateforme ou les bonnes pratiques de protection de l'enfance changent."
         ]
       }
     }
@@ -146,200 +146,200 @@
   "parish_register": {
     "badge": "Carte mondiale des paroisses",
     "title": "Ajouter la localisation de votre paroisse",
-    "subtitle": "Ajoutez votre paroisse a la carte Cele One sans connexion. Choisissez le point exact, utilisez votre position actuelle si vous etes a la paroisse, puis nous verifierons avant publication.",
+    "subtitle": "Ajoutez votre paroisse à la carte Cele One sans connexion. Choisissez le point exact, utilisez votre position actuelle si vous êtes à la paroisse, puis nous vérifierons avant publication.",
     "stats": {
-      "approved": "localisations approuvees",
-      "duplicate_guard": "controle doublon",
+      "approved": "localisations approuvées",
+      "duplicate_guard": "contrôle doublon",
       "no_login_value": "Sans connexion",
       "pending_review": "en attente de validation"
     },
     "form": {
-      "title": "Details de la paroisse",
+      "title": "Détails de la paroisse",
       "subtitle": "Seuls la paroisse et l'emplacement sont obligatoires.",
       "parish_name": "Nom de la paroisse",
-      "parish_name_ph": "Nom de la paroisse Celeste",
-      "address": "Adresse ou repere",
-      "address_ph": "Rue, quartier, repere le plus proche",
+      "parish_name_ph": "Nom de la paroisse Céleste",
+      "address": "Adresse ou repère",
+      "address_ph": "Rue, quartier, repère le plus proche",
       "city": "Ville",
       "city_ph": "Ville",
       "country": "Pays",
       "country_ph": "Choisir un pays",
       "contact_name": "Nom du contact",
-      "contact_phone": "Telephone du contact",
+      "contact_phone": "Téléphone du contact",
       "contact_email": "Email du contact",
       "optional": "Facultatif",
-      "notes": "Notes pour verification",
-      "notes_ph": "Horaires de culte, nom du responsable ou information a verifier",
-      "selected_coordinates": "Coordonnees selectionnees :",
-      "duplicate_notice": "Doublon possible : {name} est a environ {meters} m de ce point.",
+      "notes": "Notes pour vérification",
+      "notes_ph": "Horaires de culte, nom du responsable ou information à vérifier",
+      "selected_coordinates": "Coordonnées sélectionnées :",
+      "duplicate_notice": "Doublon possible : {name} est à environ {meters} m de ce point.",
       "submitting": "Envoi...",
       "submit": "Soumettre la paroisse pour validation"
     },
     "map": {
       "title": "Choisir l'emplacement",
-      "subtitle": "Cliquez ou deplacez le marqueur vers l'entree ou le batiment principal de la paroisse.",
+      "subtitle": "Cliquez ou déplacez le marqueur vers l'entrée ou le bâtiment principal de la paroisse.",
       "locating": "Localisation...",
       "use_my_location": "Utiliser ma position",
-      "google_key_missing": "Ajoutez VITE_GOOGLE_MAPS_API_KEY pour activer Google Maps. OpenStreetMap est deja disponible.",
-      "selected_marker": "Localisation selectionnee de la paroisse"
+      "google_key_missing": "Ajoutez VITE_GOOGLE_MAPS_API_KEY pour activer Google Maps. OpenStreetMap est déjà disponible.",
+      "selected_marker": "Localisation sélectionnée de la paroisse"
     },
     "rules": {
-      "public_pending_prefix": "Les visiteurs creent uniquement des demandes en attente. Les admins approuvent les fiches propres dans",
-      "mobile_reads_prefix": "L'application mobile lit les localisations approuvees depuis",
+      "public_pending_prefix": "Les visiteurs créent uniquement des demandes en attente. Les admins approuvent les fiches propres dans",
+      "mobile_reads_prefix": "L'application mobile lit les localisations approuvées depuis",
       "mobile_reads_suffix": "avec les champs latitude et longitude."
     },
     "status": {
-      "load_failed": "Les paroisses existantes n'ont pas pu etre chargees. Vous pouvez quand meme placer le marqueur avant l'envoi.",
-      "osm_failed": "OpenStreetMap n'a pas pu etre charge. Essayez Google Maps ou utilisez votre position.",
-      "google_failed": "Google Maps n'a pas pu etre charge. OpenStreetMap reste disponible.",
-      "geolocation_unsupported": "Ce navigateur ne prend pas en charge la geolocalisation.",
-      "location_snapped": "Le marqueur a ete place sur votre position actuelle. Deplacez-le si la paroisse est proche mais pas exactement ici.",
-      "location_denied": "La permission de localisation a ete refusee ou indisponible. Vous pouvez toujours cliquer sur la carte pour choisir la paroisse.",
+      "load_failed": "Les paroisses existantes n'ont pas pu être chargées. Vous pouvez quand même placer le marqueur avant l'envoi.",
+      "osm_failed": "OpenStreetMap n'a pas pu être chargé. Essayez Google Maps ou utilisez votre position.",
+      "google_failed": "Google Maps n'a pas pu être chargé. OpenStreetMap reste disponible.",
+      "geolocation_unsupported": "Ce navigateur ne prend pas en charge la géolocalisation.",
+      "location_snapped": "Le marqueur a été placé sur votre position actuelle. Déplacez-le si la paroisse est proche mais pas exactement ici.",
+      "location_denied": "La permission de localisation a été refusée ou indisponible. Vous pouvez toujours cliquer sur la carte pour choisir la paroisse.",
       "name_required": "Entrez le nom de la paroisse avant l'envoi.",
       "location_required": "Choisissez une localisation valide sur la carte.",
-      "duplicate": "{name} est deja enregistre a environ {meters} m de ce point. Deplacez le marqueur si c'est une autre paroisse.",
-      "success": "Merci. La paroisse a ete soumise pour verification et apparaitra apres approbation.",
-      "already_exists": "Une demande de paroisse existe deja pour cette zone exacte. Les admins peuvent verifier la demande en attente.",
-      "submit_failed": "La paroisse n'a pas pu etre soumise. Verifiez le deploiement des regles Firestore puis reessayez."
+      "duplicate": "{name} est déjà enregistré à environ {meters} m de ce point. Déplacez le marqueur si c'est une autre paroisse.",
+      "success": "Merci. La paroisse a été soumise pour vérification et apparaîtra après approbation.",
+      "already_exists": "Une demande de paroisse existe déjà pour cette zone exacte. Les admins peuvent vérifier la demande en attente.",
+      "submit_failed": "La paroisse n'a pas pu être soumise. Vérifiez le déploiement des règles Firestore puis réessayez."
     }
   },
   "landing": {
-    "meta_title": "CeleOne | Plateforme Sociale Mobile Chretienne Celeste",
-    "meta_desc": "CeleOne rassemble actualites, reformes, decisions officielles ECC, chat communautaire et diffusion TV/Radio en direct dans un espace securise.",
+    "meta_title": "CeleOne | Plateforme Sociale Mobile Chrétienne Céleste",
+    "meta_desc": "CeleOne rassemble actualités, réformes, décisions officielles ECC, chat communautaire et diffusion TV/Radio en direct dans un espace sécurisé.",
     "badge": "PLATEFORME ECC CELEONE",
-    "title": "CeleOne, une plateforme sociale mobile pour la communaute chretienne celeste.",
-    "p1": "Une application de communication et d'information qui rassemble actualites, reformes, decisions officielles et echanges communautaires dans un espace securise et interactif.",
-    "p2": "Objectif: aider les fideles a acceder a des informations fiables, comprendre les decisions importantes, participer aux discussions, et limiter la propagation des fausses informations.",
-    "cta_tv": "Creer une chaine TV",
-    "cta_chat": "Creer un chatroom",
+    "title": "CeleOne, une plateforme sociale mobile pour la communauté chrétienne céleste.",
+    "p1": "Une application de communication et d'information qui rassemble actualités, réformes, décisions officielles et échanges communautaires dans un espace sécurisé et interactif.",
+    "p2": "Objectif: aider les fidèles à accéder à des informations fiables, comprendre les décisions importantes, participer aux discussions, et limiter la propagation des fausses informations.",
+    "cta_tv": "Créer une chaîne TV",
+    "cta_chat": "Créer un chatroom",
     "cta_panel": "Ouvrir mon panel",
-    "info_title": "Informations cles",
+    "info_title": "Informations clés",
     "five_lang_title": "En cinq langues",
-    "five_lang_value": "Francais, Anglais, Yoruba, Fon, Espagnol",
+    "five_lang_value": "Français, Anglais, Yoruba, Fon, Espagnol",
     "docs_title": "Documents ECC",
-    "docs_value": "Embarque les documents importants et cruciaux pour reference publique.",
+    "docs_value": "Embarque les documents importants et cruciaux pour référence publique.",
     "live_title": "Transmission en direct",
-    "live_value": "Plusieurs chaines TV/Web TV + Radio Alleluia FM peuvent diffuser sur la plateforme.",
-    "f1_title": "Actualites fiables",
-    "f1_desc": "Centralisation des decisions officielles, reformes et informations validees.",
+    "live_value": "Plusieurs chaînes TV/Web TV + Radio Alleluia FM peuvent diffuser sur la plateforme.",
+    "f1_title": "Actualités fiables",
+    "f1_desc": "Centralisation des décisions officielles, réformes et informations validées.",
     "f2_title": "Espace communautaire",
     "f2_desc": "Chatrooms et commentaires pour l'opinion publique et l'engagement citoyen.",
-    "f3_title": "Systeme de diffusion abordable",
-    "f3_desc": "Infrastructure simple et accessible pour que les chaines streament directement.",
-    "channels_title": "Chaines en position sur l'application",
-    "channels_desc": "Les chaines de television peuvent demander une position et streamer directement dans CeleOne.",
+    "f3_title": "Système de diffusion abordable",
+    "f3_desc": "Infrastructure simple et accèssible pour que les chaînes streament directement.",
+    "channels_title": "Chaînes en position sur l'application",
+    "channels_desc": "Les chaînes de télévision peuvent demander une position et streamer directement dans CeleOne.",
     "channels_cta": "Demander le streaming",
-    "channel_default_desc": "Chaine disponible en direct sur CeleOne.",
-    "channels_empty": "Aucune chaine trouvee pour le moment.",
+    "channel_default_desc": "Chaîne disponible en direct sur CeleOne.",
+    "channels_empty": "Aucune chaîne trouvée pour le moment.",
     "cta_spiritual": "Ouvrir le programme spirituel",
     "spiritual_title": "Programme spirituel",
-    "spiritual_value": "Themes hebdomadaires, cultes, enseignements bibliques et programmes de cantiques.",
-    "cta_prelaunch": "Inscription pre-lancement"
+    "spiritual_value": "Thèmes hebdomadaires, cultes, enseignements bibliques et programmes de cantiques.",
+    "cta_prelaunch": "Inscription pré-lancement"
   },
   "prelaunch": {
-    "meta_title": "Inscription pre-lancement | CeleOne",
-    "meta_desc": "Creez votre compte CeleOne avant le lancement.",
-    "badge": "INSCRIPTION PRE-LANCEMENT",
-    "title": "Creez votre compte CeleOne avant le lancement.",
-    "subtitle": "Reservez votre place maintenant, ou laissez vos informations de donateur puis continuez vers le lien de paiement du projet.",
-    "reserve_cta": "Reserver ma place",
+    "meta_title": "Inscription pré-lancement | CeleOne",
+    "meta_desc": "Créez votre compte CeleOne avant le lancement.",
+    "badge": "INSCRIPTION PRÉ-LANCEMENT",
+    "title": "Créez votre compte CeleOne avant le lancement.",
+    "subtitle": "Réservez votre place maintenant, ou laissez vos informations de donateur puis continuez vers le lien de paiement du projet.",
+    "reserve_cta": "Réserver ma place",
     "donate_cta": "Faire un don pour soutenir le projet",
-    "reserve_title": "Reserver ma place",
-    "reserve_desc": "Creez votre compte a l avance et soyez pret lorsque CeleOne ouvrira.",
+    "reserve_title": "Réserver ma place",
+    "reserve_desc": "Créez votre compte à l'avance et soyez prêt lorsque CeleOne ouvrira.",
     "donate_title": "Faire un don pour soutenir le projet",
     "donate_desc": "Entrez vos informations de donateur, voyez le lien de paiement, puis continuez au paiement.",
     "donate_badge": "Intention de don",
-    "reserve_badge": "Reservation",
+    "reserve_badge": "Réservation",
     "form_title_donate": "Ajouter les informations du donateur",
-    "form_title_reserve": "Creer le compte pre-lancement",
-    "form_desc": "Ces informations sont sauvegardees dans Firebase avec le schema d inscription utilisateur CeleOne.",
-    "donor_form_desc": "Les donateurs n ont pas besoin de creer un compte. Nous enregistrons vos informations, puis affichons le lien de paiement.",
-    "have_account": "Deja inscrit ? Connexion",
-    "first_name": "Prenom",
+    "form_title_reserve": "Créer le compte pré-lancement",
+    "form_desc": "Ces informations sont sauvegardées dans Firebase avec le schéma d'inscription utilisateur CeleOne.",
+    "donor_form_desc": "Les donateurs n'ont pas besoin de créer un compte. Nous enregistrons vos informations, puis affichons le lien de paiement.",
+    "have_account": "Déjà inscrit à Connexion",
+    "first_name": "Prénom",
     "first_name_ph": "Jean",
     "last_name": "Nom",
     "last_name_ph": "Dupont",
     "email": "Email",
     "email_ph": "nom@example.com",
-    "phone": "Telephone",
+    "phone": "Téléphone",
     "phone_ph": "+229 00 00 00 00",
     "country": "Pays",
-    "country_ph": "Benin",
-    "parish": "Paroisse ou communaute",
-    "parish_ph": "Votre paroisse ou communaute",
+    "country_ph": "Bénin",
+    "parish": "Paroisse ou communauté",
+    "parish_ph": "Votre paroisse ou communauté",
     "password": "Mot de passe",
-    "password_ph": "Au moins 6 caracteres, 1 majuscule, 1 chiffre",
+    "password_ph": "Au moins 6 caractères, 1 majuscule, 1 chiffre",
     "confirm_password": "Confirmer le mot de passe",
-    "confirm_password_ph": "Repetez votre mot de passe",
+    "confirm_password_ph": "Répétez votre mot de passe",
     "amount": "Montant du don",
     "amount_ph": "50",
     "currency": "Devise",
     "currency_ph": "USD",
     "message": "Message",
     "message_ph": "Message facultatif",
-    "donor_message_ph": "Note facultative pour l equipe du projet CeleOne",
+    "donor_message_ph": "Note facultative pour l'équipe du projet CeleOne",
     "required": "Veuillez remplir tous les champs obligatoires.",
-    "weak_password": "Le mot de passe doit avoir au moins 6 caracteres, une majuscule et un chiffre.",
+    "weak_password": "Le mot de passe doit avoir au moins 6 caractères, une majuscule et un chiffre.",
     "password_mismatch": "Les mots de passe ne correspondent pas.",
-    "failed": "Impossible de creer votre compte pre-lancement.",
-    "success": "Votre compte pre-lancement a ete cree et sauvegarde.",
-    "donor_success": "Vos informations de donateur ont ete sauvegardees. Utilisez le lien ci-dessous pour finaliser votre don.",
+    "failed": "Impossible de créer votre compte pré-lancement.",
+    "success": "Votre compte pré-lancement a été créé et sauvegardé.",
+    "donor_success": "Vos informations de donateur ont été sauvegardées. Utilisez le lien ci-dessous pour finaliser votre don.",
     "payment_title": "Lien de paiement",
     "payment_desc": "Continuez vers notre page de paiement pour finaliser votre soutien.",
     "open_payment": "Aller au paiement",
     "saving": "Enregistrement...",
     "submit_donate": "Enregistrer et afficher le lien de paiement",
-    "submit_reserve": "Creer le compte pre-lancement"
+    "submit_reserve": "Créer le compte pré-lancement"
   },
   "jeunesse": {
-    "meta_title": "Amis de Jesus | Jeunesse",
-    "meta_desc": "Inscription des enfants en ligne et verification des resultats du concours Amis de Jesus.",
-    "title": "Amis de Jesus - Jeunesse",
-    "subtitle": "Inscription des enfants en ligne et verification des resultats du concours.",
+    "meta_title": "Amis de Jésus | Jeunesse",
+    "meta_desc": "Inscription des enfants en ligne et vérification des résultats du concours Amis de Jésus.",
+    "title": "Amis de Jésus - Jeunesse",
+    "subtitle": "Inscription des enfants en ligne et vérification des résultats du concours.",
     "tab_register": "Inscription",
-    "tab_results": "Verifier Resultats",
+    "tab_results": "Vérifier Résultats",
     "reg_title": "Inscription Enfant",
-    "reg_success": "Inscription reussie. Identifiant enfant:",
+    "reg_success": "Inscription réussie. Identifiant enfant:",
     "submit": "Soumettre l'inscription",
     "submitting": "Envoi...",
     "required": "Veuillez remplir tous les champs obligatoires.",
-    "verify_title": "Verification des resultats du concours",
+    "verify_title": "Vérification des résultats du concours",
     "identifier_placeholder": "Entrez l'identifiant enfant",
-    "verify": "Verifier",
-    "checking": "Verification...",
-    "no_results": "Aucun resultat affiche.",
-    "not_found": "Aucun resultat trouve pour cet identifiant/annee.",
+    "verify": "Vérifier",
+    "checking": "Vérification...",
+    "no_results": "Aucun résultat affiché.",
+    "not_found": "Aucun résultat trouvé pour cet identifiant/année.",
     "avg": "Moyenne",
     "notes": "Notes",
-    "failed_register": "Echec de l'inscription.",
-    "failed_verify": "Echec de verification des resultats.",
+    "failed_register": "Échec de l'inscription.",
+    "failed_verify": "Échec de vérification des résultats.",
     "enter_identifier": "Entrez l'identifiant."
   },
   "spiritual": {
     "meta_title": "Programme spirituel | CeleOne",
-    "meta_desc": "Lire les themes hebdomadaires, cultes, enseignements bibliques, celebrations speciales et programmes de cantiques.",
+    "meta_desc": "Lire les thèmes hebdomadaires, cultes, enseignements bibliques, célébrations spéciales et programmes de cantiques.",
     "badge": "CALENDRIER SPIRITUEL",
-    "title": "Themes hebdomadaires et programmes de cantiques",
-    "subtitle": "Parcourez le programme spirituel annuel de l Eglise par annee, mois, semaine, cultes et celebrations speciales.",
+    "title": "Thèmes hebdomadaires et programmes de cantiques",
+    "subtitle": "Parcourez le programme spirituel annuel de l'église par année, mois, semaine, cultes et célébrations spéciales.",
     "read_docs": "Lire la documentation",
     "admin_link": "Ouvrir le workflow admin",
     "current_week": "Semaine en cours",
     "week": "Semaine",
-    "no_hymn": "Aucun programme de cantiques rattache pour le moment.",
-    "empty_current": "Aucune semaine active n a encore ete publiee.",
-    "years": "Annees",
+    "no_hymn": "Aucun programme de cantiques rattaché pour le moment.",
+    "empty_current": "Aucune semaine active n'a encore été publiée.",
+    "years": "Années",
     "weeks": "Semaines",
     "services": "Cultes",
-    "celebrations": "Celebrations",
+    "celebrations": "Célébrations",
     "browse": "Parcourir le programme spirituel",
-    "browse_desc": "Recherchez les themes, references bibliques et programmes hebdomadaires archives.",
-    "search": "Rechercher par theme ou reference biblique",
-    "all_years": "Toutes les annees",
+    "browse_desc": "Recherchez les thèmes, références bibliques et programmes hebdomadaires archivés.",
+    "search": "Rechercher par thème ou référence biblique",
+    "all_years": "Toutes les années",
     "loading": "Chargement du programme spirituel...",
-    "empty_weeks": "Aucun programme hebdomadaire trouve.",
-    "special_celebrations": "Celebrations speciales",
-    "regular_schedule": "Horaires reguliers",
+    "empty_weeks": "Aucun programme hebdomadaire trouvé.",
+    "special_celebrations": "Célébrations spéciales",
+    "regular_schedule": "Horaires réguliers",
     "active": "Actif",
-    "scripture_refs": "Reference biblique"
+    "scripture_refs": "Référence biblique"
   }
 }

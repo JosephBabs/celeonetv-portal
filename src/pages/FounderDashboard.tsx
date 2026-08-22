@@ -81,7 +81,7 @@ export default function FounderDashboard() {
 
   if (!founder) {
     return (
-      <StateShell title="Activation en attente" desc="Aucun pass actif n'est encore associe a votre compte.">
+      <StateShell title="Activation en attente" desc="Aucun pass actif n'est encore associé à votre compte.">
         <Link to="/founders/activate" className="rounded-2xl bg-[#2FA5A9] px-5 py-3 text-sm font-extrabold text-white">Activer mon pass</Link>
       </StateShell>
     );
@@ -109,17 +109,17 @@ export default function FounderDashboard() {
           <div className="mt-5 flex flex-wrap gap-3">
             <button onClick={() => window.print()} className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white">Download pass</button>
             {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Generer le PDF</Link> : <span className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-400">Founder ID requis</span>}
-            {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Re telecharger le PDF</Link> : null}
+            {certificateReady ? <Link to="/founders/certificate" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Retélécharger le PDF</Link> : null}
             <button onClick={() => navigator.clipboard?.writeText(verificationUrl(founderCertificateNumber(founder.publicFounderId)))} className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-extrabold text-slate-700">Share verification link</button>
           </div>
         </section>
       </div>
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {["Mes avantages", "Mes invitations", "Evenements disponibles", "Coulisses et visites", "Actualites reservees", "Historique de mes participations", "Parametres de reconnaissance publique", "Assistance"].map((title) => (
+        {["Mes avantages", "Mes invitations", "Événements disponibles", "Coulisses et visites", "Actualités réservées", "Historique de mes participations", "Paramètres de reconnaissance publique", "Assistance"].map((title) => (
           <div key={title} className="rounded-3xl border border-slate-200 bg-white p-5">
             <div className="text-base font-black text-slate-900">{title}</div>
-            <div className="mt-2 text-sm font-semibold text-slate-600">{benefits.length ? "Eligible" : "Aucune entree disponible pour le moment."}</div>
+            <div className="mt-2 text-sm font-semibold text-slate-600">{benefits.length ? "Eligible" : "Aucune entrée disponible pour le moment."}</div>
           </div>
         ))}
       </section>
@@ -132,27 +132,27 @@ export default function FounderDashboard() {
               <h2 className="mt-2 text-2xl font-black text-slate-900">{credentialFounder?.displayName || founder.displayName}</h2>
               <div className="mt-2"><FounderCertificateStatus status={credentialFounder?.certificateStatus || founder.status} /></div>
             </div>
-            {qrPreview ? <img src={qrPreview} alt="QR de verification du certificat fondateur" className="h-24 w-24 rounded-2xl border border-slate-200 bg-white p-2" /> : null}
+            {qrPreview ? <img src={qrPreview} alt="QR de vérification du certificat fondateur" className="h-24 w-24 rounded-2xl border border-slate-200 bg-white p-2" /> : null}
           </div>
 
           {effectiveCredentialStatus === "generating" ? (
             <div className="mt-5 rounded-3xl bg-slate-50 p-5">
-              <div className="text-lg font-black text-slate-900">Vos identifiants sont en cours de generation</div>
+              <div className="text-lg font-black text-slate-900">Vos identifiants sont en cours de génération</div>
               <p className="mt-2 text-sm font-semibold text-slate-600">Votre certificat et votre carte Founder seront disponibles des que le processus sera termine.</p>
             </div>
           ) : effectiveCredentialStatus === "pending_storage" || !credentialFounder ? (
             <div className="mt-5 rounded-3xl bg-amber-50 p-5">
               <div className="text-lg font-black text-amber-900">Votre Founder's Pass est actif.</div>
-              <p className="mt-2 text-sm font-semibold text-amber-800">Votre paiement est confirme et votre certificat est pret a etre genere ou re telecharge en PDF depuis cette page.</p>
+              <p className="mt-2 text-sm font-semibold text-amber-800">Votre paiement est confirmé et votre certificat est prêt à être généré ou retéléchargé en PDF depuis cette page.</p>
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link to="/founders/certificate" className="rounded-2xl bg-amber-900 px-4 py-3 text-sm font-extrabold text-white">Generer mon certificat PDF</Link>
-                <Link to="/founders/certificate" className="rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm font-extrabold text-amber-900">Re telecharger le PDF</Link>
+                <Link to="/founders/certificate" className="rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm font-extrabold text-amber-900">Retélécharger le PDF</Link>
               </div>
             </div>
           ) : credentialFounder?.credentialGenerationError ? (
             <div className="mt-5 rounded-3xl bg-rose-50 p-5">
-              <div className="text-lg font-black text-rose-900">La generation de vos identifiants a rencontre un probleme.</div>
-              <p className="mt-2 text-sm font-semibold text-rose-700">Notre equipe a ete informee. Vous pouvez reessayer ou contacter le support.</p>
+              <div className="text-lg font-black text-rose-900">La génération de vos identifiants a rencontré un problème.</div>
+              <p className="mt-2 text-sm font-semibold text-rose-700">Notre équipe a été informée. Vous pouvez réessayer ou contacter le support.</p>
               <div className="mt-4 flex flex-wrap gap-3">
                 <button onClick={() => retryFounderCredentialGeneration().then(() => window.location.reload())} className="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-extrabold text-white">Reessayer</button>
                 <a href="mailto:support@celeonetv.com" className="rounded-2xl border border-rose-200 px-4 py-3 text-sm font-extrabold text-rose-700">Contacter le support</a>
@@ -171,7 +171,7 @@ export default function FounderDashboard() {
                 <div className="flex flex-wrap gap-3">
                   <Link to="/founders/certificate" className="rounded-2xl bg-[#2FA5A9] px-4 py-3 text-sm font-extrabold text-white">Voir le certificat</Link>
                   <button onClick={() => certificateThumb && window.open(certificateThumb, "_blank", "noopener,noreferrer")} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700">Afficher le QR code</button>
-                  <button onClick={() => navigator.clipboard?.writeText(String(credentialFounder?.verificationUrl || verificationUrl(founderCertificateNumber(founder.publicFounderId))))} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700">Copier le lien de verification</button>
+                  <button onClick={() => navigator.clipboard?.writeText(String(credentialFounder?.verificationUrl || verificationUrl(founderCertificateNumber(founder.publicFounderId))))} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-slate-700">Copier le lien de vérification</button>
                 </div>
               </div>
             </div>
@@ -208,7 +208,7 @@ export function FounderPassCard({ founder }: { founder: any }) {
       </div>
       <div className="mt-6 flex items-end justify-between gap-4">
         <div className="text-sm font-extrabold">Verified Founder</div>
-        <img src={qrCodeUrl(certificateId)} alt="Founder verification QR code" className="h-28 w-28 rounded-2xl bg-white p-2" />
+        <img src={qrCodeUrl(certificateId)} alt="Founder vérification QR code" className="h-28 w-28 rounded-2xl bg-white p-2" />
       </div>
       <div className="mt-4 text-xs font-semibold text-white/70">Scan to verify this pass in the official Cele One database.</div>
     </div>

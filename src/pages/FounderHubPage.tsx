@@ -9,11 +9,11 @@ import { FounderPassCard } from "./FounderDashboard";
 
 const pageMeta: Record<string, { title: string; desc: string }> = {
   pass: { title: "Digital Founder Pass", desc: "Votre carte numerique Founder's Pass." },
-  certificate: { title: "Founder Certificate", desc: "Certificat de soutien genere depuis les donnees verifiees." },
+  certificate: { title: "Founder Certificate", desc: "Certificat de soutien généré depuis les données vérifiées." },
   benefits: { title: "Mes avantages", desc: "Avantages disponibles selon votre niveau Founder." },
   invitations: { title: "Mes invitations", desc: "Invitations et statuts de participation." },
-  events: { title: "Evenements disponibles", desc: "Evenements et visites eligibles." },
-  announcements: { title: "Actualites reservees", desc: "Annonces publiees pour les fondateurs." },
+  events: { title: "Événements disponibles", desc: "Événements et visites eligibles." },
+  announcements: { title: "Actualités réservées", desc: "Annonces publiées pour les fondateurs." },
 };
 
 export default function FounderHubPage() {
@@ -57,7 +57,7 @@ export default function FounderHubPage() {
         <div className="rounded-[2rem] border-8 border-[#2FA5A9] bg-white p-10 text-center print:border-[#2FA5A9]">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-[#2FA5A9]">Cele One</div>
           <h1 className="mt-5 text-4xl font-black text-slate-900">Founder Certificate</h1>
-          <p className="mt-8 text-sm font-semibold text-slate-600">Ce certificat confirme l'enregistrement de son detenteur en tant que soutien fondateur de Cele One.</p>
+          <p className="mt-8 text-sm font-semibold text-slate-600">Ce certificat confirmé l'enregistrément de son détenteur en tant que soutien fondateur de Cele One.</p>
           <div className="mt-6 text-3xl font-black text-slate-900">{founder.displayName}</div>
           <div className="mt-2 font-mono text-lg font-bold text-slate-600">{founder.publicFounderId}</div>
           <p className="mx-auto mt-8 max-w-2xl text-xs font-bold leading-6 text-slate-500">Ce certificat ne constitue ni une action, ni un titre financier, ni une garantie de rendement.</p>
@@ -80,7 +80,7 @@ export default function FounderHubPage() {
             <p className="mt-2 text-sm font-semibold text-slate-600">{item.description || item.summary || "Eligible - sous reserve de disponibilite."}</p>
           </div>
         ))}
-        {items.length === 0 ? <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm font-bold text-slate-600">Aucune entree disponible pour le moment.</div> : null}
+        {items.length === 0 ? <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm font-bold text-slate-600">Aucune entrée disponible pour le moment.</div> : null}
       </section>
       <Link to="/founders/dashboard" className="inline-flex rounded-2xl bg-slate-900 px-5 py-3 text-sm font-extrabold text-white">Retour dashboard</Link>
     </div>

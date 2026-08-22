@@ -15,7 +15,7 @@ const benefits = [
     desc: "Apres paiement, votre id d'achat ou capture est controle pour activer correctement le pass fondateur.",
   },
   {
-    title: "Certificat et verification",
+    title: "Certificat et vérification",
     desc: "Le certificat et la carte Founder restent consultables et verifiables depuis les routes officielles Cele One.",
   },
 ];
@@ -119,7 +119,7 @@ export default function Founders() {
             </div>
             <h1 className="mt-6 text-[40px] font-bold leading-[1.04] md:text-[58px]">Pour soutenir le lancement de Célè One</h1>
             <p className="mt-4 max-w-2xl text-base font-medium leading-8 text-white/78">
-              Generez votre Founder ID dans le formulaire ci-dessous, copiez le code généré (à inclure dans le formulaire sur chariow), achetez le pass à un pris libre selon votre volonté officiellement sur Chariow, puis revenez activer et verifier votre pass sans confusion.
+            Générez votre Founder ID dans le formulaire ci-dessous, copiez le code généré (à inclure dans le formulaire sur chariow), achetez le pass à un prix libre selon votre volonté officiellement sur Chariow, puis revenez activer et vérifier votre pass sans confusion.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href={paymentUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#2ed06e] px-7 text-[15px] font-bold text-white">
@@ -133,7 +133,7 @@ export default function Founders() {
               </Link>
               
               <Link to="/founders/verify" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-7 text-[15px] font-bold text-white">
-                Verifier un pass
+                Vérifier un pass
               </Link>
               
             </div>
@@ -209,11 +209,11 @@ export default function Founders() {
         </div>
 
         <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
-          <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Activation et verification</div>
+          <div className="text-sm font-bold uppercase tracking-[0.2em] text-[#2ed06e]">Activation et vérification</div>
           <h2 className="mt-4 text-[34px] font-bold leading-tight text-[#081828]">Un parcours plus propre, sans confusion</h2>
           <p className="mt-4 text-[15px] font-medium leading-8 text-slate-600">
-            Le Founder&apos;s Pass n&apos;est pas une promesse financiere. C&apos;est une adhesion de soutien verifiee, rattachee a un Founder ID provisoire,
-            puis transformee en identifiants premium apres verification et approbation.
+            Le Founder&apos;s Pass n&apos;est pas une promesse financière. C&apos;est une adhésion de soutien vérifiée, rattachée à un Founder ID provisoire,
+            puis transformée en identifiants premium après vérification et approbation.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -221,13 +221,13 @@ export default function Founders() {
               title="Apres paiement"
               desc="Ouvrez la page d'activation et collez votre Founder ID, puis votre id d'achat ou votre capture de paiement."
               link="/founders/activate"
-              label="Aller a l'activation"
+              label="Aller à l'activation"
             />
             <ActionCard
-              title="Verification publique"
+              title="Vérification publique"
               desc="Chaque certificat et chaque carte Founder peuvent etre verifies depuis la route officielle Cele One."
               link="/founders/verify"
-              label="Ouvrir la verification"
+              label="Ouvrir la vérification"
             />
           </div>
 

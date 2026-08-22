@@ -55,7 +55,7 @@ export default function Home() {
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
           <div>
             <div className="text-2xl font-black text-slate-900">{t("home.live_tv", "Live TV")}</div>
-            <div className="mt-1 text-slate-600">{liveChannel?.displayName || liveChannel?.name || t("home.no_channel", "No channel")} <span className="text-slate-400">•</span> {liveChannel?.description || t("home.streaming", "Streaming on CeleoneTV")}</div>
+            <div className="mt-1 text-slate-600">{liveChannel?.displayName || liveChannel?.name || t("home.no_channel", "No channel")} <span className="text-slate-400">-</span> {liveChannel?.description || t("home.streaming", "Streaming on CeleoneTV")}</div>
           </div>
           <div className="flex items-center gap-2">
             {liveUrl ? <Link to={liveUrl} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white hover:bg-slate-800">{t("home.open_live", "Open live page")}</Link> : null}

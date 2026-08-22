@@ -27,7 +27,7 @@ export async function getFounderCredentials() {
 export async function retryFounderCredentialGeneration() {
   return founderApi<FounderCredentialResponse>("/api/founders/credentials", {
     method: "POST",
-    body: JSON.stringify({ action: "retry_generation" }),
+    body: JSON.stringify({ action: "retry_génération" }),
   });
 }
 

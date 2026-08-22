@@ -1,9 +1,9 @@
 import { useI18n } from "../lib/i18n";
 
 const LANGUAGES: Array<{ code: "fr" | "en" | "es"; label: string }> = [
-  { code: "fr", label: "Francais" },
+  { code: "fr", label: "Français" },
   { code: "en", label: "English" },
-  { code: "es", label: "Espanol" },
+  { code: "es", label: "Español" },
 ];
 
 export default function LanguageSwitcher({ compact = false }: { compact?: boolean }) {

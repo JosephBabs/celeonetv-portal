@@ -60,7 +60,7 @@ CHARIOW_PRODUCT_ID=
    - `founderPayments`
    - `founders`
    - public Founder ID, e.g. `COF-2026-000001`
-   - QR verification token
+   - QR vérification token
    - audit log entry
 
 No PDF, screenshot, receipt, or certificate alone grants access.
@@ -76,13 +76,13 @@ No PDF, screenshot, receipt, or certificate alone grants access.
 
 ## Security Notes
 
-Privileged operations must be protected by Firebase rules and/or trusted backend code. The current portal admin page uses existing frontend admin routing patterns, but production approval should be enforced by Firestore rules or server-side verification.
+Privileged operations must be protected by Firebase rules and/or trusted backend code. The current portal admin page uses existing frontend admin routing patterns, but production approval should be enforced by Firestore rules or server-side vérification.
 
 Recommended rule model:
 
 - Users create/read their own `founderApplications`.
 - Users read their own `founders` and `founderInvitations`.
-- Public users read only active Founder Wall fields and verification-safe Founder fields.
+- Public users read only active Founder Wall fields and vérification-safe Founder fields.
 - Admins manage applications, payments, founders, benefits, invitations, announcements, and audit logs.
 - Users cannot write `founderPayments`, approve themselves, change Founder IDs, or change Founder levels.
 

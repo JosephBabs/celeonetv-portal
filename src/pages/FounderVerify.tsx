@@ -14,7 +14,7 @@ export default function FounderVerify() {
   const whatsappUrl = "https://wa.me/2290141193144";
 
   useEffect(() => {
-    setPageMeta({ title: "Verifier Founder's Pass | Cele One", description: "Verification publique Founder's Pass." });
+    setPageMeta({ title: "Vérifier Founder's Pass | Cele One", description: "Vérification publique Founder's Pass." });
   }, []);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function FounderVerify() {
     })();
   }, [founderId]);
 
-  const openVerification = (event: { preventDefault: () => void }) => {
+  const openVérification = (event: { preventDefault: () => void }) => {
     event.preventDefault();
     const normalized = String(input || "").trim().toUpperCase();
     if (!normalized) return;
@@ -48,15 +48,15 @@ export default function FounderVerify() {
           >
             <div className="relative max-w-3xl">
               <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-[12px] font-bold tracking-[0.18em] text-white/86">VERIFICATION OFFICIELLE</div>
-              <h1 className="mt-4 text-[38px] font-bold leading-tight">Verifier un certificat Founder</h1>
+              <h1 className="mt-4 text-[38px] font-bold leading-tight">Vérifier un certificat Founder</h1>
               <p className="mt-4 max-w-2xl text-[15px] font-medium leading-8 text-white/78">
-              Entrez un numero de certificat comme `CERT-COF-2026-000018` ou scannez le QR code du certificat pour ouvrir la verification publique Cele One.
+              Entrez un numéro de certificat comme `CERT-COF-2026-000018` ou scannez le QR code du certificat pour ouvrir la vérification publique Cele One.
               </p>
             </div>
           </div>
 
           <div className="grid gap-6 px-8 py-8 lg:grid-cols-[1fr_0.82fr]">
-            <form onSubmit={openVerification} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_10px_24px_rgba(8,24,40,0.04)]">
+            <form onSubmit={openVérification} className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_10px_24px_rgba(8,24,40,0.04)]">
               <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#0f8c68]">Recherche manuelle</div>
               <label className="mt-4 grid gap-2">
                 <span className="text-sm font-bold text-slate-800">Numero de certificat</span>
@@ -68,7 +68,7 @@ export default function FounderVerify() {
                 />
               </label>
               <button className="mt-5 inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(46,208,110,0.22)] hover:bg-[#28c464]">
-                Ouvrir la verification
+                Ouvrir la vérification
               </button>
               <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex text-sm font-bold text-[#0f8c68] hover:underline">
                 En cas d&apos;erreur, ecrire sur WhatsApp
@@ -78,13 +78,13 @@ export default function FounderVerify() {
             <div className="rounded-[24px] border border-slate-200 bg-[#f8fbfd] p-6">
               <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#0f8c68]">Ce que la page verifie</div>
               <div className="mt-4 space-y-3">
-                <VerifyStep text="Le numero de certificat public" />
-                <VerifyStep text="Le niveau fondateur enregistre" />
-                <VerifyStep text="Le numero de certificat actif" />
+                <VerifyStep text="Le numéro de certificat public" />
+                <VerifyStep text="Le niveau fondateur enregistré" />
+                <VerifyStep text="Le numéro de certificat actif" />
                 <VerifyStep text="Le statut actuel du certificat" />
               </div>
               <div className="mt-5 text-sm font-medium leading-7 text-slate-700">
-                La verification publique n&apos;affiche ni email, ni telephone, ni montant de contribution, ni reference Chariow.
+                La vérification publique n&apos;affiche ni email, ni téléphone, ni montant de contribution, ni référence Chariow.
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function FounderVerify() {
     );
   }
 
-  if (loading) return <div className="py-10 text-center text-slate-600">Verification...</div>;
+  if (loading) return <div className="py-10 text-center text-slate-600">Vérification...</div>;
   const active = founder?.status === "active" || founder?.certificateStatus === "active";
 
   return (
@@ -107,8 +107,8 @@ export default function FounderVerify() {
           {!founder
             ? "Ce certificat n'existe pas dans la base officielle Cele One."
             : active
-              ? "Ce certificat appartient a un soutien fondateur enregistre dans la base officielle Cele One."
-              : "Ce numero de certificat existe bien dans la base Cele One, mais son statut n'est pas actif actuellement."}
+              ? "Ce certificat appartient à un soutien fondateur enregistré dans la base officielle Cele One."
+              : "Ce numéro de certificat existe bien dans la base Cele One, mais son statut n'est pas actif actuellement."}
         </p>
         {founder ? (
           <div className="mt-6 grid gap-3 md:grid-cols-2">
