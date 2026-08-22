@@ -545,6 +545,10 @@ service cloud.firestore {
         );
     }
 
+    match /mail/{mailId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
     match /parishHistory/{historyId} {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;

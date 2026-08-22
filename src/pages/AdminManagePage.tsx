@@ -310,8 +310,50 @@ export default function AdminManagePage() {
       updatedAt: serverTimestamp(),
     });
 
+    let emailNotice = "";
+    if (isEmail(contactEmail)) {
+      try {
+        await addDoc(collection(db, "mail"), {
+          to: [contactEmail],
+          message: parishApprovalMessage({
+            parishName: displayName,
+            city,
+            country,
+            parishId,
+          }),
+          metadata: {
+            type: "parish_registration_approved",
+            registrationRequestId: selected.id,
+            parishId,
+          },
+          createdAt: serverTimestamp(),
+        });
+        await updateDoc(doc(db, "parish_registration_requests", selected.id), {
+          approvalEmailStatus: "queued",
+          approvalEmailQueuedAt: serverTimestamp(),
+          approvalEmailTo: contactEmail,
+          updatedAt: serverTimestamp(),
+        });
+        emailNotice = ` Email queued for ${contactEmail}.`;
+      } catch (e) {
+        console.error(e);
+        await updateDoc(doc(db, "parish_registration_requests", selected.id), {
+          approvalEmailStatus: "queue_failed",
+          approvalEmailTo: contactEmail,
+          updatedAt: serverTimestamp(),
+        }).catch(() => undefined);
+        emailNotice = " Parish was approved, but the email could not be queued.";
+      }
+    } else {
+      await updateDoc(doc(db, "parish_registration_requests", selected.id), {
+        approvalEmailStatus: "missing_recipient",
+        updatedAt: serverTimestamp(),
+      }).catch(() => undefined);
+      emailNotice = " No valid contact email was found.";
+    }
+
     await load();
-    alert("Parish approved and published to parishes.");
+    alert(`Parish approved and published to parishes.${emailNotice}`);
   };
 
   const rejectParishRegistration = async () => {
@@ -1036,6 +1078,64 @@ function parishDocumentId(row: any) {
   const city = String(row?.city || "").trim();
   const slug = slugify([name, city].filter(Boolean).join("-"));
   return slug || String(row?.geoKey || row?.id || `parish-${Date.now()}`).trim();
+}
+
+function isEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function parishApprovalMessage({
+  parishName,
+  city,
+  country,
+  parishId,
+}: {
+  parishName: string;
+  city: string;
+  country: string;
+  parishId: string;
+}) {
+  const place = [city, country].filter(Boolean).join(", ");
+  const publicUrl = "https://celeonetv.com/parishes";
+  const escapedName = escapeHtml(parishName);
+  const escapedPlace = escapeHtml(place);
+  const escapedParishId = escapeHtml(parishId);
+  return {
+    subject: `Your parish registration was approved - ${parishName}`,
+    text: [
+      `Hello,`,
+      ``,
+      `Thank you for adding ${parishName} to CeleOne TV.`,
+      `Your parish registration has been approved and published on the parish map.`,
+      place ? `Location: ${place}` : "",
+      `Reference: ${parishId}`,
+      ``,
+      `You can view the parish map here: ${publicUrl}`,
+      ``,
+      `CeleOne TV`,
+    ].filter(Boolean).join("\n"),
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a">
+        <h2 style="margin:0 0 12px">Parish registration approved</h2>
+        <p>Hello,</p>
+        <p>Thank you for adding <strong>${escapedName}</strong> to CeleOne TV.</p>
+        <p>Your parish registration has been approved and published on the parish map.</p>
+        ${place ? `<p><strong>Location:</strong> ${escapedPlace}</p>` : ""}
+        <p><strong>Reference:</strong> ${escapedParishId}</p>
+        <p><a href="${publicUrl}" style="color:#0f766e;font-weight:700">View the parish map</a></p>
+        <p>CeleOne TV</p>
+      </div>
+    `,
+  };
+}
+
+function escapeHtml(value: string) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function safeStringify(v: any) {
