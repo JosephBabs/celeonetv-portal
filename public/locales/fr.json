@@ -13,7 +13,135 @@
     "login": "Connexion",
     "signup": "Inscription",
     "spiritual_program": "Programme spirituel",
-    "prelaunch_registration": "Inscription pre-lancement"
+    "prelaunch_registration": "Inscription pre-lancement",
+    "register_parish": "Ajouter une paroisse",
+    "founders_pass": "Pass Founder",
+    "more": "Plus",
+    "privacy_policy": "Politique de confidentialite",
+    "child_safety": "Securite des enfants",
+    "account_deletion": "Suppression de compte"
+  },
+  "privacy": {
+    "badge": "Cele One",
+    "title": "Politique de confidentialite",
+    "intro": "Cette politique explique comment Cele One accede aux informations, les collecte, les utilise, les partage, les protege, les conserve et les supprime lorsque vous utilisez l'application mobile Cele One, les services web, les fonctionnalites communautaires, le streaming, les appels, les abonnements et les services associes.",
+    "updated": "Derniere mise a jour : 12 aout 2026",
+    "contact_title": "Contact",
+    "contact_text": "Pour toute question de confidentialite, demande de suppression de compte, demande d'acces aux donnees ou reclamation, contactez Cele One a :",
+    "sections": {
+      "collect": {
+        "title": "Informations que nous collectons",
+        "items": [
+          "Informations de compte telles que nom, adresse e-mail, numero de telephone, photo de profil, pays, langue, role, statut createur et identifiants d'authentification.",
+          "Informations de contacts lorsque vous donnez l'autorisation, limitees a la correspondance de numeros de telephone ou d'adresses e-mail avec des utilisateurs Cele One inscrits afin de lancer des chats et appels directs.",
+          "Contenu communautaire tel que messages, groupes, publications, signalements, commentaires, medias envoyes, metadonnees d'appel, statut d'abonnement et demandes createur ou administrateur.",
+          "Donnees d'appareil et d'utilisation telles que jetons de notification push, version de l'application, diagnostics, informations de crash, journaux de moderation, evenements de securite et metadonnees techniques approximatives necessaires au service.",
+          "Informations de paiement et d'abonnement traitees par les prestataires de paiement configures. Cele One ne stocke pas les numeros complets de carte."
+        ]
+      },
+      "use": {
+        "title": "Comment nous utilisons les informations",
+        "items": [
+          "Pour creer et securiser les comptes, fournir chats, appels, groupes, streaming, outils createur, notifications, abonnements, support et moderation.",
+          "Pour mettre en relation les utilisateurs inscrits avec les contacts deja presents sur l'appareil de l'utilisateur apres autorisation.",
+          "Pour prevenir les abus, analyser les signalements, appliquer les regles communautaires, proteger les utilisateurs, corriger les erreurs et ameliorer la fiabilite.",
+          "Pour traiter achats, abonnements, demandes createur et actions administratives."
+        ]
+      },
+      "sharing": {
+        "title": "Partage et prestataires",
+        "items": [
+          "Nous pouvons partager des donnees avec des prestataires qui aident a faire fonctionner Cele One, notamment hebergement cloud, services Firebase, notifications push, stockage/CDN, analytics, rapports de crash, processeurs de paiement et outils de moderation.",
+          "Nous pouvons divulguer des informations lorsque la loi l'exige, pour proteger les utilisateurs et le service, ou lors d'un transfert d'activite avec information appropriee.",
+          "Nous ne vendons pas les donnees personnelles ou sensibles des utilisateurs."
+        ]
+      },
+      "permissions": {
+        "title": "Autorisations",
+        "items": [
+          "L'autorisation Contacts sert uniquement a vous aider a trouver des utilisateurs Cele One inscrits depuis vos contacts locaux et a demarrer des conversations directes.",
+          "Les autorisations camera, microphone, stockage, notifications et medias servent uniquement aux fonctionnalites que vous choisissez, comme appels video, envois, images de profil, streaming et alertes.",
+          "Vous pouvez refuser ou retirer les autorisations dans les reglages de votre appareil. Certaines fonctionnalites peuvent cesser de fonctionner si une autorisation est desactivee."
+        ]
+      },
+      "retention": {
+        "title": "Conservation et suppression",
+        "items": [
+          "Nous conservons les donnees de compte, contenu, transaction, securite et diagnostic seulement le temps necessaire pour fournir Cele One, respecter la loi, resoudre les litiges, prevenir les abus et appliquer les conditions.",
+          "Les utilisateurs peuvent demander la suppression du compte et des donnees associees depuis la page de demande de suppression. Certains enregistrements peuvent etre conserves pour des raisons legales, de securite, de prevention de fraude ou comptables."
+        ]
+      },
+      "security": {
+        "title": "Securite",
+        "items": [
+          "Nous utilisons des mesures techniques et organisationnelles telles que l'acces authentifie, les regles de securite Firestore et Storage, les controles d'acces et le transport chiffre lorsque disponible.",
+          "Aucun service internet ne peut etre garanti totalement securise, mais nous travaillons a proteger les informations personnelles et sensibles contre l'acces non autorise, la perte, l'utilisation abusive et l'alteration."
+        ]
+      },
+      "children": {
+        "title": "Enfants et securite communautaire",
+        "items": [
+          "Cele One comprend des fonctionnalites communautaires, educatives, medias et spirituelles. Les utilisateurs doivent utiliser le service seulement s'ils respectent les exigences d'age et de consentement applicables dans leur pays.",
+          "Les signalements, actions de moderation et examens de securite peuvent etre utilises pour proteger les utilisateurs et appliquer les standards communautaires."
+        ]
+      },
+      "international": {
+        "title": "Utilisation internationale et changements",
+        "items": [
+          "Cele One peut traiter des informations dans les pays ou ses prestataires, infrastructures, administrateurs ou utilisateurs sont situes.",
+          "Nous pouvons mettre a jour cette politique lorsque Cele One evolue ou lorsque des exigences legales, de securite ou operationnelles changent. La derniere version sera publiee sur cette page."
+        ]
+      }
+    }
+  },
+  "child_safety": {
+    "badge": "Securite Cele One",
+    "title": "Standards de securite des enfants",
+    "intro": "Ces standards publies expliquent la politique de tolerance zero de Cele One contre l'exploitation et les abus sexuels sur enfants, y compris les contenus d'abus sexuels sur mineurs, le grooming, la sextorsion, le trafic et les contacts dangereux avec des mineurs.",
+    "updated": "Derniere mise a jour : 13 aout 2026",
+    "contact_title": "Contact securite",
+    "contact_text": "Pour signaler un probleme de securite concernant un enfant sur Cele One, contactez immediatement l'equipe securite. Incluez uniquement les details necessaires pour localiser le contenu ou le compte. Ne joignez pas et ne redistribuez pas de contenu illegal.",
+    "sections": {
+      "zero": {
+        "title": "Tolerance zero",
+        "items": [
+          "Cele One interdit les contenus d'abus sexuels sur enfants, l'exploitation sexuelle des enfants, le grooming, la sextorsion, le trafic, la sollicitation de mineurs et toute tentative de sexualiser ou mettre en danger des enfants.",
+          "Les utilisateurs ne peuvent pas envoyer, partager, demander, promouvoir, decrire, banaliser ou lier vers du contenu qui exploite ou abuse des mineurs.",
+          "Les comptes, groupes, publications, messages, streams, pages createur et medias qui violent ces standards peuvent etre supprimes et signales."
+        ]
+      },
+      "enforcement": {
+        "title": "Detection, examen et application",
+        "items": [
+          "Cele One peut examiner les signalements utilisateurs, signaux de moderation, rapports administrateurs et indicateurs techniques d'abus pour identifier les risques lies aux enfants.",
+          "Les violations confirmees peuvent entrainer suppression de contenu, suspension ou cloture du compte, restrictions de groupe, retrait d'acces createur et conservation de preuves lorsque la loi l'exige.",
+          "Lorsque cela est approprie ou exige par la loi, Cele One peut signaler une exploitation ou un abus sexuel apparent sur enfant aux autorites ou organisations de protection de l'enfance competentes."
+        ]
+      },
+      "reporting": {
+        "title": "Signalement par les utilisateurs",
+        "items": [
+          "Les utilisateurs doivent signaler immediatement toute suspicion d'exploitation, grooming, abus ou comportement dangereux via les outils de signalement disponibles dans l'application.",
+          "Les utilisateurs peuvent aussi contacter l'equipe securite Cele One par e-mail avec le nom du compte, le lien, une capture, la date et une courte description du probleme.",
+          "Ne transferez pas, ne telechargez pas, ne sauvegardez pas et ne redistribuez pas de contenu suspect d'abus sexuel sur enfant. Signalez-le."
+        ]
+      },
+      "prevention": {
+        "title": "Prevention et regles communautaires",
+        "items": [
+          "Les espaces communautaires Cele One, groupes, appels, publications, chats, streams et outils createur doivent etre utilises de maniere sure et legale.",
+          "Les adultes ne doivent pas demander de conversations sexuelles privees, d'images intimes, de rencontres ou d'informations personnelles a des mineurs.",
+          "Les createurs et administrateurs doivent maintenir des espaces surs, retirer les contenus nuisibles et faire remonter rapidement les problemes de securite des enfants."
+        ]
+      },
+      "improvement": {
+        "title": "Cooperation et amelioration continue",
+        "items": [
+          "Cele One travaille a ameliorer la moderation, les processus de signalement, les controles d'acces et les examens de securite au fur et a mesure de l'evolution de la plateforme.",
+          "Nous pouvons mettre a jour ces standards lorsque les lois, les fonctionnalites de la plateforme ou les bonnes pratiques de protection de l'enfance changent."
+        ]
+      }
+    }
   },
   "landing": {
     "meta_title": "CeleOne | Plateforme Sociale Mobile Chretienne Celeste",

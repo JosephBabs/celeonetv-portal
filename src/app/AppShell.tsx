@@ -79,6 +79,7 @@ export default function AppShell() {
       [/^\/$/, { title: "Celeone TV Portal", description: "Discover Christian community news, official reforms, documents, live TV, and secure social exchanges." }],
       [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your TV, web TV, radio, podcast, or media channel request to join Celeone." }],
       [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly themes, services, Bible lessons, special celebrations, and hymn programs." }],
+      [/^\/parishes\/register\/?$/, { title: "Register a Parish | CeleOne", description: "Submit a parish name and exact GPS location for review on the Cele One global parish map." }],
       [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
       [/^\/app\/privacy\/?$/, { title: "Privacy Policy | Cele One", description: "Read how Cele One collects, uses, shares, protects, retains, and deletes user information." }],
       [/^\/account\/request_delete\/?$/, { title: "Request Account Deletion | Cele One", description: "Request deletion of your Cele One account and associated personal data." }],

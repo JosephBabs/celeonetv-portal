@@ -29,6 +29,7 @@ export default function Footer() {
             links={[
               ["Accueil", "/"],
               ["Programme spirituel", "/spiritual-program"],
+              ["Ajouter une paroisse", "/parishes/register"],
               ["Preinscription", "/prelaunch-registration"],
               ["Founder&apos;s Pass", "/founders"],
             ]}

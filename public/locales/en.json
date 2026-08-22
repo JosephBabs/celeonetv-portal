@@ -13,7 +13,135 @@
     "login": "Login",
     "signup": "Sign Up",
     "spiritual_program": "Spiritual Program",
-    "prelaunch_registration": "Prelaunch Registration"
+    "prelaunch_registration": "Prelaunch Registration",
+    "register_parish": "Register Parish",
+    "founders_pass": "Founder's Pass",
+    "more": "More",
+    "privacy_policy": "Privacy Policy",
+    "child_safety": "Child Safety",
+    "account_deletion": "Account Deletion"
+  },
+  "privacy": {
+    "badge": "Cele One",
+    "title": "Privacy Policy",
+    "intro": "This Privacy Policy explains how Cele One accesses, collects, uses, shares, protects, retains, and deletes information when you use the Cele One mobile app, web services, community features, streaming features, calls, subscriptions, and related services.",
+    "updated": "Last updated: August 12, 2026",
+    "contact_title": "Contact",
+    "contact_text": "For privacy questions, account deletion requests, data access requests, or complaints, contact Cele One at:",
+    "sections": {
+      "collect": {
+        "title": "Information we collect",
+        "items": [
+          "Account details such as name, email address, phone number, profile photo, country, language, role, creator status, and authentication identifiers.",
+          "Contacts information when you grant permission, limited to matching phone numbers or email addresses with registered Cele One users so you can start direct chats and calls.",
+          "Community content such as messages, groups, posts, reports, comments, media uploads, call metadata, subscription status, and creator or administrator requests.",
+          "Device and usage data such as push notification tokens, app version, diagnostics, crash information, moderation logs, security events, and approximate technical metadata needed to operate the service.",
+          "Payment and subscription information processed through configured payment providers. Cele One does not store full card numbers."
+        ]
+      },
+      "use": {
+        "title": "How we use information",
+        "items": [
+          "To create and secure accounts, deliver chats, calls, groups, streaming, creator tools, notifications, subscriptions, support, and moderation features.",
+          "To match registered users with contacts that already exist on a user's device after contact permission is granted.",
+          "To prevent abuse, investigate reports, enforce community rules, protect users, debug crashes, and improve service reliability.",
+          "To process purchases, subscriptions, creator requests, and administrative actions."
+        ]
+      },
+      "sharing": {
+        "title": "Sharing and service providers",
+        "items": [
+          "We may share data with service providers that help operate Cele One, including cloud hosting, Firebase services, push notifications, storage/CDN, analytics, crash reporting, payment processors, and moderation tools.",
+          "We may disclose information when required by law, to protect users and the service, or during a business transfer with appropriate notice.",
+          "We do not sell personal or sensitive user data."
+        ]
+      },
+      "permissions": {
+        "title": "Permissions",
+        "items": [
+          "Contacts permission is used only to help you find registered Cele One users from your local contacts and start direct conversations.",
+          "Camera, microphone, storage, notification, and media permissions are used only for features you choose, such as video calls, uploads, profile images, streaming, and alerts.",
+          "You can deny or revoke permissions in your device settings. Some features may stop working when a permission is disabled."
+        ]
+      },
+      "retention": {
+        "title": "Retention and deletion",
+        "items": [
+          "We keep account, content, transaction, safety, and diagnostic data only as long as needed to provide Cele One, comply with law, resolve disputes, prevent abuse, and enforce terms.",
+          "Users may request account deletion and associated data deletion from the account deletion request page. Some records may be retained when required for legal, security, fraud-prevention, or accounting reasons."
+        ]
+      },
+      "security": {
+        "title": "Security",
+        "items": [
+          "We use technical and organizational safeguards such as authenticated access, Firestore and Storage security rules, access controls, and encrypted transport where supported.",
+          "No internet service can be guaranteed to be completely secure, but we work to protect personal and sensitive information from unauthorized access, loss, misuse, and alteration."
+        ]
+      },
+      "children": {
+        "title": "Children and community safety",
+        "items": [
+          "Cele One includes community, education, media, and faith-oriented features. Users should only use the service if they meet the age and consent requirements that apply in their country.",
+          "Reports, moderation actions, and safety reviews may be used to protect users and enforce community standards."
+        ]
+      },
+      "international": {
+        "title": "International use and changes",
+        "items": [
+          "Cele One may process information in countries where its providers, infrastructure, administrators, or users are located.",
+          "We may update this policy when Cele One changes or when legal, security, or operational requirements change. The latest version will be posted on this page."
+        ]
+      }
+    }
+  },
+  "child_safety": {
+    "badge": "Cele One safety",
+    "title": "Child Safety Standards",
+    "intro": "These externally published standards explain Cele One's zero-tolerance policy against child sexual exploitation and abuse, including child sexual abuse material, grooming, sextortion, trafficking, and unsafe contact with minors.",
+    "updated": "Last updated: August 13, 2026",
+    "contact_title": "Safety contact",
+    "contact_text": "To report a child safety concern involving Cele One, contact the safety team immediately. Include only the details needed to locate the content or account. Do not attach or redistribute illegal material.",
+    "sections": {
+      "zero": {
+        "title": "Zero tolerance",
+        "items": [
+          "Cele One prohibits child sexual abuse material, sexual exploitation of children, grooming, sextortion, trafficking, solicitation of minors, and any attempt to sexualize or endanger children.",
+          "Users may not upload, share, request, promote, describe, normalize, or link to content that exploits or abuses minors.",
+          "Accounts, groups, posts, messages, streams, creator pages, and media that violate these standards may be removed and reported."
+        ]
+      },
+      "enforcement": {
+        "title": "Detection, review, and enforcement",
+        "items": [
+          "Cele One may review user reports, moderation signals, administrator reports, and technical abuse indicators to identify child safety risks.",
+          "Confirmed violations can result in content removal, account suspension or termination, group restrictions, creator access removal, and preservation of evidence where legally required.",
+          "When appropriate or legally required, Cele One may report apparent child sexual exploitation or abuse to relevant authorities or child safety organizations."
+        ]
+      },
+      "reporting": {
+        "title": "User reporting",
+        "items": [
+          "Users should report suspected child exploitation, grooming, abuse, or unsafe behavior immediately through in-app reporting tools where available.",
+          "Users can also contact the Cele One safety team by email with the account name, link, screenshot, date, and a short description of the concern.",
+          "Do not forward, download, save, or redistribute suspected child sexual abuse material. Report it instead."
+        ]
+      },
+      "prevention": {
+        "title": "Prevention and community rules",
+        "items": [
+          "Cele One community spaces, groups, calls, posts, chats, streams, and creator tools must be used safely and lawfully.",
+          "Adults must not request private sexual conversations, intimate images, meetings, or personal information from minors.",
+          "Creators and administrators are expected to maintain safe spaces, remove harmful content, and escalate child safety concerns promptly."
+        ]
+      },
+      "improvement": {
+        "title": "Cooperation and continuous improvement",
+        "items": [
+          "Cele One works to improve moderation, reporting workflows, access controls, and safety reviews as the platform evolves.",
+          "We may update these standards when laws, platform features, or child safety best practices change."
+        ]
+      }
+    }
   },
   "landing": {
     "meta_title": "CeleOne | Celestial Christian Mobile Social Platform",

@@ -71,23 +71,40 @@ function navActionClass(variant: "primary" | "outline" | "dark") {
 }
 
 function DesktopLinks({ t }: { user: unknown; isAdmin: boolean; t: (k: string, f?: string) => string }) {
+  const moreLinks = [
+    ["/founders", t("nav.founders_pass", "Founder's Pass")],
+    ["/documentation", t("nav.documentation", "Documentation")],
+    ["/app/privacy", t("nav.privacy_policy", "Privacy Policy")],
+    ["/app/child-safety-standards", t("nav.child_safety", "Child Safety")],
+    ["/account/request_delete", t("nav.account_deletion", "Account Deletion")],
+  ];
+
   return (
-    <nav className="flex min-w-0 items-center justify-center gap-6 xl:gap-8">
+    <nav className="flex min-w-0 items-center justify-center gap-5 xl:gap-7">
       <Link to="/creator/request" className={navLinkClass()}>
         {t("nav.create_tv", "Create TV Channel")}
       </Link>
       <Link to="/spiritual-program" className={navLinkClass()}>
         {t("nav.spiritual_program", "Spiritual Program")}
       </Link>
+      <Link to="/parishes/register" className={navLinkClass()}>
+        {t("nav.register_parish", "Register Parish")}
+      </Link>
       <Link to="/prelaunch-registration" className={navLinkClass()}>
         {t("nav.prelaunch_registration", "Prelaunch Registration")}
       </Link>
-      <Link to="/founders" className={navLinkClass()}>
-        Founder's Pass
-      </Link>
-      <Link to="/documentation" className={navLinkClass()}>
-        {t("nav.documentation", "Documentation")}
-      </Link>
+      <details className="group relative">
+        <summary className={`${navLinkClass()} cursor-pointer list-none`}>
+          {t("nav.more", "More")}
+        </summary>
+        <div className="absolute right-0 top-full z-50 mt-3 grid min-w-[230px] gap-1 rounded-[12px] border border-[#e8edf3] bg-white p-2 shadow-[0_18px_45px_rgba(8,24,40,0.12)]">
+          {moreLinks.map(([href, label]) => (
+            <Link key={href} to={href} className="rounded-[8px] px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-[#f4f7fa] hover:text-[#2ed06e]">
+              {label}
+            </Link>
+          ))}
+        </div>
+      </details>
     </nav>
   );
 }
@@ -136,14 +153,26 @@ function MobileLinks({
       <Link onClick={onClose} to="/spiritual-program" className={itemClass}>
         {t("nav.spiritual_program", "Spiritual Program")}
       </Link>
+      <Link onClick={onClose} to="/parishes/register" className={itemClass}>
+        {t("nav.register_parish", "Register Parish")}
+      </Link>
       <Link onClick={onClose} to="/prelaunch-registration" className={itemClass}>
         {t("nav.prelaunch_registration", "Prelaunch Registration")}
       </Link>
       <Link onClick={onClose} to="/founders" className={itemClass}>
-        Founder's Pass
+        {t("nav.founders_pass", "Founder's Pass")}
       </Link>
       <Link onClick={onClose} to="/documentation" className={itemClass}>
         {t("nav.documentation", "Documentation")}
+      </Link>
+      <Link onClick={onClose} to="/app/privacy" className={itemClass}>
+        {t("nav.privacy_policy", "Privacy Policy")}
+      </Link>
+      <Link onClick={onClose} to="/app/child-safety-standards" className={itemClass}>
+        {t("nav.child_safety", "Child Safety")}
+      </Link>
+      <Link onClick={onClose} to="/account/request_delete" className={itemClass}>
+        {t("nav.account_deletion", "Account Deletion")}
       </Link>
       {user ? (
         <>

@@ -51,6 +51,71 @@ service cloud.firestore {
       return isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
+    function isValidPublicParishRegistration() {
+      return request.resource.data.keys().hasAll([
+        'name',
+        'parishName',
+        'latitude',
+        'longitude',
+        'location',
+        'geoKey',
+        'status',
+        'source',
+        'createdAt',
+        'updatedAt'
+      ])
+      && request.resource.data.keys().hasOnly([
+        'name',
+        'parishName',
+        'address',
+        'city',
+        'country',
+        'contactName',
+        'contactEmail',
+        'contactPhone',
+        'notes',
+        'latitude',
+        'longitude',
+        'location',
+        'geoKey',
+        'status',
+        'source',
+        'createdAt',
+        'updatedAt'
+      ])
+      && request.resource.data.name is string
+      && request.resource.data.name.size() >= 2
+      && request.resource.data.name.size() <= 120
+      && request.resource.data.parishName == request.resource.data.name
+      && request.resource.data.status == 'pending'
+      && request.resource.data.source == 'public_portal'
+      && request.resource.data.latitude is number
+      && request.resource.data.longitude is number
+      && request.resource.data.latitude >= -90
+      && request.resource.data.latitude <= 90
+      && request.resource.data.longitude >= -180
+      && request.resource.data.longitude <= 180
+      && request.resource.data.location.latitude == request.resource.data.latitude
+      && request.resource.data.location.longitude == request.resource.data.longitude
+      && request.resource.data.geoKey is string
+      && request.resource.data.address is string
+      && request.resource.data.address.size() <= 180
+      && request.resource.data.city is string
+      && request.resource.data.city.size() <= 80
+      && request.resource.data.country is string
+      && request.resource.data.country.size() <= 80
+      && request.resource.data.contactName is string
+      && request.resource.data.contactName.size() <= 80
+      && request.resource.data.contactEmail is string
+      && request.resource.data.contactEmail.size() <= 120
+      && request.resource.data.contactPhone is string
+      && request.resource.data.contactPhone.size() <= 40
+      && request.resource.data.notes is string
+      && request.resource.data.notes.size() <= 600
+      && request.resource.data.createdAt == request.time
+      && request.resource.data.updatedAt == request.time;
+    }
+
     function roomExists(roomId) {
       return exists(/databases/$(database)/documents/chatrooms/$(roomId));
     }
@@ -459,6 +524,12 @@ service cloud.firestore {
     match /parishes/{parishId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
+    }
+
+    match /parish_registration_requests/{requestId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if requestId == request.resource.data.geoKey
+        && isValidPublicParishRegistration();
     }
 
     match /parishHistory/{historyId} {
