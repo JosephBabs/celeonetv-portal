@@ -143,6 +143,66 @@
       }
     }
   },
+  "parish_register": {
+    "badge": "Mapa mundial de parroquias",
+    "title": "Registrar la ubicacion de tu parroquia",
+    "subtitle": "Agrega tu parroquia al mapa de Cele One sin iniciar sesion. Elige el punto exacto, usa tu ubicacion actual si estas en la parroquia, y revisaremos la solicitud antes de publicarla.",
+    "stats": {
+      "approved": "ubicaciones aprobadas",
+      "duplicate_guard": "control de duplicados",
+      "no_login_value": "Sin login",
+      "pending_review": "revision pendiente"
+    },
+    "form": {
+      "title": "Detalles de la parroquia",
+      "subtitle": "Solo la parroquia y la ubicacion son obligatorias.",
+      "parish_name": "Nombre de la parroquia",
+      "parish_name_ph": "Nombre de la parroquia Celestial",
+      "address": "Direccion o referencia",
+      "address_ph": "Calle, barrio, referencia cercana",
+      "city": "Ciudad",
+      "city_ph": "Ciudad",
+      "country": "Pais",
+      "country_ph": "Elegir un pais",
+      "contact_name": "Nombre de contacto",
+      "contact_phone": "Telefono de contacto",
+      "contact_email": "Email de contacto",
+      "optional": "Opcional",
+      "notes": "Notas para revision",
+      "notes_ph": "Horarios de culto, nombre del lider o informacion que admins deben verificar",
+      "selected_coordinates": "Coordenadas seleccionadas:",
+      "duplicate_notice": "Posible duplicado: {name} esta a unos {meters} m de este punto.",
+      "submitting": "Enviando...",
+      "submit": "Enviar parroquia para revision"
+    },
+    "map": {
+      "title": "Elegir la ubicacion",
+      "subtitle": "Haz clic o arrastra el marcador a la entrada o edificio principal de la parroquia.",
+      "locating": "Localizando...",
+      "use_my_location": "Usar mi ubicacion",
+      "google_key_missing": "Agrega VITE_GOOGLE_MAPS_API_KEY para activar Google Maps. OpenStreetMap ya esta disponible.",
+      "selected_marker": "Ubicacion seleccionada de la parroquia"
+    },
+    "rules": {
+      "public_pending_prefix": "Los visitantes solo crean solicitudes pendientes. Los admins aprueban registros limpios en",
+      "mobile_reads_prefix": "La app movil lee ubicaciones aprobadas desde",
+      "mobile_reads_suffix": "usando campos de latitud y longitud."
+    },
+    "status": {
+      "load_failed": "No se pudieron cargar las parroquias existentes. Aun puedes colocar el marcador antes de enviar.",
+      "osm_failed": "No se pudo cargar OpenStreetMap. Prueba Google Maps o usa tu ubicacion.",
+      "google_failed": "No se pudo cargar Google Maps. OpenStreetMap sigue disponible.",
+      "geolocation_unsupported": "Este navegador no admite geolocalizacion.",
+      "location_snapped": "El marcador se coloco en tu ubicacion actual. Muevelo si la parroquia esta cerca pero no exactamente aqui.",
+      "location_denied": "El permiso de ubicacion fue denegado o no esta disponible. Todavia puedes hacer clic en el mapa para elegir la parroquia.",
+      "name_required": "Ingresa el nombre de la parroquia antes de enviar.",
+      "location_required": "Elige una ubicacion valida de la parroquia en el mapa.",
+      "duplicate": "{name} ya esta registrada a unos {meters} m de este punto. Mueve el marcador si es otra parroquia.",
+      "success": "Gracias. La parroquia fue enviada para revision y aparecera despues de la aprobacion.",
+      "already_exists": "Ya existe una solicitud de parroquia para esta zona exacta. Los admins pueden revisar la solicitud pendiente.",
+      "submit_failed": "No se pudo enviar la parroquia. Revisa el despliegue de las reglas Firestore e intenta de nuevo."
+    }
+  },
   "landing": {
     "meta_title": "CeleOne | Plataforma Social Movil Cristiana Celestial",
     "meta_desc": "CeleOne centraliza noticias, reformas, decisiones oficiales ECC, chat comunitario y TV/Radio en vivo en un espacio seguro.",

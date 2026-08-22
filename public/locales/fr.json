@@ -143,6 +143,66 @@
       }
     }
   },
+  "parish_register": {
+    "badge": "Carte mondiale des paroisses",
+    "title": "Ajouter la localisation de votre paroisse",
+    "subtitle": "Ajoutez votre paroisse a la carte Cele One sans connexion. Choisissez le point exact, utilisez votre position actuelle si vous etes a la paroisse, puis nous verifierons avant publication.",
+    "stats": {
+      "approved": "localisations approuvees",
+      "duplicate_guard": "controle doublon",
+      "no_login_value": "Sans connexion",
+      "pending_review": "en attente de validation"
+    },
+    "form": {
+      "title": "Details de la paroisse",
+      "subtitle": "Seuls la paroisse et l'emplacement sont obligatoires.",
+      "parish_name": "Nom de la paroisse",
+      "parish_name_ph": "Nom de la paroisse Celeste",
+      "address": "Adresse ou repere",
+      "address_ph": "Rue, quartier, repere le plus proche",
+      "city": "Ville",
+      "city_ph": "Ville",
+      "country": "Pays",
+      "country_ph": "Choisir un pays",
+      "contact_name": "Nom du contact",
+      "contact_phone": "Telephone du contact",
+      "contact_email": "Email du contact",
+      "optional": "Facultatif",
+      "notes": "Notes pour verification",
+      "notes_ph": "Horaires de culte, nom du responsable ou information a verifier",
+      "selected_coordinates": "Coordonnees selectionnees :",
+      "duplicate_notice": "Doublon possible : {name} est a environ {meters} m de ce point.",
+      "submitting": "Envoi...",
+      "submit": "Soumettre la paroisse pour validation"
+    },
+    "map": {
+      "title": "Choisir l'emplacement",
+      "subtitle": "Cliquez ou deplacez le marqueur vers l'entree ou le batiment principal de la paroisse.",
+      "locating": "Localisation...",
+      "use_my_location": "Utiliser ma position",
+      "google_key_missing": "Ajoutez VITE_GOOGLE_MAPS_API_KEY pour activer Google Maps. OpenStreetMap est deja disponible.",
+      "selected_marker": "Localisation selectionnee de la paroisse"
+    },
+    "rules": {
+      "public_pending_prefix": "Les visiteurs creent uniquement des demandes en attente. Les admins approuvent les fiches propres dans",
+      "mobile_reads_prefix": "L'application mobile lit les localisations approuvees depuis",
+      "mobile_reads_suffix": "avec les champs latitude et longitude."
+    },
+    "status": {
+      "load_failed": "Les paroisses existantes n'ont pas pu etre chargees. Vous pouvez quand meme placer le marqueur avant l'envoi.",
+      "osm_failed": "OpenStreetMap n'a pas pu etre charge. Essayez Google Maps ou utilisez votre position.",
+      "google_failed": "Google Maps n'a pas pu etre charge. OpenStreetMap reste disponible.",
+      "geolocation_unsupported": "Ce navigateur ne prend pas en charge la geolocalisation.",
+      "location_snapped": "Le marqueur a ete place sur votre position actuelle. Deplacez-le si la paroisse est proche mais pas exactement ici.",
+      "location_denied": "La permission de localisation a ete refusee ou indisponible. Vous pouvez toujours cliquer sur la carte pour choisir la paroisse.",
+      "name_required": "Entrez le nom de la paroisse avant l'envoi.",
+      "location_required": "Choisissez une localisation valide sur la carte.",
+      "duplicate": "{name} est deja enregistre a environ {meters} m de ce point. Deplacez le marqueur si c'est une autre paroisse.",
+      "success": "Merci. La paroisse a ete soumise pour verification et apparaitra apres approbation.",
+      "already_exists": "Une demande de paroisse existe deja pour cette zone exacte. Les admins peuvent verifier la demande en attente.",
+      "submit_failed": "La paroisse n'a pas pu etre soumise. Verifiez le deploiement des regles Firestore puis reessayez."
+    }
+  },
   "landing": {
     "meta_title": "CeleOne | Plateforme Sociale Mobile Chretienne Celeste",
     "meta_desc": "CeleOne rassemble actualites, reformes, decisions officielles ECC, chat communautaire et diffusion TV/Radio en direct dans un espace securise.",

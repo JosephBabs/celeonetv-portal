@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { collection, doc, getDocs, query, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { useI18n } from "../lib/i18n";
 
 type MapEngine = "osm" | "google";
 type Coordinates = { latitude: number; longitude: number };
+type CountryOption = { code: string; label: string };
 type ParishRecord = Coordinates & {
   id: string;
   name: string;
@@ -17,6 +19,7 @@ type FormState = {
   parishName: string;
   address: string;
   city: string;
+  countryCode: string;
   country: string;
   contactName: string;
   contactEmail: string;
@@ -42,12 +45,60 @@ const initialForm: FormState = {
   parishName: "",
   address: "",
   city: "",
+  countryCode: "",
   country: "",
   contactName: "",
   contactEmail: "",
   contactPhone: "",
   notes: "",
 };
+
+const FALLBACK_COUNTRY_CODES = [
+  "BJ",
+  "FR",
+  "NG",
+  "CI",
+  "TG",
+  "GH",
+  "CM",
+  "CD",
+  "CG",
+  "GA",
+  "SN",
+  "US",
+  "CA",
+  "GB",
+  "ES",
+  "IT",
+  "DE",
+  "NL",
+  "BE",
+  "BR",
+  "ZA",
+];
+
+function countryCodes() {
+  const supportedValuesOf = (Intl as any).supportedValuesOf;
+  if (typeof supportedValuesOf === "function") {
+    try {
+      return supportedValuesOf("region").filter((code: string) => /^[A-Z]{2}$/.test(code));
+    } catch {
+      return FALLBACK_COUNTRY_CODES;
+    }
+  }
+  return FALLBACK_COUNTRY_CODES;
+}
+
+function countryOptions(lang: string): CountryOption[] {
+  const displayNames = typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames([lang], { type: "region" }) : null;
+  return countryCodes()
+    .map((code: string): CountryOption => ({ code, label: displayNames?.of(code) || code }))
+    .sort((a: CountryOption, b: CountryOption) => a.label.localeCompare(b.label, lang));
+}
+
+function interpolate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce((message, [key, value]) => message.replaceAll(`{${key}}`, String(value)), template);
+}
 
 function toNumber(value: unknown) {
   const next = Number(value);
@@ -135,6 +186,7 @@ function nearbyParish(parishes: ParishRecord[], point: Coordinates) {
 }
 
 export default function ParishRegistration() {
+  const { lang, t } = useI18n();
   const [form, setForm] = useState<FormState>(initialForm);
   const [point, setPoint] = useState<Coordinates>(DEFAULT_POINT);
   const [engine, setEngine] = useState<MapEngine>("osm");
@@ -147,6 +199,12 @@ export default function ParishRegistration() {
   const googleKey = String(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "");
 
   const duplicate = useMemo(() => nearbyParish(parishes, point), [parishes, point]);
+  const countries = useMemo(() => countryOptions(lang), [lang]);
+
+  function msg(key: string, fallback: string, values?: Record<string, string | number>) {
+    const template = t(key, fallback);
+    return values ? interpolate(template, values) : template;
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -162,7 +220,7 @@ export default function ParishRegistration() {
         );
       } catch {
         if (mounted) {
-          setStatus({ tone: "warn", text: "Existing parishes could not be loaded. You can still place the marker before submitting." });
+          setStatus({ tone: "warn", text: t("parish_register.status.load_failed", "Existing parishes could not be loaded. You can still place the marker before submitting.") });
         }
       } finally {
         if (mounted) setLoadingParishes(false);
@@ -214,17 +272,17 @@ export default function ParishRegistration() {
       });
     }
 
-    mountOsmMap().catch(() => setStatus({ tone: "error", text: "OpenStreetMap could not be loaded. Try the Google map option or enter coordinates by locating yourself." }));
+    mountOsmMap().catch(() => setStatus({ tone: "error", text: t("parish_register.status.osm_failed", "OpenStreetMap could not be loaded. Try the Google map option or enter coordinates by locating yourself.") }));
     return () => {
       cancelled = true;
       if (map) map.remove();
     };
-  }, [engine, parishes, point.latitude, point.longitude]);
+  }, [engine, parishes, point.latitude, point.longitude, t]);
 
   useEffect(() => {
     if (!mapRef.current || engine !== "google") return;
     if (!googleKey) {
-      mapRef.current.innerHTML = "<div class='flex h-full items-center justify-center p-6 text-center text-sm font-bold text-slate-600'>Add VITE_GOOGLE_MAPS_API_KEY to enable Google Maps. OpenStreetMap is ready now.</div>";
+      mapRef.current.innerHTML = `<div class='flex h-full items-center justify-center p-6 text-center text-sm font-bold text-slate-600'>${t("parish_register.map.google_key_missing", "Add VITE_GOOGLE_MAPS_API_KEY to enable Google Maps. OpenStreetMap is ready now.")}</div>`;
       return;
     }
     let cancelled = false;
@@ -246,7 +304,7 @@ export default function ParishRegistration() {
         position: center,
         map,
         draggable: true,
-        title: "Selected parish location",
+        title: t("parish_register.map.selected_marker", "Selected parish location"),
       });
       parishes.forEach((parish) => {
         new window.google.maps.Marker({
@@ -266,30 +324,39 @@ export default function ParishRegistration() {
       });
     }
 
-    mountGoogleMap().catch(() => setStatus({ tone: "error", text: "Google Maps could not be loaded. OpenStreetMap remains available." }));
+    mountGoogleMap().catch(() => setStatus({ tone: "error", text: t("parish_register.status.google_failed", "Google Maps could not be loaded. OpenStreetMap remains available.") }));
     return () => {
       cancelled = true;
     };
-  }, [engine, googleKey, parishes, point.latitude, point.longitude]);
+  }, [engine, googleKey, parishes, point.latitude, point.longitude, t]);
 
   function updateField(field: keyof FormState, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  function updateCountry(countryCode: string) {
+    const selected = countries.find((country) => country.code === countryCode);
+    setForm((current) => ({
+      ...current,
+      countryCode,
+      country: selected?.label || "",
+    }));
+  }
+
   function snapToCurrentLocation() {
     if (!navigator.geolocation) {
-      setStatus({ tone: "error", text: "This browser does not support geolocation." });
+      setStatus({ tone: "error", text: t("parish_register.status.geolocation_unsupported", "This browser does not support geolocation.") });
       return;
     }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setPoint({ latitude: position.coords.latitude, longitude: position.coords.longitude });
-        setStatus({ tone: "ok", text: "Marker snapped to your current location. Move it if the parish is nearby but not exactly here." });
+        setStatus({ tone: "ok", text: t("parish_register.status.location_snapped", "Marker snapped to your current location. Move it if the parish is nearby but not exactly here.") });
         setLocating(false);
       },
       () => {
-        setStatus({ tone: "error", text: "Location permission was denied or unavailable. You can still click the map to choose the parish." });
+        setStatus({ tone: "error", text: t("parish_register.status.location_denied", "Location permission was denied or unavailable. You can still click the map to choose the parish.") });
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 },
@@ -300,17 +367,20 @@ export default function ParishRegistration() {
     event.preventDefault();
     const name = form.parishName.trim();
     if (!name) {
-      setStatus({ tone: "error", text: "Enter the parish name before submitting." });
+      setStatus({ tone: "error", text: t("parish_register.status.name_required", "Enter the parish name before submitting.") });
       return;
     }
     if (!Number.isFinite(point.latitude) || !Number.isFinite(point.longitude)) {
-      setStatus({ tone: "error", text: "Choose a valid parish location on the map." });
+      setStatus({ tone: "error", text: t("parish_register.status.location_required", "Choose a valid parish location on the map.") });
       return;
     }
     if (duplicate) {
       setStatus({
         tone: "warn",
-        text: `${duplicate.parish.name} is already registered about ${Math.round(duplicate.meters)} m from this point. Move the marker if this is a different parish.`,
+        text: msg("parish_register.status.duplicate", "{name} is already registered about {meters} m from this point. Move the marker if this is a different parish.", {
+          name: duplicate.parish.name,
+          meters: Math.round(duplicate.meters),
+        }),
       });
       return;
     }
@@ -326,6 +396,7 @@ export default function ParishRegistration() {
           parishName: name,
           address: form.address.trim(),
           city: form.city.trim(),
+          countryCode: form.countryCode,
           country: form.country.trim(),
           contactName: form.contactName.trim(),
           contactEmail: form.contactEmail.trim(),
@@ -346,14 +417,14 @@ export default function ParishRegistration() {
         { merge: false },
       );
       setForm(initialForm);
-      setStatus({ tone: "ok", text: "Thank you. The parish was submitted for review and will appear after approval." });
+      setStatus({ tone: "ok", text: t("parish_register.status.success", "Thank you. The parish was submitted for review and will appear after approval.") });
     } catch (error: any) {
       const alreadyExists = String(error?.code || "").includes("already-exists") || String(error?.message || "").includes("already exists");
       setStatus({
         tone: alreadyExists ? "warn" : "error",
         text: alreadyExists
-          ? "A parish request already exists for this exact map area. Admins can review the pending submission."
-          : "The parish could not be submitted. Check the Firestore rule deployment and try again.",
+          ? t("parish_register.status.already_exists", "A parish request already exists for this exact map area. Admins can review the pending submission.")
+          : t("parish_register.status.submit_failed", "The parish could not be submitted. Check the Firestore rule deployment and try again."),
       });
     } finally {
       setSubmitting(false);
@@ -364,27 +435,27 @@ export default function ParishRegistration() {
     <div className="space-y-8">
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
         <div>
-          <span className="portal-badge">Global parish map</span>
+          <span className="portal-badge">{t("parish_register.badge", "Global parish map")}</span>
           <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight text-[#081828] md:text-5xl">
-            Register your parish location
+            {t("parish_register.title", "Register your parish location")}
           </h1>
           <p className="portal-body mt-4 max-w-2xl">
-            Add your parish to the Cele One map without signing in. Choose the exact point, use your current location if you are at the parish, and we will review it before publishing.
+            {t("parish_register.subtitle", "Add your parish to the Cele One map without signing in. Choose the exact point, use your current location if you are at the parish, and we will review it before publishing.")}
           </p>
         </div>
         <div className="rounded-[8px] border border-[#dbe8ef] bg-white p-5 shadow-[0_12px_35px_rgba(8,24,40,0.06)]">
           <div className="grid gap-3 text-sm font-bold text-slate-700 sm:grid-cols-3">
             <div>
               <div className="text-2xl font-black text-[#0f766e]">{loadingParishes ? "--" : parishes.length}</div>
-              approved locations
+              {t("parish_register.stats.approved", "approved locations")}
             </div>
             <div>
               <div className="text-2xl font-black text-[#0f766e]">100 m</div>
-              duplicate guard
+              {t("parish_register.stats.duplicate_guard", "duplicate guard")}
             </div>
             <div>
-              <div className="text-2xl font-black text-[#0f766e]">No login</div>
-              pending review
+              <div className="text-2xl font-black text-[#0f766e]">{t("parish_register.stats.no_login_value", "No login")}</div>
+              {t("parish_register.stats.pending_review", "pending review")}
             </div>
           </div>
         </div>
@@ -394,57 +465,67 @@ export default function ParishRegistration() {
         <form onSubmit={submitParish} className="rounded-[8px] border border-[#e6edf3] bg-white p-5 shadow-[0_12px_35px_rgba(8,24,40,0.06)]">
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-black text-[#081828]">Parish details</h2>
-              <p className="mt-1 text-sm font-semibold text-slate-500">Only the parish and location are required.</p>
+              <h2 className="text-2xl font-black text-[#081828]">{t("parish_register.form.title", "Parish details")}</h2>
+              <p className="mt-1 text-sm font-semibold text-slate-500">{t("parish_register.form.subtitle", "Only the parish and location are required.")}</p>
             </div>
           </div>
 
           <div className="grid gap-4">
             <label className="grid gap-2 text-sm font-black text-slate-700">
-              Parish name
-              <input value={form.parishName} onChange={(event) => updateField("parishName", event.target.value)} placeholder="Celestial Church parish name" maxLength={120} required />
+              {t("parish_register.form.parish_name", "Parish name")}
+              <input value={form.parishName} onChange={(event) => updateField("parishName", event.target.value)} placeholder={t("parish_register.form.parish_name_ph", "Celestial Church parish name")} maxLength={120} required />
             </label>
             <label className="grid gap-2 text-sm font-black text-slate-700">
-              Address or landmark
-              <input value={form.address} onChange={(event) => updateField("address", event.target.value)} placeholder="Street, neighborhood, nearest landmark" maxLength={180} />
+              {t("parish_register.form.address", "Address or landmark")}
+              <input value={form.address} onChange={(event) => updateField("address", event.target.value)} placeholder={t("parish_register.form.address_ph", "Street, neighborhood, nearest landmark")} maxLength={180} />
             </label>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-black text-slate-700">
-                City
-                <input value={form.city} onChange={(event) => updateField("city", event.target.value)} placeholder="City" maxLength={80} />
+                {t("parish_register.form.city", "City")}
+                <input value={form.city} onChange={(event) => updateField("city", event.target.value)} placeholder={t("parish_register.form.city_ph", "City")} maxLength={80} />
               </label>
               <label className="grid gap-2 text-sm font-black text-slate-700">
-                Country
-                <input value={form.country} onChange={(event) => updateField("country", event.target.value)} placeholder="Country" maxLength={80} />
+                {t("parish_register.form.country", "Country")}
+                <select value={form.countryCode} onChange={(event) => updateCountry(event.target.value)}>
+                  <option value="">{t("parish_register.form.country_ph", "Choose a country")}</option>
+                  {countries.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.label}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-black text-slate-700">
-                Contact name
-                <input value={form.contactName} onChange={(event) => updateField("contactName", event.target.value)} placeholder="Optional" maxLength={80} />
+                {t("parish_register.form.contact_name", "Contact name")}
+                <input value={form.contactName} onChange={(event) => updateField("contactName", event.target.value)} placeholder={t("parish_register.form.optional", "Optional")} maxLength={80} />
               </label>
               <label className="grid gap-2 text-sm font-black text-slate-700">
-                Contact phone
-                <input value={form.contactPhone} onChange={(event) => updateField("contactPhone", event.target.value)} placeholder="Optional" maxLength={40} />
+                {t("parish_register.form.contact_phone", "Contact phone")}
+                <input value={form.contactPhone} onChange={(event) => updateField("contactPhone", event.target.value)} placeholder={t("parish_register.form.optional", "Optional")} maxLength={40} />
               </label>
             </div>
             <label className="grid gap-2 text-sm font-black text-slate-700">
-              Contact email
-              <input value={form.contactEmail} onChange={(event) => updateField("contactEmail", event.target.value)} placeholder="Optional" type="email" maxLength={120} />
+              {t("parish_register.form.contact_email", "Contact email")}
+              <input value={form.contactEmail} onChange={(event) => updateField("contactEmail", event.target.value)} placeholder={t("parish_register.form.optional", "Optional")} type="email" maxLength={120} />
             </label>
             <label className="grid gap-2 text-sm font-black text-slate-700">
-              Notes for review
-              <textarea value={form.notes} onChange={(event) => updateField("notes", event.target.value)} placeholder="Service times, leader name, or anything admins should verify" rows={4} maxLength={600} />
+              {t("parish_register.form.notes", "Notes for review")}
+              <textarea value={form.notes} onChange={(event) => updateField("notes", event.target.value)} placeholder={t("parish_register.form.notes_ph", "Service times, leader name, or anything admins should verify")} rows={4} maxLength={600} />
             </label>
           </div>
 
           <div className="mt-5 rounded-[8px] border border-[#dbe8ef] bg-[#f8fbfd] p-4 text-sm font-bold text-slate-600">
-            Selected coordinates: <span className="text-[#081828]">{formatPoint(point)}</span>
+            {t("parish_register.form.selected_coordinates", "Selected coordinates:")} <span className="text-[#081828]">{formatPoint(point)}</span>
           </div>
 
           {duplicate ? (
             <div className="mt-4 rounded-[8px] border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">
-              Possible duplicate: {duplicate.parish.name} is about {Math.round(duplicate.meters)} m from this point.
+              {msg("parish_register.form.duplicate_notice", "Possible duplicate: {name} is about {meters} m from this point.", {
+                name: duplicate.parish.name,
+                meters: Math.round(duplicate.meters),
+              })}
             </div>
           ) : null}
 
@@ -463,15 +544,15 @@ export default function ParishRegistration() {
           ) : null}
 
           <button type="submit" disabled={submitting || !!duplicate} className="portal-btn portal-btn-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-55">
-            {submitting ? "Submitting..." : "Submit parish for review"}
+            {submitting ? t("parish_register.form.submitting", "Submitting...") : t("parish_register.form.submit", "Submit parish for review")}
           </button>
         </form>
 
         <div className="rounded-[8px] border border-[#e6edf3] bg-white p-4 shadow-[0_12px_35px_rgba(8,24,40,0.06)]">
           <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-2xl font-black text-[#081828]">Choose the location</h2>
-              <p className="mt-1 text-sm font-semibold text-slate-500">Click or drag the marker to the parish entrance or main building.</p>
+              <h2 className="text-2xl font-black text-[#081828]">{t("parish_register.map.title", "Choose the location")}</h2>
+              <p className="mt-1 text-sm font-semibold text-slate-500">{t("parish_register.map.subtitle", "Click or drag the marker to the parish entrance or main building.")}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => setEngine("osm")} className={`rounded-[8px] px-4 py-2 text-sm font-black ${engine === "osm" ? "bg-[#0f766e] text-white" : "bg-[#eef7f5] text-[#0f766e]"}`}>
@@ -481,7 +562,7 @@ export default function ParishRegistration() {
                 Google
               </button>
               <button type="button" onClick={snapToCurrentLocation} disabled={locating} className="rounded-[8px] bg-[#f5c451] px-4 py-2 text-sm font-black text-[#081828] disabled:opacity-60">
-                {locating ? "Locating..." : "Use my location"}
+                {locating ? t("parish_register.map.locating", "Locating...") : t("parish_register.map.use_my_location", "Use my location")}
               </button>
             </div>
           </div>
@@ -490,10 +571,10 @@ export default function ParishRegistration() {
 
           <div className="mt-4 grid gap-3 text-sm font-bold text-slate-600 md:grid-cols-2">
             <div className="rounded-[8px] bg-[#f8fbfd] p-4">
-              Public users create pending requests only. Admins approve clean records into <span className="text-[#081828]">parishes</span>.
+              {t("parish_register.rules.public_pending_prefix", "Public users create pending requests only. Admins approve clean records into")} <span className="text-[#081828]">parishes</span>.
             </div>
             <div className="rounded-[8px] bg-[#f8fbfd] p-4">
-              The mobile app reads approved locations from <span className="text-[#081828]">parishes</span> using latitude and longitude fields.
+              {t("parish_register.rules.mobile_reads_prefix", "The mobile app reads approved locations from")} <span className="text-[#081828]">parishes</span> {t("parish_register.rules.mobile_reads_suffix", "using latitude and longitude fields.")}
             </div>
           </div>
         </div>

@@ -143,6 +143,66 @@
       }
     }
   },
+  "parish_register": {
+    "badge": "Global parish map",
+    "title": "Register your parish location",
+    "subtitle": "Add your parish to the Cele One map without signing in. Choose the exact point, use your current location if you are at the parish, and we will review it before publishing.",
+    "stats": {
+      "approved": "approved locations",
+      "duplicate_guard": "duplicate guard",
+      "no_login_value": "No login",
+      "pending_review": "pending review"
+    },
+    "form": {
+      "title": "Parish details",
+      "subtitle": "Only the parish and location are required.",
+      "parish_name": "Parish name",
+      "parish_name_ph": "Celestial Church parish name",
+      "address": "Address or landmark",
+      "address_ph": "Street, neighborhood, nearest landmark",
+      "city": "City",
+      "city_ph": "City",
+      "country": "Country",
+      "country_ph": "Choose a country",
+      "contact_name": "Contact name",
+      "contact_phone": "Contact phone",
+      "contact_email": "Contact email",
+      "optional": "Optional",
+      "notes": "Notes for review",
+      "notes_ph": "Service times, leader name, or anything admins should verify",
+      "selected_coordinates": "Selected coordinates:",
+      "duplicate_notice": "Possible duplicate: {name} is about {meters} m from this point.",
+      "submitting": "Submitting...",
+      "submit": "Submit parish for review"
+    },
+    "map": {
+      "title": "Choose the location",
+      "subtitle": "Click or drag the marker to the parish entrance or main building.",
+      "locating": "Locating...",
+      "use_my_location": "Use my location",
+      "google_key_missing": "Add VITE_GOOGLE_MAPS_API_KEY to enable Google Maps. OpenStreetMap is ready now.",
+      "selected_marker": "Selected parish location"
+    },
+    "rules": {
+      "public_pending_prefix": "Public users create pending requests only. Admins approve clean records into",
+      "mobile_reads_prefix": "The mobile app reads approved locations from",
+      "mobile_reads_suffix": "using latitude and longitude fields."
+    },
+    "status": {
+      "load_failed": "Existing parishes could not be loaded. You can still place the marker before submitting.",
+      "osm_failed": "OpenStreetMap could not be loaded. Try the Google map option or enter coordinates by locating yourself.",
+      "google_failed": "Google Maps could not be loaded. OpenStreetMap remains available.",
+      "geolocation_unsupported": "This browser does not support geolocation.",
+      "location_snapped": "Marker snapped to your current location. Move it if the parish is nearby but not exactly here.",
+      "location_denied": "Location permission was denied or unavailable. You can still click the map to choose the parish.",
+      "name_required": "Enter the parish name before submitting.",
+      "location_required": "Choose a valid parish location on the map.",
+      "duplicate": "{name} is already registered about {meters} m from this point. Move the marker if this is a different parish.",
+      "success": "Thank you. The parish was submitted for review and will appear after approval.",
+      "already_exists": "A parish request already exists for this exact map area. Admins can review the pending submission.",
+      "submit_failed": "The parish could not be submitted. Check the Firestore rule deployment and try again."
+    }
+  },
   "landing": {
     "meta_title": "CeleOne | Celestial Christian Mobile Social Platform",
     "meta_desc": "CeleOne centralizes ECC updates, reforms, official decisions, community chat, and live TV/Radio in a secure space.",
