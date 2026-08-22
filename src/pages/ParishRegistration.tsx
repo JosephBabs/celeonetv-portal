@@ -462,7 +462,7 @@ export default function ParishRegistration() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-        <form onSubmit={submitParish} className="rounded-[8px] border border-[#e6edf3] bg-white p-5 shadow-[0_12px_35px_rgba(8,24,40,0.06)]">
+        <form onSubmit={submitParish} className="order-2 rounded-[8px] border border-[#e6edf3] bg-white p-5 shadow-[0_12px_35px_rgba(8,24,40,0.06)] xl:order-1">
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-2xl font-black text-[#081828]">{t("parish_register.form.title", "Parish details")}</h2>
@@ -548,7 +548,7 @@ export default function ParishRegistration() {
           </button>
         </form>
 
-        <div className="rounded-[8px] border border-[#e6edf3] bg-white p-4 shadow-[0_12px_35px_rgba(8,24,40,0.06)]">
+        <div className="order-1 rounded-[8px] border border-[#e6edf3] bg-white p-4 shadow-[0_12px_35px_rgba(8,24,40,0.06)] xl:order-2">
           <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-black text-[#081828]">{t("parish_register.map.title", "Choose the location")}</h2>
