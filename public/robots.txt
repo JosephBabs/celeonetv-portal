@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /logout
+Disallow: /register
+Disallow: /donate
+Disallow: /founders/activate
+Disallow: /founders/certificate
+Disallow: /founders/dashboard
+
+Sitemap: https://celeonetv.com/sitemap.xml
