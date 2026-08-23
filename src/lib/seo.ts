@@ -88,7 +88,163 @@ const routeTranslations: Record<string, Partial<Record<RouteLocale, Pick<MetaInp
         "Lea temas semanales, lecturas biblicas, cultos, celebraciones especiales e himnos programados de la Iglesia Celestial de Cristo en Cele One.",
     },
   },
+  "/creator/request": {
+    fr: {
+      title: "Creer une chaine chretienne TV | Celeone TV",
+      description: "Demandez l'ajout d'une TV chretienne, web TV, radio, podcast, media ECC, media paroissial ou chaine de l'Eglise du Christianisme Celeste sur Celeone TV.",
+    },
+    es: {
+      title: "Crear un canal cristiano de TV | Celeone TV",
+      description: "Solicite la inclusion de una TV cristiana, web TV, radio, podcast, medio ECC, medio parroquial o canal de la Iglesia Celestial de Cristo en Celeone TV.",
+    },
+  },
+  "/documentation": {
+    fr: {
+      title: "Documentation Cele One | Plateforme ECC, reseau social et TV",
+      description: "Explorez la documentation publique de Cele One pour la plateforme ECC, les fonctionnalites sociales, Cele TV, les programmes spirituels, les paroisses et les politiques.",
+    },
+    es: {
+      title: "Documentacion Cele One | Plataforma ECC, red social y TV",
+      description: "Explore la documentacion publica de Cele One para la plataforma ECC, funciones sociales, Cele TV, programas espirituales, parroquias y politicas.",
+    },
+  },
+  "/app/privacy": {
+    fr: {
+      title: "Politique de confidentialite | Plateforme ECC Cele One",
+      description: "Lisez comment Cele One collecte, utilise, partage, protege, conserve et supprime les informations des utilisateurs de la plateforme ECC et Eglise du Christianisme Celeste.",
+    },
+    es: {
+      title: "Politica de privacidad | Plataforma ECC Cele One",
+      description: "Lea como Cele One recopila, usa, comparte, protege, conserva y elimina la informacion de usuarios de la plataforma ECC e Iglesia Celestial de Cristo.",
+    },
+  },
+  "/account/request_delete": {
+    fr: {
+      title: "Demander la suppression de compte | Cele One",
+      description: "Demandez la suppression de votre compte Cele One et des donnees personnelles associees sur la plateforme ECC et Eglise du Christianisme Celeste.",
+    },
+    es: {
+      title: "Solicitar eliminacion de cuenta | Cele One",
+      description: "Solicite la eliminacion de su cuenta Cele One y de los datos personales asociados en la plataforma ECC e Iglesia Celestial de Cristo.",
+    },
+  },
+  "/app/child-safety-standards": {
+    fr: {
+      title: "Normes de protection des enfants | Cele One",
+      description: "Consultez les normes publiees par Cele One contre l'exploitation sexuelle des enfants, les abus, le grooming et les contacts dangereux avec les mineurs.",
+    },
+    es: {
+      title: "Normas de seguridad infantil | Cele One",
+      description: "Lea las normas publicadas por Cele One contra la explotacion sexual infantil, el abuso, el grooming y el contacto inseguro con menores.",
+    },
+  },
+  "/prelaunch-registration": {
+    fr: {
+      title: "Preinscription Cele One | Plateforme communautaire ECC",
+      description: "Creez votre compte Cele One avant le lancement ou enregistrez vos informations de donateur pour soutenir le projet communautaire de l'Eglise du Christianisme Celeste.",
+    },
+    es: {
+      title: "Registro previo Cele One | Plataforma comunitaria ECC",
+      description: "Cree su cuenta Cele One antes del lanzamiento o registre sus datos de donante para apoyar el proyecto comunitario de la Iglesia Celestial de Cristo.",
+    },
+  },
+  "/founder-pass": {
+    fr: {
+      title: "Pass Fondateur | Cele One",
+      description: "Soutenez Cele One et reservez votre reconnaissance Fondateur, certificat verifiable et presence publique sur le mur des soutiens de la communaute ECC.",
+    },
+    es: {
+      title: "Pase Fundador | Cele One",
+      description: "Apoye Cele One y reserve reconocimiento de Fundador, certificado verificable y presencia publica en el muro de colaboradores de la comunidad ECC.",
+    },
+  },
+  "/founders/wall": {
+    fr: {
+      title: "Mur des fondateurs | Cele One",
+      description: "Consultez le mur public des fondateurs Cele One et les soutiens reconnus de la plateforme communautaire de l'Eglise Celeste.",
+    },
+    es: {
+      title: "Muro de fundadores | Cele One",
+      description: "Vea el muro publico de fundadores Cele One y los colaboradores reconocidos de la plataforma comunitaria celestial.",
+    },
+  },
+  "/founders/verify": {
+    fr: {
+      title: "Verifier un Pass Fondateur | Cele One",
+      description: "Verifiez officiellement un certificat de Pass Fondateur ou une identite de fondateur Cele One depuis le portail officiel.",
+    },
+    es: {
+      title: "Verificar Pase Fundador | Cele One",
+      description: "Verifique oficialmente un certificado de Pase Fundador o una identidad de fundador Cele One desde el portal oficial.",
+    },
+  },
+  "/login": {
+    fr: { title: "Connexion | Celeone TV", description: "Connectez-vous securisement a votre compte Celeone et a vos outils createur." },
+    es: { title: "Iniciar sesion | Celeone TV", description: "Acceda de forma segura a su cuenta Celeone y a sus herramientas de creador." },
+  },
+  "/logout": {
+    fr: { title: "Deconnexion | Celeone TV", description: "Deconnectez-vous securisement de votre compte Celeone." },
+    es: { title: "Cerrar sesion | Celeone TV", description: "Cierre sesion de forma segura en su cuenta Celeone." },
+  },
+  "/register": {
+    fr: { title: "Inscription | Celeone TV", description: "Creez votre compte Celeone pour acceder aux publications, salons, chaines et outils communautaires." },
+    es: { title: "Registro | Celeone TV", description: "Cree su cuenta Celeone para acceder a publicaciones, salas, canales y herramientas comunitarias." },
+  },
+  "/donate": {
+    fr: { title: "Soutenir Cele One | Paiement Pass Fondateur", description: "Ouvrez la page officielle de paiement du Pass Fondateur Cele One et soutenez le lancement du projet." },
+    es: { title: "Apoyar Cele One | Pago Pase Fundador", description: "Abra la pagina oficial de pago del Pase Fundador Cele One y apoye el lanzamiento del proyecto." },
+  },
 };
+
+const patternTranslations: Array<[RegExp, Partial<Record<RouteLocale, Pick<MetaInput, "title" | "description">>>]> = [
+  [/^\/posts\/[^/]+\/?$/, {
+    fr: { title: "Publication Cele One | Celeone TV", description: "Lisez et partagez une publication Cele One, une actualite ECC, un contenu de l'Eglise Celeste ou une information communautaire." },
+    es: { title: "Publicacion Cele One | Celeone TV", description: "Lea y comparta una publicacion Cele One, noticia ECC, contenido de la Iglesia Celestial o informacion comunitaria." },
+  }],
+  [/^\/social\/[^/]+\/?$/, {
+    fr: { title: "Publication sociale Cele One | Celeone TV", description: "Lisez une publication sociale Cele One de la communaute ECC et Eglise du Christianisme Celeste, puis ouvrez-la dans l'application mobile." },
+    es: { title: "Publicacion social Cele One | Celeone TV", description: "Lea una publicacion social Cele One de la comunidad ECC e Iglesia Celestial y abrala en la app movil." },
+  }],
+  [/^\/hymns\/[^/]+\/?$/, {
+    fr: { title: "Cantique Cele One | Cantiques ECC", description: "Previsualisez un cantique Cele One pour la communaute de l'Eglise Celeste, puis ouvrez-le dans l'application mobile." },
+    es: { title: "Himno Cele One | Cantiques ECC", description: "Previsualice un himno Cele One para la comunidad de la Iglesia Celestial y abrala en la app movil." },
+  }],
+  [/^\/themes\/[^/]+\/?$/, {
+    fr: { title: "Theme de la semaine | Programme spirituel Cele One", description: "Lisez les details du theme de la semaine Cele One avec lectures bibliques, cultes et cantiques programmes pour la communaute ECC." },
+    es: { title: "Tema semanal | Programa espiritual Cele One", description: "Lea los detalles del tema semanal Cele One con lecturas biblicas, cultos e himnos programados para la comunidad ECC." },
+  }],
+  [/^\/weekly-themes\/[^/]+\/?$/, {
+    fr: { title: "Theme hebdomadaire | Programme spirituel Cele One", description: "Lisez un theme hebdomadaire Cele One pour la communaute de l'Eglise Celeste avec details des cultes et contenu spirituel." },
+    es: { title: "Tema semanal | Programa espiritual Cele One", description: "Lea un tema semanal Cele One para la comunidad de la Iglesia Celestial con detalles de cultos y contenido espiritual." },
+  }],
+  [/^\/weekly-programs\/[^/]+\/?$/, {
+    fr: { title: "Programme hebdomadaire | Cele One", description: "Previsualisez un programme spirituel hebdomadaire Cele One pour la communaute ECC et Eglise du Christianisme Celeste." },
+    es: { title: "Programa semanal | Cele One", description: "Previsualice un programa espiritual semanal Cele One para la comunidad ECC e Iglesia Celestial." },
+  }],
+  [/^\/videos\/[^/]+\/?$/, {
+    fr: { title: "Video Cele One | Celeone TV", description: "Previsualisez une video Cele One depuis Celeone TV et ouvrez-la dans l'application mobile." },
+    es: { title: "Video Cele One | Celeone TV", description: "Previsualice un video Cele One desde Celeone TV y abrala en la app movil." },
+  }],
+  [/^\/songs\/[^/]+\/?$/, {
+    fr: { title: "Chant Cele One | Celeone TV", description: "Previsualisez un chant, audio ou ressource musicale Cele One depuis Celeone TV." },
+    es: { title: "Cancion Cele One | Celeone TV", description: "Previsualice una cancion, audio o recurso musical Cele One desde Celeone TV." },
+  }],
+  [/^\/[^/]+\/live\/?$/, {
+    fr: { title: "Chaine en direct | Celeone TV et Cele One", description: "Regardez les chaines live chretiennes, ECC, Eglise Celeste, web TV et medias approuves sur Celeone TV." },
+    es: { title: "Canal en vivo | Celeone TV y Cele One", description: "Vea canales cristianos, ECC, Iglesia Celestial, web TV y medios aprobados en vivo en Celeone TV." },
+  }],
+  [/^\/founders\/[^/]+\/?$/, {
+    fr: { title: "Espace fondateur | CeleOne", description: "Explorez les ressources fondateur CeleOne, pass, mur public, certificats et outils d'activation." },
+    es: { title: "Centro de fundador | CeleOne", description: "Explore recursos de fundador CeleOne, pase, muro publico, certificados y herramientas de activacion." },
+  }],
+];
+
+function localizedRouteMeta(routePath: string, locale: RouteLocale, title: string, description: string) {
+  const exact = routeTranslations[routePath]?.[locale];
+  if (exact) return exact;
+  const pattern = patternTranslations.find(([regex]) => regex.test(routePath))?.[1]?.[locale];
+  return pattern || { title, description };
+}
 
 const indexedRoutes: RouteSeo[] = [
   {
@@ -407,9 +563,9 @@ export function setPageMeta({
   const localeInfo = splitLocalePath(window.location.pathname);
   const locale = localeInfo.locale || (localStorage.getItem("celeone_lang") as RouteLocale) || "fr";
   const routePath = localeInfo.pathname;
-  const translated = routeTranslations[canonicalPath || routePath]?.[locale];
-  const localizedTitle = translated?.title || title;
-  const localizedDescription = translated?.description || description;
+  const translated = localizedRouteMeta(canonicalPath || routePath, locale, title, description);
+  const localizedTitle = translated.title;
+  const localizedDescription = translated.description || description;
   const canonicalUrl = absoluteUrl(canonicalPath || url || routePath);
   const shareUrl = url ? absoluteUrl(url) : absoluteUrl(localizedPath(canonicalPath || routePath, locale));
   const shareImage = absoluteUrl(image);
