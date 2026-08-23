@@ -438,6 +438,7 @@ function WeekContent({ week, lang }: { week: ResolvedThemeWeek | null; lang: str
   const celebrations = week.eventDays.filter((item) => item.serviceType === "special_celebration" || item.specialCelebrationId);
   const weekUrl = absolutePortalUrl(webPathForShare("theme", weekKey(week)));
   const shareText = buildWeekWhatsAppText(week, lang, weekUrl);
+  const hymnGroups = collectHymnGroups(week, lang);
 
   return (
     <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 md:p-5">
@@ -496,22 +497,23 @@ function WeekContent({ week, lang }: { week: ResolvedThemeWeek | null; lang: str
       </ContentBlock>
 
       <ContentBlock title="Cantiques programmes" empty="Aucun cantique attache pour cette semaine.">
-        {week.hymns.map((hymn) => (
-          <div key={hymn.id} className="rounded-lg border border-slate-200 bg-[#f8fbfd] p-4 text-sm">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="font-bold text-slate-900">{hymn.title || `Cantique ${hymn.hymnNumber || ""}`}</div>
-                <div className="mt-1 font-medium text-slate-600">{[hymn.date, hymn.time, hymn.dayKey].filter(Boolean).join(" | ") || "-"}</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => shareToWhatsApp(buildHymnWhatsAppText(week, hymn, lang, weekUrl))}
-                className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-slate-900 ring-1 ring-slate-200"
-              >
-                Partager
-              </button>
+        {hymnGroups.map((group) => (
+          <div key={group.key} className="rounded-lg border border-slate-200 bg-[#f8fbfd] p-4 text-sm">
+            <div className="font-bold text-slate-900">{group.title}</div>
+            <div className="mt-3 space-y-2">
+              {group.items.map((hymn) => (
+                <div key={hymn} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-3 py-2">
+                  <div className="font-medium text-slate-700">{hymn}</div>
+                  <button
+                    type="button"
+                    onClick={() => shareToWhatsApp(buildGroupedHymnWhatsAppText(week, group.title, hymn, lang, weekUrl))}
+                    className="rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-900 ring-1 ring-slate-200"
+                  >
+                    Partager
+                  </button>
+                </div>
+              ))}
             </div>
-            {hymn.notes ? <div className="mt-2 text-slate-600">{hymn.notes}</div> : null}
           </div>
         ))}
       </ContentBlock>
@@ -533,77 +535,131 @@ function buildWeekWhatsAppText(week: ResolvedThemeWeek, lang: string, url: strin
   const services = [...week.eventDays].sort(serviceSort);
   const hymnGroups = collectHymnGroups(week, lang);
   const lines = [
-    `✧･ﾟ *PROGRAMME DU ${dateRangeLabel(week.startDate, week.endDate, lang).toUpperCase()}* ･ﾟ✧`,
+    "━━━━━━━━━━━━━━━━━━━━",
+    "*CELEONE | PROGRAMME SPIRITUEL*",
+    "━━━━━━━━━━━━━━━━━━━━",
+    `_Du ${dateRangeLabel(week.startDate, week.endDate, lang)}_`,
     `*${ordinalWeekLabel(week.weekNumber)} SEMAINE*`,
     "",
-    "──── *THEME* ────",
-    `_${languageName(lang)}_ : ${title}`,
+    "◆ *THEME DE LA SEMAINE*",
+    `_${languageName(lang)}_`,
+    `*${title}*`,
   ];
 
-  if (bibleTheme && normalizePlain(title) !== normalizePlain(bibleTheme)) lines.push(`*Texte* : ${bibleTheme}`);
+  if (bibleTheme && normalizePlain(title) !== normalizePlain(bibleTheme)) lines.push(`_${bibleTheme}_`);
 
   if (services.length) {
-    lines.push("", "━━━  ✦  *LES TEXTES BIBLIQUES*  ✦  ━━━");
+    lines.push("", "◆ *TEXTES BIBLIQUES ET SERVICES*");
     services.forEach((service) => {
       lines.push(...serviceBlock(service, lang));
     });
   }
 
   if (hymnGroups.length) {
-    lines.push("", "━━━  ♫  *LES CANTIQUES*  ♫  ━━━");
+    lines.push("", "◆ *CANTIQUES PROGRAMMES*");
     hymnGroups.forEach((group) => {
       lines.push("", `*${group.title}*`);
-      group.items.forEach((item) => lines.push(`• ${item}`));
+      group.items.forEach((item) => lines.push(`- ${item}`));
     });
   }
 
-  if (week.scriptureReferences.length) lines.push("", "*References generales*", ...week.scriptureReferences.map((item) => `• ${item}`));
-  if (week.verses.length) lines.push("", "*Versets*", ...week.verses.map((item) => `• ${item}`));
+  if (week.scriptureReferences.length) lines.push("", "◆ *REFERENCES GENERALES*", ...week.scriptureReferences.map((item) => `- ${item}`));
+  if (week.verses.length) lines.push("", "◆ *VERSETS*", ...week.verses.map((item) => `- ${item}`));
 
-  lines.push("", "_Ouvrir sur le portail CeleOne:_", url);
-  return lines.filter((line) => line !== undefined && line !== null).join("\n");
+  lines.push("", "━━━━━━━━━━━━━━━━━━━━", "_Lire, partager et ouvrir dans l'app CeleOne:_", url);
+  return lines.filter((line) => line !== undefined && line !== null).join("n");
 }
 
-function buildHymnWhatsAppText(week: ResolvedThemeWeek, hymn: ResolvedThemeWeek["hymns"][number], lang: string, url: string) {
+function buildGroupedHymnWhatsAppText(week: ResolvedThemeWeek, groupTitle: string, hymn: string, lang: string, url: string) {
   const title = safeLocalizedText(week.title || week.theme, week.titleTranslations, lang) || "Theme de la semaine";
   return [
-    "*CELEONE - CANTIQUE PROGRAMME*",
+    "*CELEONE | CANTIQUE PROGRAMME*",
     "",
-    `*${hymn.title || `Cantique ${hymn.hymnNumber || ""}`}*`,
-    hymn.hymnNumber ? `_Numero: ${hymn.hymnNumber}_` : "",
-    [hymn.date, hymn.time, hymn.dayKey].filter(Boolean).join(" | "),
+    `*${hymn}*`,
+    `_${groupTitle}_`,
     "",
     "*Semaine*",
     `${title} - Semaine ${week.weekNumber || "-"}`,
-    `${week.startDate || "-"} - ${week.endDate || "-"}`,
-    hymn.notes ? `\n*Notes*\n${hymn.notes}` : "",
+    dateRangeLabel(week.startDate, week.endDate, lang),
     "",
     "_Ouvrir sur le portail CeleOne:_",
     url,
   ]
     .filter(Boolean)
-    .join("\n");
+    .join("n");
 }
 
 function serviceBlock(service: WeeklyThemeEventDay, lang: string) {
   const title = safeLocalizedText(service.title, service.titleTranslations, lang) || serviceTypeLabel(service);
-  const lesson = safeLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang);
-  const references = [...(service.scriptureReferences || []), ...(service.verses || [])].filter(Boolean);
+  const bibleTexts = collectBibleTexts(service, lang);
   const date = service.date || service.serviceDate || "";
   const time = service.time || service.serviceTime || "";
-  const lines = ["", `✦ *${dateLabel(date, lang).toUpperCase()}*`];
+  const lines = ["", `*${dateLabel(date, lang).toUpperCase()}*`];
 
-  if (time || title) lines.push(`${time ? `${time} : ` : ""}${title}`);
-  if (lesson) lines.push(`↳ ${lesson}`);
-  references.forEach((item) => lines.push(`↳ ${item}`));
-  if (service.memoryVerse) lines.push(`↳ Verset a memoriser : ${service.memoryVerse}`);
-  if (service.sermonNote) lines.push(`↳ Note : ${service.sermonNote}`);
-  if (service.hymns?.length) {
-    lines.push("↳ Cantiques :");
-    service.hymns.forEach((hymn) => lines.push(`   • ${formatHymnText(hymn)}`));
-  }
+  if (time || title) lines.push(`_Service_ : ${time ? `${time} - ` : ""}${title}`);
+  bibleTexts.forEach((item, index) => lines.push(`- ${bibleTextPrefix(index, bibleTexts.length)}${item}`));
+  if (service.memoryVerse) lines.push(`- Verset a memoriser : ${service.memoryVerse}`);
+  if (service.sermonNote) lines.push(`- Note : ${service.sermonNote}`);
 
   return lines;
+}
+
+function collectBibleTexts(service: WeeklyThemeEventDay, lang: string) {
+  const data = service as WeeklyThemeEventDay & Record<string, unknown>;
+  const candidates: unknown[] = [
+    safeLocalizedText(service.bibleLesson || service.bibleTheme, service.bibleThemeTranslations, lang),
+    service.bibleReadingText,
+    service.scriptureReferences,
+    service.verses,
+    data.firstReading,
+    data.secondReading,
+    data.thirdReading,
+    data.gospel,
+    data.epistle,
+    data.psalm,
+    data.reading1,
+    data.reading2,
+    data.reading3,
+    data.firstLecture,
+    data.secondLecture,
+    data.bibleReadings,
+    data.readings,
+  ];
+  const seen = new Set<string>();
+  return candidates
+    .flatMap(splitBibleValue)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .filter((item) => {
+      const key = normalizePlain(item);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function splitBibleValue(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.flatMap(splitBibleValue);
+  if (typeof value === "object") return [safeObjectText(value)].filter(Boolean);
+  return String(value)
+    .split(/r?n|;|•/g)
+    .map((item) => item.replace(/^[-d.)s]+/, "").trim())
+    .filter(Boolean);
+}
+
+function safeObjectText(value: unknown) {
+  if (!value || typeof value !== "object") return "";
+  const data = value as Record<string, unknown>;
+  return String(data.fr || data.en || data.default || Object.values(data).find((item) => typeof item === "string") || "").trim();
+}
+
+function bibleTextPrefix(index: number, total: number) {
+  if (total <= 1) return "";
+  if (index === 0) return "1ere Lecture : ";
+  if (index === 1) return "2eme Lecture : ";
+  if (index === 2) return "3eme Lecture : ";
+  return `${index + 1}eme Lecture : `;
 }
 
 function collectHymnGroups(week: ResolvedThemeWeek, lang: string) {
@@ -617,19 +673,43 @@ function collectHymnGroups(week: ResolvedThemeWeek, lang: string) {
     groupTitles.set(key, title);
   };
 
-  week.eventDays.forEach((service) => {
-    const key = service.date || service.serviceDate || service.dayKey || service.id;
-    const title = `Cantiques - ${dateLabel(service.date || service.serviceDate, lang)}${service.time || service.serviceTime ? ` (${service.time || service.serviceTime})` : ""}`;
-    (service.hymns || []).forEach((hymn) => add(key, title, formatHymnText(hymn)));
-  });
-
   week.hymns.forEach((hymn) => {
     const key = hymn.date || hymn.dayKey || "week";
     const title = hymn.date ? `Cantiques - ${dateLabel(hymn.date, lang)}` : "Cantiques de la semaine";
-    add(key, title, `${hymn.hymnNumber ? `Cantique N°${hymn.hymnNumber}` : "Cantique"}${hymn.title ? ` - ${hymn.title}` : ""}${hymn.time ? ` (${hymn.time})` : ""}`);
+    add(key, title, `${hymn.hymnNumber ? `Cantique No ${hymn.hymnNumber}` : "Cantique"}${hymn.title ? ` - ${hymn.title}` : ""}${hymn.time ? ` (${hymn.time})` : ""}`);
   });
 
-  return Array.from(groups.entries()).map(([key, items]) => ({ title: groupTitles.get(key) || "Cantiques", items }));
+  const serviceEntries = week.eventDays.flatMap((service) => {
+    const key = service.date || service.serviceDate || service.dayKey || service.id;
+    const title = `Cantiques - ${dateLabel(service.date || service.serviceDate, lang)}${service.time || service.serviceTime ? ` (${service.time || service.serviceTime})` : ""}`;
+    return (service.hymns || []).map((hymn) => ({
+      key,
+      title,
+      value: formatHymnText(hymn),
+      signature: hymnSignature(hymn),
+    }));
+  });
+  const signatureDays = new Map<string, Set<string>>();
+  serviceEntries.forEach((entry) => {
+    if (!entry.signature) return;
+    const days = signatureDays.get(entry.signature) || new Set<string>();
+    days.add(entry.key);
+    signatureDays.set(entry.signature, days);
+  });
+  const sharedServiceHymns = new Set<string>();
+
+  serviceEntries.forEach((entry) => {
+    const dayCount = signatureDays.get(entry.signature)?.size || 0;
+    if (dayCount <= 1) {
+      add(entry.key, entry.title, entry.value);
+      return;
+    }
+    if (!week.hymns.length) sharedServiceHymns.add(entry.value);
+  });
+
+  sharedServiceHymns.forEach((hymn) => add("week-service-shared", "Cantiques de la semaine", hymn));
+
+  return Array.from(groups.entries()).map(([key, items]) => ({ key, title: groupTitles.get(key) || "Cantiques", items }));
 }
 
 function formatHymnText(value: string) {
@@ -637,6 +717,10 @@ function formatHymnText(value: string) {
   if (!text) return "";
   if (/cantique/i.test(text)) return text;
   return `Cantique ${text}`;
+}
+
+function hymnSignature(value: string) {
+  return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 function safeLocalizedText(value: unknown, translations: Parameters<typeof getLocalizedText>[1], lang: string) {
@@ -714,7 +798,7 @@ async function shareNative(title: string, text: string, url: string) {
 
 function ServiceCard({ service, lang, special = false }: { service: WeeklyThemeEventDay; lang: string; special?: boolean }) {
   const title = getLocalizedText(service.title, service.titleTranslations, lang) || (special ? "Celebration" : "Service");
-  const lesson = getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang);
+  const bibleTexts = collectBibleTexts(service, lang);
   return (
     <div className="min-w-0 rounded-lg border border-slate-200 bg-[#f8fbfd] p-3 text-sm md:p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -726,10 +810,15 @@ function ServiceCard({ service, lang, special = false }: { service: WeeklyThemeE
         </div>
         <span className="rounded-full bg-white px-2 py-1 text-[11px] font-bold uppercase text-slate-600">{service.serviceType || "normal"}</span>
       </div>
-      {lesson ? <p className="mt-3 font-medium leading-7 text-slate-700">{lesson}</p> : null}
+      {bibleTexts.length ? (
+        <div className="mt-3 space-y-1 font-medium leading-7 text-slate-700">
+          {bibleTexts.map((item, index) => (
+            <div key={`${item}-${index}`}>{bibleTextPrefix(index, bibleTexts.length)}{item}</div>
+          ))}
+        </div>
+      ) : null}
       {service.memoryVerse ? <div className="mt-2 font-semibold text-slate-600">Memory verse: {service.memoryVerse}</div> : null}
       {service.sermonNote ? <div className="mt-2 font-semibold text-slate-600">Sermon: {service.sermonNote}</div> : null}
-      {!!service.hymns?.length && <div className="mt-2 font-semibold text-slate-600">Cantiques: {service.hymns.join(", ")}</div>}
     </div>
   );
 }
