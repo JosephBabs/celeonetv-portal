@@ -341,5 +341,40 @@
     "regular_schedule": "Regular Schedule",
     "active": "Active",
     "scripture_refs": "Scripture"
+  },
+  "account_deletion": {
+    "badge": "Cele One account",
+    "title": "Request Account and Data Deletion",
+    "intro": "Use this page to request deletion of your Cele One account and personal data. We may need to verify that you control the account before deleting data.",
+    "updated": "Last updated: August 12, 2026",
+    "submit_title": "How to submit a request",
+    "submit_text": "Send an email from the email address linked to your Cele One account, or include the phone number linked to the account. Include your full name, country, and any account identifier you use in Cele One.",
+    "email_button": "Email deletion request",
+    "delete_title": "Data we will delete when eligible",
+    "retain_title": "Data that may be retained",
+    "processing_title": "Processing time",
+    "processing_text": "Cele One will review deletion requests and respond after identity verification. Deletion timing may vary depending on legal, safety, fraud-prevention, backup, and technical requirements.",
+    "privacy_contact": "Privacy contact",
+    "email_subject": "Cele One account and data deletion request",
+    "email": {
+      "greeting": "Hello Cele One Privacy Team,",
+      "request": "I want to request deletion of my Cele One account and associated personal data.",
+      "email_phone": "My Cele One email or phone number:",
+      "full_name": "My full name:",
+      "country": "My country:",
+      "verify": "I understand you may need to verify my identity before processing this request."
+    },
+    "delete_items": {
+      "profile": "Cele One account profile details such as name, email, phone number, photo, country, language, and account preferences.",
+      "identifiers": "Direct identifiers used by Cele One to authenticate your account and connect your app activity to your profile.",
+      "ugc": "User-generated content that can reasonably be removed from active Cele One services, including profile content, creator requests, reports submitted by you, and eligible community data.",
+      "contacts": "Contact discovery records associated with your account where Cele One stores them for matching registered users.",
+      "devices": "Push notification tokens and device records connected to your account."
+    },
+    "retain_items": {
+      "legal": "Records that Cele One must keep for legal, accounting, fraud-prevention, safety, dispute, moderation, or security reasons.",
+      "shared": "Content that you shared with other users where removal would affect their own account history, unless deletion is legally required.",
+      "backups": "Backups and logs for a limited period until they are overwritten or no longer needed for recovery, security, or legal compliance."
+    }
   }
 }

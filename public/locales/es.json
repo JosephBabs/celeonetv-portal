@@ -341,5 +341,40 @@
     "regular_schedule": "Horario regular",
     "active": "Activo",
     "scripture_refs": "Referencia biblica"
+  },
+  "account_deletion": {
+    "badge": "Cuenta Cele One",
+    "title": "Solicitar eliminacion de cuenta y datos",
+    "intro": "Usa esta pagina para solicitar la eliminacion de tu cuenta Cele One y tus datos personales. Es posible que debamos verificar que controlas la cuenta antes de eliminar datos.",
+    "updated": "Ultima actualizacion: 12 de agosto de 2026",
+    "submit_title": "Como enviar una solicitud",
+    "submit_text": "Envia un correo desde la direccion vinculada a tu cuenta Cele One, o incluye el numero de telefono vinculado a la cuenta. Incluye tu nombre completo, pais y cualquier identificador de cuenta que uses en Cele One.",
+    "email_button": "Enviar solicitud por correo",
+    "delete_title": "Datos que eliminaremos cuando sea posible",
+    "retain_title": "Datos que pueden conservarse",
+    "processing_title": "Tiempo de procesamiento",
+    "processing_text": "Cele One revisara las solicitudes de eliminacion y respondera despues de verificar la identidad. El tiempo de eliminacion puede variar segun requisitos legales, de seguridad, prevencion de fraude, copias de seguridad y requisitos tecnicos.",
+    "privacy_contact": "Contacto de privacidad",
+    "email_subject": "Solicitud de eliminacion de cuenta y datos de Cele One",
+    "email": {
+      "greeting": "Hola equipo de privacidad de Cele One,",
+      "request": "Quiero solicitar la eliminacion de mi cuenta Cele One y de los datos personales asociados.",
+      "email_phone": "Mi correo o numero de telefono de Cele One:",
+      "full_name": "Mi nombre completo:",
+      "country": "Mi pais:",
+      "verify": "Entiendo que pueden necesitar verificar mi identidad antes de procesar esta solicitud."
+    },
+    "delete_items": {
+      "profile": "Datos del perfil de la cuenta Cele One, como nombre, correo electronico, numero de telefono, foto, pais, idioma y preferencias de cuenta.",
+      "identifiers": "Identificadores directos usados por Cele One para autenticar tu cuenta y conectar tu actividad con tu perfil.",
+      "ugc": "Contenido generado por ti que pueda eliminarse razonablemente de los servicios activos de Cele One, incluyendo perfil, solicitudes de creador, reportes enviados y datos comunitarios elegibles.",
+      "contacts": "Registros de descubrimiento de contactos asociados a tu cuenta cuando Cele One los conserva para relacionar usuarios registrados.",
+      "devices": "Tokens de notificaciones push y registros de dispositivos conectados a tu cuenta."
+    },
+    "retain_items": {
+      "legal": "Registros que Cele One debe conservar por razones legales, contables, prevencion de fraude, seguridad, disputas, moderacion o proteccion.",
+      "shared": "Contenido que compartiste con otros usuarios cuando eliminarlo afectaria su propio historial, salvo que la ley exija la eliminacion.",
+      "backups": "Copias de seguridad y registros durante un periodo limitado, hasta que se sobrescriban o ya no sean necesarios para recuperacion, seguridad o cumplimiento legal."
+    }
   }
 }

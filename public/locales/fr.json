@@ -341,5 +341,40 @@
     "regular_schedule": "Horaires réguliers",
     "active": "Actif",
     "scripture_refs": "Référence biblique"
+  },
+  "account_deletion": {
+    "badge": "Compte Cele One",
+    "title": "Demande de suppression du compte et des donnees",
+    "intro": "Utilisez cette page pour demander la suppression de votre compte Cele One et de vos donnees personnelles. Nous pouvons devoir verifier que vous controlez le compte avant de supprimer les donnees.",
+    "updated": "Derniere mise a jour : 12 aout 2026",
+    "submit_title": "Comment envoyer une demande",
+    "submit_text": "Envoyez un e-mail depuis l'adresse liee a votre compte Cele One, ou indiquez le numero de telephone lie au compte. Ajoutez votre nom complet, votre pays et tout identifiant de compte que vous utilisez dans Cele One.",
+    "email_button": "Envoyer la demande par e-mail",
+    "delete_title": "Donnees que nous supprimerons si elles sont eligibles",
+    "retain_title": "Donnees pouvant etre conservees",
+    "processing_title": "Delai de traitement",
+    "processing_text": "Cele One examinera les demandes de suppression et repondra apres verification de l'identite. Le delai de suppression peut varier selon les exigences legales, de securite, de prevention de fraude, de sauvegarde et les contraintes techniques.",
+    "privacy_contact": "Contact confidentialite",
+    "email_subject": "Demande de suppression du compte et des donnees Cele One",
+    "email": {
+      "greeting": "Bonjour l'equipe confidentialite Cele One,",
+      "request": "Je souhaite demander la suppression de mon compte Cele One et des donnees personnelles associees.",
+      "email_phone": "Mon e-mail ou numero de telephone Cele One :",
+      "full_name": "Mon nom complet :",
+      "country": "Mon pays :",
+      "verify": "Je comprends que vous pouvez devoir verifier mon identite avant de traiter cette demande."
+    },
+    "delete_items": {
+      "profile": "Les informations de profil du compte Cele One, comme le nom, l'e-mail, le numero de telephone, la photo, le pays, la langue et les preferences du compte.",
+      "identifiers": "Les identifiants directs utilises par Cele One pour authentifier votre compte et relier votre activite a votre profil.",
+      "ugc": "Le contenu genere par vous pouvant raisonnablement etre supprime des services actifs Cele One, notamment profil, demandes createur, signalements envoyes et donnees communautaires eligibles.",
+      "contacts": "Les enregistrements de decouverte de contacts associes a votre compte lorsque Cele One les conserve pour mettre en relation les utilisateurs inscrits.",
+      "devices": "Les jetons de notification push et enregistrements d'appareils connectes a votre compte."
+    },
+    "retain_items": {
+      "legal": "Les enregistrements que Cele One doit conserver pour des raisons legales, comptables, de prevention de fraude, de securite, de litige, de moderation ou de surete.",
+      "shared": "Le contenu que vous avez partage avec d'autres utilisateurs lorsque sa suppression affecterait leur propre historique, sauf obligation legale de suppression.",
+      "backups": "Les sauvegardes et journaux pendant une periode limitee, jusqu'a leur ecrasement ou lorsqu'ils ne sont plus necessaires a la recuperation, la securite ou la conformite legale."
+    }
   }
 }
