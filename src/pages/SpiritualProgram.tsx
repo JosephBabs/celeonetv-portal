@@ -525,49 +525,47 @@ function absolutePortalUrl(path: string) {
 }
 
 function buildWeekWhatsAppText(week: ResolvedThemeWeek, lang: string, url: string) {
-  const title = getLocalizedText(week.title || week.theme, week.titleTranslations, lang) || "Theme de la semaine";
-  const bibleTheme = getLocalizedText(week.bibleTheme || week.description, week.bibleThemeTranslations || week.descriptionTranslations, lang);
-  const services = week.eventDays.filter((item) => item.serviceType !== "special_celebration" && !item.specialCelebrationId);
-  const celebrations = week.eventDays.filter((item) => item.serviceType === "special_celebration" || item.specialCelebrationId);
+  const title =
+    safeLocalizedText(week.title || week.theme, week.titleTranslations, lang) ||
+    safeLocalizedText(week.bibleTheme || week.description, week.bibleThemeTranslations || week.descriptionTranslations, lang) ||
+    "Theme de la semaine";
+  const bibleTheme = safeLocalizedText(week.bibleTheme || week.description, week.bibleThemeTranslations || week.descriptionTranslations, lang);
+  const services = [...week.eventDays].sort(serviceSort);
+  const hymnGroups = collectHymnGroups(week, lang);
   const lines = [
-    "*CELEONE - THEME DE LA SEMAINE*",
+    `✧･ﾟ *PROGRAMME DU ${dateRangeLabel(week.startDate, week.endDate, lang).toUpperCase()}* ･ﾟ✧`,
+    `*${ordinalWeekLabel(week.weekNumber)} SEMAINE*`,
     "",
-    `*${title}*`,
-    `_Semaine ${week.weekNumber || "-"} - ${week.monthName || ""} ${week.year || ""}_`,
-    `${week.startDate || "-"} - ${week.endDate || "-"}`,
+    "──── *THEME* ────",
+    `_${languageName(lang)}_ : ${title}`,
   ];
 
-  if (bibleTheme) lines.push("", "*Theme biblique*", bibleTheme);
-  if (week.scriptureReferences.length) lines.push("", "*References*", week.scriptureReferences.map((item) => `- ${item}`).join("\n"));
-  if (week.verses.length) lines.push("", "*Versets*", week.verses.map((item) => `- ${item}`).join("\n"));
+  if (bibleTheme && normalizePlain(title) !== normalizePlain(bibleTheme)) lines.push(`*Texte* : ${bibleTheme}`);
 
   if (services.length) {
-    lines.push("", "*Services*");
-    services.forEach((service, index) => {
-      lines.push(`${index + 1}. ${serviceLine(service, lang)}`);
+    lines.push("", "━━━  ✦  *LES TEXTES BIBLIQUES*  ✦  ━━━");
+    services.forEach((service) => {
+      lines.push(...serviceBlock(service, lang));
     });
   }
 
-  if (celebrations.length) {
-    lines.push("", "*Celebrations speciales*");
-    celebrations.forEach((service, index) => {
-      lines.push(`${index + 1}. ${serviceLine(service, lang)}`);
+  if (hymnGroups.length) {
+    lines.push("", "━━━  ♫  *LES CANTIQUES*  ♫  ━━━");
+    hymnGroups.forEach((group) => {
+      lines.push("", `*${group.title}*`);
+      group.items.forEach((item) => lines.push(`• ${item}`));
     });
   }
 
-  if (week.hymns.length) {
-    lines.push("", "*Cantiques*");
-    week.hymns.forEach((hymn, index) => {
-      lines.push(`${index + 1}. ${hymn.hymnNumber ? `No ${hymn.hymnNumber} - ` : ""}${hymn.title || "Cantique"}${hymn.time ? ` (${hymn.time})` : ""}`);
-    });
-  }
+  if (week.scriptureReferences.length) lines.push("", "*References generales*", ...week.scriptureReferences.map((item) => `• ${item}`));
+  if (week.verses.length) lines.push("", "*Versets*", ...week.verses.map((item) => `• ${item}`));
 
   lines.push("", "_Ouvrir sur le portail CeleOne:_", url);
   return lines.filter((line) => line !== undefined && line !== null).join("\n");
 }
 
 function buildHymnWhatsAppText(week: ResolvedThemeWeek, hymn: ResolvedThemeWeek["hymns"][number], lang: string, url: string) {
-  const title = getLocalizedText(week.title || week.theme, week.titleTranslations, lang) || "Theme de la semaine";
+  const title = safeLocalizedText(week.title || week.theme, week.titleTranslations, lang) || "Theme de la semaine";
   return [
     "*CELEONE - CANTIQUE PROGRAMME*",
     "",
@@ -587,11 +585,118 @@ function buildHymnWhatsAppText(week: ResolvedThemeWeek, hymn: ResolvedThemeWeek[
     .join("\n");
 }
 
-function serviceLine(service: WeeklyThemeEventDay, lang: string) {
-  const title = getLocalizedText(service.title, service.titleTranslations, lang) || "Service";
-  const lesson = getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang);
-  const when = [service.dayOfWeek || service.dayKey, service.date || service.serviceDate, service.time || service.serviceTime].filter(Boolean).join(" | ");
-  return [title, when, lesson ? `- ${lesson}` : ""].filter(Boolean).join(" ");
+function serviceBlock(service: WeeklyThemeEventDay, lang: string) {
+  const title = safeLocalizedText(service.title, service.titleTranslations, lang) || serviceTypeLabel(service);
+  const lesson = safeLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang);
+  const references = [...(service.scriptureReferences || []), ...(service.verses || [])].filter(Boolean);
+  const date = service.date || service.serviceDate || "";
+  const time = service.time || service.serviceTime || "";
+  const lines = ["", `✦ *${dateLabel(date, lang).toUpperCase()}*`];
+
+  if (time || title) lines.push(`${time ? `${time} : ` : ""}${title}`);
+  if (lesson) lines.push(`↳ ${lesson}`);
+  references.forEach((item) => lines.push(`↳ ${item}`));
+  if (service.memoryVerse) lines.push(`↳ Verset a memoriser : ${service.memoryVerse}`);
+  if (service.sermonNote) lines.push(`↳ Note : ${service.sermonNote}`);
+  if (service.hymns?.length) {
+    lines.push("↳ Cantiques :");
+    service.hymns.forEach((hymn) => lines.push(`   • ${formatHymnText(hymn)}`));
+  }
+
+  return lines;
+}
+
+function collectHymnGroups(week: ResolvedThemeWeek, lang: string) {
+  const groups = new Map<string, string[]>();
+  const groupTitles = new Map<string, string>();
+  const add = (key: string, title: string, value: string) => {
+    if (!value) return;
+    const current = groups.get(key) || [];
+    if (!current.includes(value)) current.push(value);
+    groups.set(key, current);
+    groupTitles.set(key, title);
+  };
+
+  week.eventDays.forEach((service) => {
+    const key = service.date || service.serviceDate || service.dayKey || service.id;
+    const title = `Cantiques - ${dateLabel(service.date || service.serviceDate, lang)}${service.time || service.serviceTime ? ` (${service.time || service.serviceTime})` : ""}`;
+    (service.hymns || []).forEach((hymn) => add(key, title, formatHymnText(hymn)));
+  });
+
+  week.hymns.forEach((hymn) => {
+    const key = hymn.date || hymn.dayKey || "week";
+    const title = hymn.date ? `Cantiques - ${dateLabel(hymn.date, lang)}` : "Cantiques de la semaine";
+    add(key, title, `${hymn.hymnNumber ? `Cantique N°${hymn.hymnNumber}` : "Cantique"}${hymn.title ? ` - ${hymn.title}` : ""}${hymn.time ? ` (${hymn.time})` : ""}`);
+  });
+
+  return Array.from(groups.entries()).map(([key, items]) => ({ title: groupTitles.get(key) || "Cantiques", items }));
+}
+
+function formatHymnText(value: string) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/cantique/i.test(text)) return text;
+  return `Cantique ${text}`;
+}
+
+function safeLocalizedText(value: unknown, translations: Parameters<typeof getLocalizedText>[1], lang: string) {
+  const text = getLocalizedText(value, translations, lang);
+  if (!text || /^\[object Object\]$/i.test(text) || /^any$/i.test(text.trim())) return "";
+  return text;
+}
+
+function normalizePlain(value: string) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function serviceSort(a: WeeklyThemeEventDay, b: WeeklyThemeEventDay) {
+  return (
+    String(a.date || a.serviceDate || "").localeCompare(String(b.date || b.serviceDate || "")) ||
+    String(a.time || a.serviceTime || "").localeCompare(String(b.time || b.serviceTime || ""))
+  );
+}
+
+function serviceTypeLabel(service: WeeklyThemeEventDay) {
+  const type = String(service.serviceType || "");
+  if (type === "first_thursday") return "Nouveau mois / premier jeudi";
+  if (type === "special_celebration") return "Celebration speciale";
+  if (type === "sunday_morning") return "Culte du dimanche matin";
+  if (type === "sunday_evening") return "Culte du dimanche soir";
+  if (type === "wednesday_service") return "Culte du mercredi";
+  if (type === "friday_service") return "Culte du vendredi";
+  return "Service";
+}
+
+function dateRangeLabel(startDate: string, endDate: string, lang: string) {
+  return `${dateLabel(startDate, lang)} au ${dateLabel(endDate, lang)}`;
+}
+
+function dateLabel(value: string | undefined, lang: string) {
+  if (!value) return "Date non definie";
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  const date = match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(lang || "fr-FR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+function ordinalWeekLabel(value: number) {
+  if (!value) return "";
+  return `${value}${value === 1 ? "ERE" : "EME"}`;
+}
+
+function languageName(lang: string) {
+  const normalized = String(lang || "fr").toLowerCase();
+  if (normalized.startsWith("en")) return "ANGLAIS";
+  if (normalized.startsWith("yo")) return "YORUBA";
+  if (normalized.startsWith("fon")) return "FONGBE";
+  if (normalized.startsWith("go")) return "GUNGBE";
+  if (normalized.startsWith("es")) return "ESPAGNOL";
+  return "FRANCAIS";
 }
 
 function shareToWhatsApp(text: string) {
