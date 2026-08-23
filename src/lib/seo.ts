@@ -305,6 +305,7 @@ export function setPageMeta({
 
   upsertMeta('meta[name="description"]', { content: description });
   upsertMeta('meta[name="keywords"]', { content: keywords });
+  upsertMeta('meta[name="news_keywords"]', { content: keywords });
   upsertMeta('meta[name="robots"]', { content: robots });
   upsertMeta('meta[name="application-name"]', { content: DEFAULT_SITE_NAME });
   upsertMeta('meta[name="theme-color"]', { content: "#14B8A6" });
