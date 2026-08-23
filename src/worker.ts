@@ -43,6 +43,7 @@ const ROUTE_META: Array<
   [/^\/creator\/?$/, { title: "Creator Portal | Celeone TV", description: "Access Celeone creator tools for channels, live media, posts, and community publishing." }],
   [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create a Celeone community chatroom for focused conversations, groups, and ministry exchanges." }],
   [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly thèmes, services, Bible lessons, special celebrations, and hymn programs." }],
+  [/^\/parishes\/?$/, { title: "Parish Map | CeleOne", description: "Find approved CeleOne parishes near you with geolocation, distance sorting, and directions." }],
   [/^\/social\/[^/]+\/?$/, { title: "CeleOne Social Post", description: "Preview this CeleOne social post on the portal, then open it in the CeleOne mobile app.", type: "article" }],
   [/^\/hymns\/[^/]+\/?$/, { title: "CeleOne Hymn", description: "Preview this hymn on the portal, then open it in the CeleOne mobile app.", type: "article" }],
   [/^\/themes\/[^/]+\/?$/, { title: "CeleOne Theme of the Week", description: "Preview this theme of the week on the portal, then open it in the CeleOne mobile app.", type: "article" }],

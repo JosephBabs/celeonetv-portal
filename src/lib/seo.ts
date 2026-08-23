@@ -41,6 +41,12 @@ const indexedRoutes: RouteSeo[] = [
     canonicalPath: "/spiritual-program",
   },
   {
+    pattern: /^\/parishes\/?$/,
+    title: "Parish Map | CeleOne",
+    description: "Find approved CeleOne parishes near you with geolocation, distance sorting, and directions.",
+    canonicalPath: "/parishes",
+  },
+  {
     pattern: /^\/parishes\/register\/?$/,
     title: "Register a Parish | CeleOne",
     description: "Submit a parish name, country, and exact GPS location for review on the CeleOne global parish map.",
