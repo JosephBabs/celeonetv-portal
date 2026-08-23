@@ -16,7 +16,7 @@ export default function Landing() {
       title: t("landing.meta_title", "Cele One | CeleOne TV Platform for Celestial Church of Christ"),
       description: t(
         "landing.meta_desc",
-        "Cele One is the Celeone TV platform for the Celestial Church of Christ community, with spiritual programs, weekly themes, hymns, parish tools, documents, live TV, and social features.",
+        "Cele One launches on 13 September 2026 as the Celeone TV platform for the Celestial Church of Christ community, with spiritual programs, weekly themes, hymns, parish tools, documents, live TV, and social features.",
       ),
       canonicalPath: "/",
     });
@@ -72,7 +72,7 @@ export default function Landing() {
             <p className="mt-5 max-w-xl text-base font-medium leading-8 text-slate-600">
               {t(
                 "landing.p1",
-                "Cele One, also known as Celeone TV, brings ECC news, live Christian media, parish tools, documents, hymns, and weekly spiritual programs into one community portal.",
+                "Cele One, also known as Celeone TV, launches on 13 September 2026, bringing ECC news, live Christian media, parish tools, documents, hymns, and weekly spiritual programs into one community portal.",
               )}
             </p>
             <p className="mt-3 max-w-xl text-base font-medium leading-8 text-slate-600">

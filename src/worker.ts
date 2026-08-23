@@ -28,14 +28,14 @@ const GENERATED_SHARE_IMAGE_WIDTH = 1200;
 const GENERATED_SHARE_IMAGE_HEIGHT = 630;
 const HOME_TITLE = "Cele One | CeleOne TV Platform for Celestial Church of Christ";
 const HOME_DESCRIPTION =
-  "Cele One is the Celeone TV platform for the Celestial Church of Christ community, with spiritual programs, weekly themes, hymns, parish tools, documents, live TV, and social features.";
+  "Cele One launches on 13 September 2026 as the Celeone TV platform for the Celestial Church of Christ community, with spiritual programs, weekly themes, hymns, parish tools, documents, live TV, and social features.";
 
 const LOCALE_META: Record<RouteLocale, { ogLocale: string; homeTitle: string; homeDescription: string }> = {
   fr: {
     ogLocale: "fr_FR",
     homeTitle: "Cele One | Plateforme Celeone TV pour l'Eglise du Christianisme Celeste",
     homeDescription:
-      "Cele One est la plateforme de la communaute de l'Eglise du Christianisme Celeste avec programmes spirituels, themes de la semaine, cantiques, paroisses, documents, direct TV et reseau social.",
+      "Cele One sera lance le 13 septembre 2026 comme plateforme de la communaute de l'Eglise du Christianisme Celeste avec programmes spirituels, themes de la semaine, cantiques, paroisses, documents, direct TV et reseau social.",
   },
   en: {
     ogLocale: "en_US",
@@ -46,7 +46,7 @@ const LOCALE_META: Record<RouteLocale, { ogLocale: string; homeTitle: string; ho
     ogLocale: "es_ES",
     homeTitle: "Cele One | Plataforma Celeone TV para la Iglesia Celestial de Cristo",
     homeDescription:
-      "Cele One es la plataforma de la comunidad de la Iglesia Celestial de Cristo con programas espirituales, temas semanales, himnos, parroquias, documentos, TV en vivo y red social.",
+      "Cele One se lanzara el 13 de septiembre de 2026 como plataforma de la comunidad de la Iglesia Celestial de Cristo con programas espirituales, temas semanales, himnos, parroquias, documentos, TV en vivo y red social.",
   },
 };
 
@@ -124,11 +124,11 @@ const ROUTE_TRANSLATIONS: Record<string, Partial<Record<RouteLocale, { title: st
   "/prelaunch-registration": {
     fr: {
       title: "Preinscription Cele One | Plateforme communautaire ECC",
-      description: "Creez votre compte Cele One avant le lancement ou enregistrez vos informations de donateur pour soutenir le projet communautaire de l'Eglise du Christianisme Celeste.",
+      description: "Creez votre compte Cele One avant le lancement officiel du 13 septembre 2026 ou enregistrez vos informations de donateur pour soutenir le projet communautaire de l'Eglise du Christianisme Celeste.",
     },
     es: {
       title: "Registro previo Cele One | Plataforma comunitaria ECC",
-      description: "Cree su cuenta Cele One antes del lanzamiento o registre sus datos de donante para apoyar el proyecto comunitario de la Iglesia Celestial de Cristo.",
+      description: "Cree su cuenta Cele One antes del lanzamiento oficial del 13 de septiembre de 2026 o registre sus datos de donante para apoyar el proyecto comunitario de la Iglesia Celestial de Cristo.",
     },
   },
   "/donate": {
@@ -320,7 +320,7 @@ const ROUTE_META: Array<
   [/^\/songs\/[^/]+\/?$/, { title: "Cele One Song | Celeone TV", description: "Preview a Cele One song or audio resource from Celeone TV and open it in the mobile app.", type: "article" }],
   [/^\/documentation\/?$/, { title: "Cele One Documentation | ECC Platform, Social Media and TV", description: "Explore Cele One public documentation for the ECC platform, social media features, Cele TV, spiritual programs, parish workflows, community tools, and policies.", canonicalPath: "/documentation" }],
   [/^\/jeunesse\/?$/, { title: "Jeunesse | CeleOne", description: "Discover youth-centered CeleOne content, community activities, programs, and spiritual resources." }],
-  [/^\/prelaunch-registration\/?$/, { title: "Cele One Prelaunch Registration | ECC Community Platform", description: "Create your Cele One account before launch or register donor details to support the Celestial Church of Christ community platform project.", canonicalPath: "/prelaunch-registration" }],
+  [/^\/prelaunch-registration\/?$/, { title: "Cele One Prelaunch Registration | ECC Community Platform", description: "Create your Cele One account before the official launch on 13 September 2026 or register donor details to support the Celestial Church of Christ community platform project.", canonicalPath: "/prelaunch-registration" }],
   [/^\/donate\/?$/, { title: "Support Cele One | Founder's Pass Payment", description: "Open the official Cele One Founder's Pass payment page and support the project launch.", robots: "noindex,follow" }],
   [/^\/founder-pass\/?$/, { title: "Founder Pass | Cele One", description: "Support Cele One and reserve Founder recognition, certificate verification, and public wall presence for the ECC community platform.", canonicalPath: "/founder-pass" }],
   [/^\/founders\/?$/, { title: "Founder Pass | Cele One", description: "Support Cele One and reserve Founder recognition, certificate verification, and public wall presence for the ECC community platform.", canonicalPath: "/founder-pass" }],
@@ -615,6 +615,40 @@ function buildMeta({
           "Christian social media",
           "Spiritual programs",
         ].map((name) => ({ "@type": "Thing", name })),
+      },
+      {
+        "@type": "Event",
+        name: "Cele One official app launch",
+        startDate: "2026-09-13",
+        eventStatus: "https://schema.org/EventScheduled",
+        eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+        url: `${SITE_URL}/prelaunch-registration`,
+        image: DEFAULT_IMAGE,
+        description:
+          locale === "fr"
+            ? "Lancement officiel de l'application Cele One pour la communaute de l'Eglise du Christianisme Celeste le 13 septembre 2026."
+            : locale === "es"
+              ? "Lanzamiento oficial de la app Cele One para la comunidad de la Iglesia Celestial de Cristo el 13 de septiembre de 2026."
+              : "Official launch of the Cele One app for the Celestial Church of Christ community on 13 September 2026.",
+        organizer: {
+          "@type": "Organization",
+          name: "CeleOne",
+          url: SITE_URL,
+        },
+      },
+      {
+        "@type": "SoftwareApplication",
+        name: "Cele One",
+        applicationCategory: "SocialNetworkingApplication",
+        operatingSystem: "Android, iOS, Web",
+        releaseNotes: "Official launch scheduled for 13 September 2026.",
+        url: SITE_URL,
+        image: DEFAULT_IMAGE,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
       },
     ],
   }).replace(/</g, "\\u003c");
