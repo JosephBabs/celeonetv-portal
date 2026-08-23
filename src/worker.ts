@@ -8,6 +8,7 @@ import { onRequestGet as founderCredentialsGet, onRequestPost as founderCredenti
 import type { PortalEnv } from "../functions/_lib/types";
 import { translatePlainTextEmbedded } from "./lib/embeddedTranslator";
 import { localizedPath, splitLocalePath, type RouteLocale } from "./lib/localizedPaths";
+import { SEO_KEYWORDS, SEO_KEYWORDS_CONTENT, SEO_TOPIC_THINGS } from "./lib/seoKeywords";
 
 export interface Env {
   FIREBASE_PROJECT_ID?: string;
@@ -407,6 +408,7 @@ function stripExistingSocialMeta(html: string) {
     .replace(/<meta[^>]+itemprop=["'][^"']+["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']title["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']description["'][^>]*>\s*/gi, "")
+    .replace(/<meta[^>]+name=["']keywords["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']robots["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']googlebot["'][^>]*>\s*/gi, "")
     .replace(/<link[^>]+rel=["']canonical["'][^>]*>\s*/gi, "")
@@ -591,6 +593,8 @@ function buildMeta({
         description: "Cele One is a community platform for the Celestial Church of Christ and ECC.",
         url: SITE_URL,
         logo: DEFAULT_IMAGE,
+        keywords: SEO_KEYWORDS,
+        knowsAbout: SEO_TOPIC_THINGS,
       },
       {
         "@type": type === "article" ? "Article" : "WebPage",
@@ -600,21 +604,14 @@ function buildMeta({
         image,
         url: pageUrl,
         inLanguage: locale,
+        keywords: SEO_KEYWORDS,
         isPartOf: {
           "@type": "WebSite",
           name: "Celeone TV",
           url: SITE_URL,
         },
-        about: [
-          "Cele One",
-          "Celeone TV",
-          "Celestial Church of Christ",
-          "Eglise du Christianisme Celeste",
-          "ECC",
-          "LECC",
-          "Christian social media",
-          "Spiritual programs",
-        ].map((name) => ({ "@type": "Thing", name })),
+        about: SEO_TOPIC_THINGS.map((name) => ({ "@type": "Thing", name })),
+        mentions: SEO_TOPIC_THINGS.map((name) => ({ "@type": "Thing", name })),
       },
       {
         "@type": "Event",
@@ -657,6 +654,7 @@ function buildMeta({
 <title>${escapeHtml(title)}</title>
 <meta name="title" content="${escapeHtml(title)}" />
 <meta name="description" content="${escapeHtml(description)}" />
+<meta name="keywords" content="${escapeHtml(SEO_KEYWORDS_CONTENT)}" />
 <meta name="robots" content="${escapeHtml(robots)}" />
 <meta name="googlebot" content="${escapeHtml(robots)}" />
 <meta itemprop="name" content="${escapeHtml(title)}" />

@@ -1,4 +1,5 @@
 import { localizedPath, splitLocalePath, type RouteLocale } from "./localizedPaths";
+import { SEO_KEYWORDS, SEO_KEYWORDS_CONTENT, SEO_TOPIC_THINGS } from "./seoKeywords";
 
 type MetaInput = {
   title: string;
@@ -465,18 +466,7 @@ function setStructuredData(data?: MetaInput["structuredData"]) {
 
 function baseStructuredData(title: string, url: string, locale: RouteLocale, description: string) {
   const pagePath = new URL(url).pathname;
-  const about = [
-    "Cele One",
-    "Celeone TV",
-    "Celestial Church of Christ",
-    "Eglise du Christianisme Celeste",
-    "ECC",
-    "LECC",
-    "Christian social media",
-    "Spiritual programs",
-    "Hymns",
-    "Parish map",
-  ].map((name) => ({ "@type": "Thing", name }));
+  const about = SEO_TOPIC_THINGS.map((name) => ({ "@type": "Thing", name }));
   const graph: Array<Record<string, unknown>> = [
     {
       "@context": "https://schema.org",
@@ -494,6 +484,8 @@ function baseStructuredData(title: string, url: string, locale: RouteLocale, des
       url: SITE_URL,
       logo: DEFAULT_IMAGE,
       description: localizedDefaults[locale].description,
+      keywords: SEO_KEYWORDS,
+      knowsAbout: SEO_TOPIC_THINGS,
     },
     {
       "@context": "https://schema.org",
@@ -503,6 +495,7 @@ function baseStructuredData(title: string, url: string, locale: RouteLocale, des
       description: localizedDefaults[locale].description,
       url: SITE_URL,
       inLanguage: locale,
+      keywords: SEO_KEYWORDS,
       potentialAction: {
         "@type": "SearchAction",
         target: `${SITE_URL}/documentation?search={search_term_string}`,
@@ -517,7 +510,9 @@ function baseStructuredData(title: string, url: string, locale: RouteLocale, des
       url,
       inLanguage: locale,
       primaryImageOfPage: DEFAULT_IMAGE,
+      keywords: SEO_KEYWORDS,
       about,
+      mentions: about,
       isPartOf: {
         "@type": "WebSite",
         name: DEFAULT_SITE_NAME,
@@ -610,6 +605,7 @@ export function setPageMeta({
   document.documentElement.lang = locale;
 
   upsertMeta('meta[name="description"]', { content: localizedDescription });
+  upsertMeta('meta[name="keywords"]', { content: SEO_KEYWORDS_CONTENT });
   upsertMeta('meta[name="robots"]', { content: robots });
   upsertMeta('meta[name="application-name"]', { content: DEFAULT_SITE_NAME });
   upsertMeta('meta[name="theme-color"]', { content: "#14B8A6" });

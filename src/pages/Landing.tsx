@@ -7,6 +7,49 @@ import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
+const searchTopicCards = [
+  {
+    title: "Cele One app and Celeone TV",
+    text: "Cele One, Cèlè One, CeleOne, Cele One app, CeleOne app, Celeone TV and Cele One TV all describe the same community platform.",
+  },
+  {
+    title: "Celestial Church community",
+    text: "Celestial Church of Christ, Celestial Church, CCC, CCC Worldwide, Celestial Church of Christ worldwide and the Celestial Christian community are central to the portal.",
+  },
+  {
+    title: "Social network and news",
+    text: "Cele One supports Celestial Church social network, Celestial Church social media, Christian community app, CCC news, official information, updates, reforms, announcements and decisions.",
+  },
+  {
+    title: "Hymns and worship songs",
+    text: "Members can discover Celestial Church hymns, CCC hymns, Celestial hymns, hymn book references, CCC songs and Celestial Church worship songs.",
+  },
+  {
+    title: "Weekly themes and services",
+    text: "The spiritual program covers Celestial Church weekly theme, CCC weekly theme, Bible lesson, Bible readings, Sunday service, Wednesday service, Friday service and worship program.",
+  },
+  {
+    title: "Parish map and locations",
+    text: "The parish tools help users search Celestial Church parish near me, CCC parish near me, find CCC parish, Celestial Church map, locations and parishes in Benin, Nigeria and worldwide.",
+  },
+  {
+    title: "Live media and documents",
+    text: "Celeone TV indexes Celestial Church live, CCC live TV, livestream, Christian TV live, Celestial Church radio, CCC radio, official documents, constitution, doctrine and order of worship.",
+  },
+  {
+    title: "History and founder",
+    text: "The portal also connects searches about Samuel Bilehou Joseph Oshoffa, Samuel B. J. Oshoffa, SBJ Oshoffa, Pastor Oshoffa and the founder of Celestial Church of Christ.",
+  },
+  {
+    title: "Recherche francaise ECC",
+    text: "Les recherches comme application Cèlè One, Église du Christianisme Céleste, communauté céleste, réseau social ECC, cantiques célestes, thème de la semaine ECC, paroisse ECC près de moi et Papa Oshoffa mènent vers les ressources Cele One.",
+  },
+  {
+    title: "Yoruba, Fon, Goun and Gungbe",
+    text: "Cele One also supports searches such as Ijo Mimo ti Kristi lati Orun Wa, CCC Yoruba hymns, CCC Yoruba weekly theme, CCC Fon, Cèlè One Fon, CCC Goun, CCC Gungbe and programme spirituel Gungbe.",
+  },
+];
+
 export default function Landing() {
   const { t } = useI18n();
   const [featuredChannels, setFeaturedChannels] = useState<any[]>([]);
@@ -115,6 +158,27 @@ export default function Landing() {
             <div className="mt-3 text-sm font-medium leading-8 text-slate-600">{item.text}</div>
           </div>
         ))}
+      </section>
+
+      <section className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-[0_10px_30px_rgba(8,24,40,0.05)] md:p-8">
+        <div className="max-w-3xl">
+          <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#0f8c68]">Celestial Church search hub</div>
+          <h2 className="mt-4 text-[32px] font-bold leading-tight text-[#081828] md:text-[38px]">
+            Find Cele One through the words members already use
+          </h2>
+          <p className="mt-4 text-[15px] font-medium leading-8 text-slate-600">
+            Cele One is built so members looking for CCC resources can reach the same official portal for the app,
+            spiritual programs, hymns, parish discovery, live media, documents and community updates.
+          </p>
+        </div>
+        <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {searchTopicCards.map((item) => (
+            <article key={item.title} className="rounded-[18px] border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-[17px] font-bold leading-snug text-[#081828]">{item.title}</h3>
+              <p className="mt-3 text-sm font-medium leading-7 text-slate-600">{item.text}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
