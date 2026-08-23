@@ -1,10 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /login
-Disallow: /logout
-Disallow: /register
-Disallow: /donate
+Disallow: /api
 Disallow: /founders/activate
 Disallow: /founders/certificate
 Disallow: /founders/dashboard

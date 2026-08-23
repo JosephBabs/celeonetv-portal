@@ -32,7 +32,7 @@ export default function Footer() {
               ["Carte des paroisses", "/parishes"],
               ["Ajouter une paroisse", "/parishes/register"],
               ["Preinscription", "/prelaunch-registration"],
-              ["Founder&apos;s Pass", "/founders"],
+              ["Founder&apos;s Pass", "/founder-pass"],
             ]}
           />
           <FooterGroup

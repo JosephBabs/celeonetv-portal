@@ -13,8 +13,12 @@ export default function Landing() {
 
   useEffect(() => {
     setPageMeta({
-      title: t("landing.meta_title", "CeleOne"),
-      description: t("landing.meta_desc", "CeleOne portal."),
+      title: t("landing.meta_title", "Cele One | CeleOne TV Platform for Celestial Church of Christ"),
+      description: t(
+        "landing.meta_desc",
+        "Cele One is the Celeone TV platform for the Celestial Church of Christ community, with spiritual programs, weekly themes, hymns, parish tools, documents, live TV, and social features.",
+      ),
+      canonicalPath: "/",
     });
   }, [t]);
 
@@ -61,18 +65,28 @@ export default function Landing() {
         <div className="absolute left-1/3 top-1/2 h-28 w-28 rounded-full bg-[#f8eaff]" />
         <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="relative z-10 max-w-2xl">
-            <div className="text-sm font-bold tracking-[0.18em] text-[#0f8c68]">{t("landing.badge", "CELEONE ECC PLATFORM")}</div>
+            <div className="text-sm font-bold tracking-[0.18em] text-[#0f8c68]">{t("landing.badge", "CELE ONE ECC PLATFORM")}</div>
             <h1 className="mt-5 text-[42px] font-bold leading-[1.02] text-[#081828] md:text-[40px]">
-              {t("landing.title", "CeleOne, a mobile social platform for the Celestial Christian community.")}
+              {t("landing.title", "Cele One connects the Celestial Church of Christ community.")}
             </h1>
-            <p className="mt-5 max-w-xl text-base font-medium leading-8 text-slate-600">{t("landing.p1", "CeleOne description")}</p>
-            <p className="mt-3 max-w-xl text-base font-medium leading-8 text-slate-600">{t("landing.p2", "CeleOne mission")}</p>
+            <p className="mt-5 max-w-xl text-base font-medium leading-8 text-slate-600">
+              {t(
+                "landing.p1",
+                "Cele One, also known as Celeone TV, brings ECC news, live Christian media, parish tools, documents, hymns, and weekly spiritual programs into one community portal.",
+              )}
+            </p>
+            <p className="mt-3 max-w-xl text-base font-medium leading-8 text-slate-600">
+              {t(
+                "landing.p2",
+                "The platform helps members discover Celestial Church of Christ resources, follow themes of the week, share useful content, and open the Cele One mobile app from public links.",
+              )}
+            </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/prelaunch-registration" className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#2ed06e] px-7 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(46,208,110,0.22)]">
                 {t("landing.cta_prelaunch", "Prelaunch registration")}
               </Link>
-              <Link to="/founders" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-[15px] font-bold text-[#081828]">
+              <Link to="/founder-pass" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-[15px] font-bold text-[#081828]">
                 Founder&apos;s Pass
               </Link>
             </div>

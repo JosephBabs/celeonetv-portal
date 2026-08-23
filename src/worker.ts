@@ -25,9 +25,9 @@ const DEFAULT_IMAGE_WIDTH = 679;
 const DEFAULT_IMAGE_HEIGHT = 559;
 const GENERATED_SHARE_IMAGE_WIDTH = 1200;
 const GENERATED_SHARE_IMAGE_HEIGHT = 630;
-const HOME_TITLE = "CeleOne | Plateforme Sociale Mobile Chrétienne Céleste";
+const HOME_TITLE = "Cele One | CeleOne TV Platform for Celestial Church of Christ";
 const HOME_DESCRIPTION =
-  "CeleOne rassemble actualités, réformes, decisions officielles ECC, chat communautaire, documents essentiels, TV/Web TV et Radio Alleluia FM dans un espace sécurisé.";
+  "Cele One is the Celeone TV platform for the Celestial Church of Christ community, with spiritual programs, weekly themes, hymns, parish tools, documents, live TV, and social features.";
 
 const ROUTE_META: Array<
   [
@@ -36,47 +36,45 @@ const ROUTE_META: Array<
       title: string;
       description: string;
       type?: "website" | "article";
+      robots?: string;
+      canonicalPath?: string;
     }
   ]
 > = [
-  [/^\/creator\/request\/?$/, { title: "Channel Request | Celeone TV", description: "Submit your TV, web TV, radio, podcast, or media channel request to join Celeone." }],
+  [/^\/creator\/request\/?$/, { title: "Create a Christian TV Channel | Celeone TV", description: "Request placement for a Christian TV, web TV, radio, podcast, ECC media, parish media, or Celestial Church of Christ channel on Celeone TV.", canonicalPath: "/creator/request" }],
   [/^\/creator\/?$/, { title: "Creator Portal | Celeone TV", description: "Access Celeone creator tools for channels, live media, posts, and community publishing." }],
   [/^\/chatrooms\/create\/?$/, { title: "Create Chatroom | Celeone TV", description: "Create a Celeone community chatroom for focused conversations, groups, and ministry exchanges." }],
-  [/^\/spiritual-program\/?$/, { title: "Spiritual Program | CeleOne", description: "Read weekly thèmes, services, Bible lessons, special celebrations, and hymn programs." }],
-  [/^\/parishes\/?$/, { title: "Parish Map | CeleOne", description: "Find approved CeleOne parishes near you with geolocation, distance sorting, and directions." }],
-  [/^\/social\/[^/]+\/?$/, { title: "CeleOne Social Post", description: "Preview this CeleOne social post on the portal, then open it in the CeleOne mobile app.", type: "article" }],
-  [/^\/hymns\/[^/]+\/?$/, { title: "CeleOne Hymn", description: "Preview this hymn on the portal, then open it in the CeleOne mobile app.", type: "article" }],
-  [/^\/themes\/[^/]+\/?$/, { title: "CeleOne Theme of the Week", description: "Preview this theme of the week on the portal, then open it in the CeleOne mobile app.", type: "article" }],
-  [/^\/weekly-themes\/[^/]+\/?$/, { title: "CeleOne Theme of the Week", description: "Preview this weekly theme on the portal, then open it in the CeleOne mobile app.", type: "article" }],
-  [/^\/weekly-programs\/[^/]+\/?$/, { title: "CeleOne Weekly Program", description: "Preview this weekly program on the portal, then open it in the CeleOne mobile app.", type: "article" }],
-  [/^\/videos\/[^/]+\/?$/, { title: "CeleOne Video", description: "Preview this video on the portal, then open it in the CeleOne mobile app.", type: "article" }],
-  [/^\/songs\/[^/]+\/?$/, { title: "CeleOne Song", description: "Preview this song on the portal, then open it in the CeleOne mobile app.", type: "article" }],
-  [/^\/documentation\/?$/, { title: "Documentation | CeleOne", description: "Explore public documentation, policies, modules, and trusted information flow." }],
+  [/^\/spiritual-program\/?$/, { title: "ECC Spiritual Program and Weekly Theme | Cele One", description: "Read Celestial Church of Christ weekly themes, Bible readings, services, special celebrations, and programmed hymns on the Cele One spiritual calendar.", canonicalPath: "/spiritual-program" }],
+  [/^\/parishes\/?$/, { title: "Celestial Church Parish Map | Cele One", description: "Find approved Celestial Church of Christ and ECC parishes near you on Cele One with geolocation, distance sorting, and directions.", canonicalPath: "/parishes" }],
+  [/^\/parishes\/register\/?$/, { title: "Register an ECC Parish | Cele One", description: "Submit a Celestial Church of Christ parish name, country, and exact GPS location for review on the Cele One global parish map.", canonicalPath: "/parishes/register" }],
+  [/^\/social\/[^/]+\/?$/, { title: "Cele One Social Post | Celeone TV", description: "Read a Cele One social post from the ECC and Celestial Church community, then open it in the Cele One mobile app.", type: "article" }],
+  [/^\/hymns\/[^/]+\/?$/, { title: "Cele One Hymn | ECC Cantiques", description: "Preview a Cele One hymn or cantique for the Celestial Church community, then open it in the mobile app.", type: "article" }],
+  [/^\/themes\/[^/]+\/?$/, { title: "Theme of the Week | Cele One Spiritual Program", description: "Read details for a Cele One theme of the week with Bible readings, services, and programmed hymns for the ECC community.", type: "article" }],
+  [/^\/weekly-themes\/[^/]+\/?$/, { title: "Weekly Theme | Cele One Spiritual Program", description: "Read a Cele One weekly theme for the Celestial Church community with service details and spiritual content.", type: "article" }],
+  [/^\/weekly-programs\/[^/]+\/?$/, { title: "Weekly Program | Cele One", description: "Preview a Cele One weekly spiritual program for the ECC and Celestial Church community.", type: "article" }],
+  [/^\/videos\/[^/]+\/?$/, { title: "Cele One Video | Celeone TV", description: "Preview a Cele One video from Celeone TV and open it in the mobile app.", type: "article" }],
+  [/^\/songs\/[^/]+\/?$/, { title: "Cele One Song | Celeone TV", description: "Preview a Cele One song or audio resource from Celeone TV and open it in the mobile app.", type: "article" }],
+  [/^\/documentation\/?$/, { title: "Cele One Documentation | ECC Platform, Social Media and TV", description: "Explore Cele One public documentation for the ECC platform, social media features, Cele TV, spiritual programs, parish workflows, community tools, and policies.", canonicalPath: "/documentation" }],
   [/^\/jeunesse\/?$/, { title: "Jeunesse | CeleOne", description: "Discover youth-centered CeleOne content, community activities, programs, and spiritual resources." }],
-  [/^\/prelaunch-registration\/?$/, { title: "Prelaunch Registration | CeleOne", description: "Reserve your CeleOne prelaunch account or share your donation interest before the official launch." }],
-  [/^\/donate\/?$/, { title: "Support Cele One | Founder's Pass Payment", description: "Open the official Cele One Founder’s Pass payment page and support the project launch." }],
-  [/^\/founder-pass\/?$/, { title: "Founder Pass | CeleOne", description: "Join the CeleOne Founder Pass program and support the launch of a secure Christian Celestial community platform." }],
-  [/^\/founders\/activate\/?$/, { title: "Activate Founder Pass | CeleOne", description: "Activate your CeleOne Founder Pass and unlock your founder profile, certificate, and supporter access." }],
-  [/^\/founders\/certificate\/?$/, { title: "Founder Certificate | CeleOne", description: "View and download your official CeleOne Founder Pass certificate." }],
-  [/^\/founders\/dashboard\/?$/, { title: "Founder Dashboard | CeleOne", description: "Manage your CeleOne Founder Pass profile, credentials, certificate, and supporter information." }],
-  [/^\/founders\/wall\/?$/, { title: "Founder Wall | CeleOne", description: "Celebrate the CeleOne founders and supporters helping build the platform before launch." }],
-  [/^\/founders\/verify\/[^/]+\/?$/, { title: "Verify Founder Certificate | CeleOne", description: "Verify a CeleOne Founder Pass certificate and confirm founder authenticity." }],
-  [/^\/founders\/verify\/?$/, { title: "Verify Founder Certificate | CeleOne", description: "Verify CeleOne Founder Pass certificates using the official vérification page." }],
-  [/^\/founders\/[^/]+\/?$/, { title: "Founder Hub | CeleOne", description: "Explore CeleOne founder resources, pass details, wall, certificates, and activation tools." }],
-  [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools." }],
-  [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out from your Celeone account securely." }],
-  [/^\/register\/?$/, { title: "Register | Celeone TV", description: "Create your Celeone account to access posts, chatrooms, channels, and community tools." }],
-  [/^\/admin\/functions\/?$/, { title: "Admin Functions | Celeone TV", description: "Review and process platform function requests submitted by users." }],
-  [/^\/admin\/cantiques\/?$/, { title: "Admin Cantiques | Celeone TV", description: "Create, edit, and organize hymns with language and number filters." }],
-  [/^\/admin\/posts\/?$/, { title: "Admin Posts | Celeone TV", description: "Create and edit posts with rich content and social sharing metadata." }],
-  [/^\/admin\/documents\/?$/, { title: "Admin Documents | Celeone TV", description: "Manage official ECC documents and publish structured HTML content." }],
-  [/^\/admin\/channel-requests\/?$/, { title: "Admin Channel Requests | Celeone TV", description: "Approve or reject creator channel requests for live streaming access." }],
-  [/^\/admin\/chatrooms\/?$/, { title: "Admin Chatrooms | Celeone TV", description: "Moderate and configure community chatrooms across the platform." }],
-  [/^\/admin\/spiritual-program\/?$/, { title: "Admin Spiritual Program | CeleOne", description: "Manage spiritual years, months, weeks, services, hymn programs, and special celebrations." }],
-  [/^\/admin\/founders\/members\/[^/]+\/certificate\/?$/, { title: "Admin Founder Certificate | CeleOne", description: "Review, verify, and manage a CeleOne founder member certificate." }],
-  [/^\/admin\/founders\/?$/, { title: "Admin Founders | CeleOne", description: "Manage CeleOne Founder Pass members, payments, credentials, certificates, and vérification records." }],
-  [/^\/admin\/?$/, { title: "Admin Dashboard | Celeone TV", description: "View revenue, subscriptions, creators, and moderation operations in one dashboard." }],
-  [/^\/admin\/.+$/, { title: "Admin Manage | Celeone TV", description: "Manage portal collections, workflows, and publishing settings." }],
+  [/^\/prelaunch-registration\/?$/, { title: "Cele One Prelaunch Registration | ECC Community Platform", description: "Create your Cele One account before launch or register donor details to support the Celestial Church of Christ community platform project.", canonicalPath: "/prelaunch-registration" }],
+  [/^\/donate\/?$/, { title: "Support Cele One | Founder's Pass Payment", description: "Open the official Cele One Founder's Pass payment page and support the project launch.", robots: "noindex,follow" }],
+  [/^\/founder-pass\/?$/, { title: "Founder Pass | Cele One", description: "Support Cele One and reserve Founder recognition, certificate verification, and public wall presence for the ECC community platform.", canonicalPath: "/founder-pass" }],
+  [/^\/founders\/?$/, { title: "Founder Pass | Cele One", description: "Support Cele One and reserve Founder recognition, certificate verification, and public wall presence for the ECC community platform.", canonicalPath: "/founder-pass" }],
+  [/^\/founders\/activate\/?$/, { title: "Activate Founder Pass | CeleOne", description: "Activate your CeleOne Founder Pass and unlock your founder profile, certificate, and supporter access.", robots: "noindex,nofollow" }],
+  [/^\/founders\/certificate\/?$/, { title: "Founder Certificate | CeleOne", description: "View and download your official CeleOne Founder Pass certificate.", robots: "noindex,nofollow" }],
+  [/^\/founders\/dashboard\/?$/, { title: "Founder Dashboard | CeleOne", description: "Manage your CeleOne Founder Pass profile, credentials, certificate, and supporter information.", robots: "noindex,nofollow" }],
+  [/^\/founders\/wall\/?$/, { title: "Founder Wall | Cele One", description: "View the public Cele One Founder Wall and recognized supporters of the Celestial Church community platform.", canonicalPath: "/founders/wall" }],
+  [/^\/founders\/verify\/[^/]+\/?$/, { title: "Verify Founder Pass | Cele One", description: "Verify a Cele One Founder Pass certificate or founder identity from the official CeleOne portal.", canonicalPath: "/founders/verify" }],
+  [/^\/founders\/verify\/?$/, { title: "Verify Founder Pass | Cele One", description: "Verify a Cele One Founder Pass certificate or founder identity from the official CeleOne portal.", canonicalPath: "/founders/verify" }],
+  [/^\/founders\/[^/]+\/?$/, { title: "Founder Hub | CeleOne", description: "Explore CeleOne founder resources, pass details, wall, certificates, and activation tools.", robots: "noindex,follow" }],
+  [/^\/app\/privacy\/?$/, { title: "Privacy Policy | Cele One ECC Platform", description: "Read how Cele One, the ECC and Celestial Church community platform, collects, uses, shares, protects, retains, and deletes user information.", canonicalPath: "/app/privacy" }],
+  [/^\/account\/request_delete\/?$/, { title: "Request Account Deletion | Cele One", description: "Request deletion of your Cele One account and associated personal data from the ECC and Celestial Church community platform.", canonicalPath: "/account/request_delete" }],
+  [/^\/app\/child-safety-standards\/?$/, { title: "Child Safety Standards | Cele One", description: "Read Cele One's published standards against child sexual exploitation, abuse, grooming, and unsafe contact with minors.", canonicalPath: "/app/child-safety-standards" }],
+  [/^\/login\/?$/, { title: "Login | Celeone TV", description: "Sign in securely to access your Celeone account and creator tools.", robots: "noindex,follow" }],
+  [/^\/logout\/?$/, { title: "Logout | Celeone TV", description: "Sign out from your Celeone account securely.", robots: "noindex,nofollow" }],
+  [/^\/register\/?$/, { title: "Register | Celeone TV", description: "Create your Celeone account to access posts, chatrooms, channels, and community tools.", robots: "noindex,follow" }],
+  [/^\/admin\/.+$/, { title: "Admin | Celeone TV", description: "Celeone TV administration area.", robots: "noindex,nofollow" }],
+  [/^\/admin\/?$/, { title: "Admin | Celeone TV", description: "Celeone TV administration area.", robots: "noindex,nofollow" }],
 ];
 
 function escapeHtml(s: string) {
@@ -110,7 +108,10 @@ function stripExistingSocialMeta(html: string) {
     .replace(/<meta[^>]+itemprop=["'][^"']+["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']title["'][^>]*>\s*/gi, "")
     .replace(/<meta[^>]+name=["']description["'][^>]*>\s*/gi, "")
+    .replace(/<meta[^>]+name=["']robots["'][^>]*>\s*/gi, "")
+    .replace(/<meta[^>]+name=["']googlebot["'][^>]*>\s*/gi, "")
     .replace(/<link[^>]+rel=["']canonical["'][^>]*>\s*/gi, "")
+    .replace(/<script[^>]+type=["']application\/ld\+json["'][^>]*>.*?<\/script>\s*/gis, "")
     .replace(/<title>.*?<\/title>\s*/gis, "");
 }
 
@@ -134,22 +135,63 @@ function buildMeta({
   image,
   pageUrl,
   type,
+  robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
 }: {
   title: string;
   description: string;
   image: string;
   pageUrl: string;
   type: "website" | "article";
+  robots?: string;
 }) {
   const isDefaultImage = image === DEFAULT_IMAGE;
   const imageWidth = isDefaultImage ? DEFAULT_IMAGE_WIDTH : GENERATED_SHARE_IMAGE_WIDTH;
   const imageHeight = isDefaultImage ? DEFAULT_IMAGE_HEIGHT : GENERATED_SHARE_IMAGE_HEIGHT;
   const imageType = image.toLowerCase().includes(".png") ? "image/png" : "image/jpeg";
+  const structuredData = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "CeleOne",
+        alternateName: ["Cele One", "Celeone TV", "Cele TV", "Cele One TV", "Plateforme ECC", "Plateforme LECC", "Reseau social de l'ECC"],
+        description: "Cele One is a community platform for the Celestial Church of Christ and ECC.",
+        url: SITE_URL,
+        logo: DEFAULT_IMAGE,
+      },
+      {
+        "@type": type === "article" ? "Article" : "WebPage",
+        headline: title,
+        name: title,
+        description,
+        image,
+        url: pageUrl,
+        inLanguage: ["fr", "en", "es"],
+        isPartOf: {
+          "@type": "WebSite",
+          name: "Celeone TV",
+          url: SITE_URL,
+        },
+        about: [
+          "Cele One",
+          "Celeone TV",
+          "Celestial Church of Christ",
+          "Eglise du Christianisme Celeste",
+          "ECC",
+          "LECC",
+          "Christian social media",
+          "Spiritual programs",
+        ].map((name) => ({ "@type": "Thing", name })),
+      },
+    ],
+  }).replace(/</g, "\\u003c");
 
   return `
 <title>${escapeHtml(title)}</title>
 <meta name="title" content="${escapeHtml(title)}" />
 <meta name="description" content="${escapeHtml(description)}" />
+<meta name="robots" content="${escapeHtml(robots)}" />
+<meta name="googlebot" content="${escapeHtml(robots)}" />
 <meta itemprop="name" content="${escapeHtml(title)}" />
 <meta itemprop="description" content="${escapeHtml(description)}" />
 <meta itemprop="image" content="${escapeHtml(image)}" />
@@ -177,6 +219,7 @@ function buildMeta({
 
 <link rel="canonical" href="${escapeHtml(pageUrl)}" />
 <link rel="icon" href="${escapeHtml(DEFAULT_IMAGE)}" />
+<script type="application/ld+json">${structuredData}</script>
   `.trim();
 }
 
@@ -532,8 +575,9 @@ export default {
         title: cfg.title,
         description: cfg.description,
         image: DEFAULT_IMAGE,
-        pageUrl: `${SITE_URL}${url.pathname}`,
+        pageUrl: `${SITE_URL}${cfg.canonicalPath || url.pathname}`,
         type: cfg.type || "website",
+        robots: cfg.robots,
       });
       return htmlResponse(baseRes, injectMeta(html, meta));
     }
@@ -560,6 +604,7 @@ export default {
       image: DEFAULT_IMAGE,
       pageUrl: `${SITE_URL}${url.pathname}`,
       type: "website",
+      robots: "noindex,follow",
     });
     return htmlResponse(baseRes, injectMeta(html, fallbackMeta));
   },

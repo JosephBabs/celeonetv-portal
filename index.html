@@ -8,10 +8,6 @@
     <meta name="application-name" content="Celeone TV" />
     <meta name="theme-color" content="#14B8A6" />
     <meta
-      name="keywords"
-      content="Cele One, CeleOne, Celeone TV, Cele TV, Cele One TV, Plateforme ECC, Plateforme LECC, reseau social de l'ECC, reseau social LECC, social media Celestial Church of Christ, Celestial Church of Christ, Eglise du Christianisme Celeste, Eglise Celeste, ECC, LECC, celestial church, celestial church media, Celestial Church of Christ app, programme spirituel ECC, theme de la semaine ECC, cantiques ECC, paroisses ECC, web tv chretienne celeste, actualites ECC, communaute chretienne celeste"
-    />
-    <meta
       name="description"
       content="Cele One, aussi appele CeleOne et Celeone TV, est une plateforme pour la communaute Celestial Church of Christ et ECC avec actualites, programme spirituel, themes de la semaine, cantiques, paroisses, documents, live TV et reseau social."
     />
@@ -44,23 +40,35 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Celeone TV",
-        "alternateName": ["Cele One", "CeleOne", "Cele TV", "Cele One TV", "Plateforme ECC", "Plateforme LECC", "Reseau social de l'ECC", "Celestial Church social media"],
-        "description": "Cele One is a CeleOne TV platform for the Celestial Church of Christ and ECC community with spiritual programs, hymns, parish tools, documents, live TV and social media features.",
-        "url": "https://celeonetv.com",
-        "inLanguage": ["fr", "en", "es"],
-        "publisher": {
-          "@type": "Organization",
-          "name": "CeleOne",
-          "url": "https://celeonetv.com",
-          "logo": "https://celeonetv.com/logo.png"
-        },
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://celeonetv.com/documentation?search={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "CeleOne",
+            "alternateName": ["Cele One", "Celeone TV", "Cele TV", "Cele One TV", "Plateforme ECC", "Plateforme LECC", "Reseau social de l'ECC"],
+            "description": "Cele One is a community platform for the Celestial Church of Christ and ECC with spiritual programs, hymns, parish tools, documents, live TV and social media features.",
+            "url": "https://celeonetv.com",
+            "logo": "https://celeonetv.com/logo.png"
+          },
+          {
+            "@type": "WebSite",
+            "name": "Celeone TV",
+            "alternateName": ["Cele One", "CeleOne", "Cele TV", "Cele One TV", "Celestial Church social media"],
+            "description": "Cele One is a CeleOne TV platform for the Celestial Church of Christ and ECC community.",
+            "url": "https://celeonetv.com",
+            "inLanguage": ["fr", "en", "es"],
+            "publisher": {
+              "@type": "Organization",
+              "name": "CeleOne",
+              "url": "https://celeonetv.com",
+              "logo": "https://celeonetv.com/logo.png"
+            },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://celeonetv.com/documentation?search={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
       }
     </script>
     <title>Cele One | CeleOne TV Platform for Celestial Church of Christ</title>

@@ -69,9 +69,10 @@ export default function ShareLanding() {
       description,
       image,
       url: window.location.href,
-      type: cfg?.type === "hymn" || cfg?.type === "theme" ? "article" : "website",
+      type: "article",
+      canonicalPath: location.pathname,
     });
-  }, [cfg, item]);
+  }, [cfg, item, lang, location.pathname, t]);
 
   if (!cfg) {
     return (

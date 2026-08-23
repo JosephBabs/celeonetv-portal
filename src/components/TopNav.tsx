@@ -72,7 +72,7 @@ function navActionClass(variant: "primary" | "outline" | "dark") {
 
 function DesktopLinks({ t }: { user: unknown; isAdmin: boolean; t: (k: string, f?: string) => string }) {
   const moreLinks = [
-    ["/founders", t("nav.founders_pass", "Founder's Pass")],
+    ["/founder-pass", t("nav.founders_pass", "Founder's Pass")],
     ["/documentation", t("nav.documentation", "Documentation")],
     ["/app/privacy", t("nav.privacy_policy", "Privacy Policy")],
     ["/app/child-safety-standards", t("nav.child_safety", "Child Safety")],
@@ -159,7 +159,7 @@ function MobileLinks({
       <Link onClick={onClose} to="/prelaunch-registration" className={itemClass}>
         {t("nav.prelaunch_registration", "Prelaunch Registration")}
       </Link>
-      <Link onClick={onClose} to="/founders" className={itemClass}>
+      <Link onClick={onClose} to="/founder-pass" className={itemClass}>
         {t("nav.founders_pass", "Founder's Pass")}
       </Link>
       <Link onClick={onClose} to="/documentation" className={itemClass}>

@@ -71,6 +71,7 @@ export const router = createBrowserRouter([
       { path: "/donate", element: <DonateRedirect /> },
       { path: "/prelaunch-registration", element: <PrelaunchRegistration /> },
       { path: "/founder-pass", element: <Founders /> },
+      { path: "/founders", element: <Navigate to="/founder-pass" replace /> },
       { path: "/founders/activate", element: <FounderActivate /> },
       { path: "/founders/certificate", element: <FounderCertificate /> },
       { path: "/founders/dashboard", element: <FounderDashboard /> },
