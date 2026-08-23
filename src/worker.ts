@@ -362,6 +362,12 @@ function shouldUseAppShell(pathname: string) {
   return true;
 }
 
+function isStaticAssetPath(pathname: string) {
+  return /\/[^/]+\.[^/]+$/.test(pathname)
+    || /^\/(?:assets|fonts|spark|docs|locales)(?:\/|$)/.test(pathname)
+    || /^\/(?:favicon\.png|logo\.png|logo\.jpeg|hero-image\.png|feature-img\.png|ads\.txt|robots\.txt|sitemap\.xml|google[^/]+\.html)$/.test(pathname);
+}
+
 async function fetchAsset(request: Request, env: WorkerEnv, url: URL) {
   const fetchFromAssets = async (req: Request) => {
     if (env.ASSETS && typeof env.ASSETS.fetch === "function") return env.ASSETS.fetch(req);
@@ -831,6 +837,12 @@ export default {
     const locale = localeInfo.locale || "fr";
     const routePath = localeInfo.pathname;
     const method = request.method.toUpperCase();
+
+    if (localeInfo.locale && isStaticAssetPath(routePath)) {
+      const assetUrl = new URL(request.url);
+      assetUrl.pathname = routePath;
+      return fetchAsset(new Request(assetUrl.toString(), request), env, assetUrl);
+    }
 
     if (/^\/api\/translate\/?$/.test(routePath)) return handleTranslate(request, env);
     if (/^\/api\/founders\/activate\/?$/.test(routePath)) {
