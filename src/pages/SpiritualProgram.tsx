@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { openShareInApp, webPathForShare } from "../lib/deepLinks";
 import {
   MONTH_NAMES_FR,
   formatLocalDateTime,
@@ -442,6 +443,8 @@ function WeekContent({ week, lang }: { week: ResolvedThemeWeek | null; lang: str
   const bibleTheme = getLocalizedText(week.bibleTheme || week.description, week.bibleThemeTranslations || week.descriptionTranslations, lang);
   const services = week.eventDays.filter((item) => item.serviceType !== "special_celebration" && !item.specialCelebrationId);
   const celebrations = week.eventDays.filter((item) => item.serviceType === "special_celebration" || item.specialCelebrationId);
+  const weekUrl = absolutePortalUrl(webPathForShare("theme", weekKey(week)));
+  const shareText = buildWeekWhatsAppText(week, lang, weekUrl);
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-5">
@@ -454,6 +457,30 @@ function WeekContent({ week, lang }: { week: ResolvedThemeWeek | null; lang: str
           </div>
         </div>
         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{week.status || "published"}</span>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => shareToWhatsApp(shareText)}
+          className="inline-flex min-h-[42px] items-center justify-center rounded-lg bg-[#25d366] px-4 text-sm font-bold text-white"
+        >
+          Partager WhatsApp
+        </button>
+        <button
+          type="button"
+          onClick={() => shareNative(title || "Theme de la semaine", shareText, weekUrl)}
+          className="inline-flex min-h-[42px] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-900"
+        >
+          Partager
+        </button>
+        <button
+          type="button"
+          onClick={() => openShareInApp("theme", weekKey(week))}
+          className="inline-flex min-h-[42px] items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-bold text-white"
+        >
+          Ouvrir dans l'app
+        </button>
       </div>
 
       <p className="mt-4 text-sm font-medium leading-8 text-slate-700">{bibleTheme || week.description || "-"}</p>
@@ -478,14 +505,113 @@ function WeekContent({ week, lang }: { week: ResolvedThemeWeek | null; lang: str
       <ContentBlock title="Cantiques programmes" empty="Aucun cantique attache pour cette semaine.">
         {week.hymns.map((hymn) => (
           <div key={hymn.id} className="rounded-lg border border-slate-200 bg-[#f8fbfd] p-4 text-sm">
-            <div className="font-bold text-slate-900">{hymn.title || `Cantique ${hymn.hymnNumber || ""}`}</div>
-            <div className="mt-1 font-medium text-slate-600">{[hymn.date, hymn.time, hymn.dayKey].filter(Boolean).join(" | ") || "-"}</div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="font-bold text-slate-900">{hymn.title || `Cantique ${hymn.hymnNumber || ""}`}</div>
+                <div className="mt-1 font-medium text-slate-600">{[hymn.date, hymn.time, hymn.dayKey].filter(Boolean).join(" | ") || "-"}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => shareToWhatsApp(buildHymnWhatsAppText(week, hymn, lang, weekUrl))}
+                className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-slate-900 ring-1 ring-slate-200"
+              >
+                Partager
+              </button>
+            </div>
             {hymn.notes ? <div className="mt-2 text-slate-600">{hymn.notes}</div> : null}
           </div>
         ))}
       </ContentBlock>
     </div>
   );
+}
+
+function absolutePortalUrl(path: string) {
+  if (typeof window === "undefined") return `https://celeonetv.com${path}`;
+  return `${window.location.origin}${path}`;
+}
+
+function buildWeekWhatsAppText(week: ResolvedThemeWeek, lang: string, url: string) {
+  const title = getLocalizedText(week.title || week.theme, week.titleTranslations, lang) || "Theme de la semaine";
+  const bibleTheme = getLocalizedText(week.bibleTheme || week.description, week.bibleThemeTranslations || week.descriptionTranslations, lang);
+  const services = week.eventDays.filter((item) => item.serviceType !== "special_celebration" && !item.specialCelebrationId);
+  const celebrations = week.eventDays.filter((item) => item.serviceType === "special_celebration" || item.specialCelebrationId);
+  const lines = [
+    "*CELEONE - THEME DE LA SEMAINE*",
+    "",
+    `*${title}*`,
+    `_Semaine ${week.weekNumber || "-"} - ${week.monthName || ""} ${week.year || ""}_`,
+    `${week.startDate || "-"} - ${week.endDate || "-"}`,
+  ];
+
+  if (bibleTheme) lines.push("", "*Theme biblique*", bibleTheme);
+  if (week.scriptureReferences.length) lines.push("", "*References*", week.scriptureReferences.map((item) => `- ${item}`).join("\n"));
+  if (week.verses.length) lines.push("", "*Versets*", week.verses.map((item) => `- ${item}`).join("\n"));
+
+  if (services.length) {
+    lines.push("", "*Services*");
+    services.forEach((service, index) => {
+      lines.push(`${index + 1}. ${serviceLine(service, lang)}`);
+    });
+  }
+
+  if (celebrations.length) {
+    lines.push("", "*Celebrations speciales*");
+    celebrations.forEach((service, index) => {
+      lines.push(`${index + 1}. ${serviceLine(service, lang)}`);
+    });
+  }
+
+  if (week.hymns.length) {
+    lines.push("", "*Cantiques*");
+    week.hymns.forEach((hymn, index) => {
+      lines.push(`${index + 1}. ${hymn.hymnNumber ? `No ${hymn.hymnNumber} - ` : ""}${hymn.title || "Cantique"}${hymn.time ? ` (${hymn.time})` : ""}`);
+    });
+  }
+
+  lines.push("", "_Ouvrir sur le portail CeleOne:_", url);
+  return lines.filter((line) => line !== undefined && line !== null).join("\n");
+}
+
+function buildHymnWhatsAppText(week: ResolvedThemeWeek, hymn: ResolvedThemeWeek["hymns"][number], lang: string, url: string) {
+  const title = getLocalizedText(week.title || week.theme, week.titleTranslations, lang) || "Theme de la semaine";
+  return [
+    "*CELEONE - CANTIQUE PROGRAMME*",
+    "",
+    `*${hymn.title || `Cantique ${hymn.hymnNumber || ""}`}*`,
+    hymn.hymnNumber ? `_Numero: ${hymn.hymnNumber}_` : "",
+    [hymn.date, hymn.time, hymn.dayKey].filter(Boolean).join(" | "),
+    "",
+    "*Semaine*",
+    `${title} - Semaine ${week.weekNumber || "-"}`,
+    `${week.startDate || "-"} - ${week.endDate || "-"}`,
+    hymn.notes ? `\n*Notes*\n${hymn.notes}` : "",
+    "",
+    "_Ouvrir sur le portail CeleOne:_",
+    url,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function serviceLine(service: WeeklyThemeEventDay, lang: string) {
+  const title = getLocalizedText(service.title, service.titleTranslations, lang) || "Service";
+  const lesson = getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang);
+  const when = [service.dayOfWeek || service.dayKey, service.date || service.serviceDate, service.time || service.serviceTime].filter(Boolean).join(" | ");
+  return [title, when, lesson ? `- ${lesson}` : ""].filter(Boolean).join(" ");
+}
+
+function shareToWhatsApp(text: string) {
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+}
+
+async function shareNative(title: string, text: string, url: string) {
+  if (navigator.share) {
+    await navigator.share({ title, text, url }).catch(() => undefined);
+    return;
+  }
+  await navigator.clipboard?.writeText(text).catch(() => undefined);
+  alert("Le texte de partage a ete copie.");
 }
 
 function ServiceCard({ service, lang, special = false }: { service: WeeklyThemeEventDay; lang: string; special?: boolean }) {
