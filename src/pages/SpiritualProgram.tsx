@@ -36,6 +36,8 @@ const emptyBundle: ProgramBundle = {
 const weekKey = (week: ResolvedThemeWeek) =>
   week.generatedKey || week.id || `${week.year}-W${String(week.weekNumber || "").padStart(2, "0")}`;
 
+type MobileFlow = "months" | "weeks" | "content";
+
 export default function SpiritualProgram() {
   const { t, lang } = useI18n();
   const [bundle, setBundle] = useState<ProgramBundle>(emptyBundle);
@@ -44,6 +46,7 @@ export default function SpiritualProgram() {
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedWeekId, setSelectedWeekId] = useState("");
+  const [mobileFlow, setMobileFlow] = useState<MobileFlow>("months");
   const [localNow, setLocalNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -201,6 +204,20 @@ export default function SpiritualProgram() {
             <Link to="/admin/spiritual-program" className="inline-flex min-h-[46px] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-900">
               {t("spiritual.admin_link", "Open admin workflow")}
             </Link>
+            {currentThemeWeek ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setYear(String(currentThemeWeek.year));
+                  setSelectedMonth(currentThemeWeek.monthNumber || new Date().getMonth() + 1);
+                  setSelectedWeekId(weekKey(currentThemeWeek));
+                  setMobileFlow("content");
+                }}
+                className="inline-flex min-h-[46px] items-center justify-center rounded-lg bg-[#2ed06e] px-5 text-sm font-bold text-white md:hidden"
+              >
+                Ouvrir la semaine
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -236,7 +253,13 @@ export default function SpiritualProgram() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#2ed06e]">Theme de la semaine</div>
-            <div className="mt-2 text-2xl font-bold text-[#081828]">{t("spiritual.month_listing", "Months listing")}</div>
+            <div className="mt-2 text-2xl font-bold text-[#081828]">
+              {mobileFlow === "months"
+                ? t("spiritual.month_listing", "Months listing")
+                : mobileFlow === "weeks"
+                  ? `${MONTH_NAMES_FR[selectedMonth - 1]} ${year}`
+                  : "Contenu de la semaine"}
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <input
@@ -263,11 +286,19 @@ export default function SpiritualProgram() {
           </div>
         </div>
 
+        <div className="mt-4 flex items-center gap-2 md:hidden">
+          <StepPill active={mobileFlow === "months"} label="Mois" />
+          <StepConnector />
+          <StepPill active={mobileFlow === "weeks"} label="Semaines" />
+          <StepConnector />
+          <StepPill active={mobileFlow === "content"} label="Services" />
+        </div>
+
         {loading ? (
           <div className="mt-6 rounded-lg bg-slate-50 p-5 text-sm text-slate-600">{t("spiritual.loading", "Loading spiritual program...")}</div>
         ) : (
           <>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className={`mt-5 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${mobileFlow === "months" ? "grid" : "hidden md:grid"}`}>
               {monthCards.map((month) => (
                 <button
                   key={month.monthNumber}
@@ -275,6 +306,7 @@ export default function SpiritualProgram() {
                   onClick={() => {
                     setSelectedMonth(month.monthNumber);
                     setSelectedWeekId("");
+                    setMobileFlow("weeks");
                   }}
                   className={`min-h-[130px] rounded-lg border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
                     selectedMonth === month.monthNumber
@@ -298,7 +330,7 @@ export default function SpiritualProgram() {
             </div>
 
             <div className="mt-6 grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
-              <div className="rounded-lg border border-slate-200 bg-[#f8fbfd] p-5">
+              <div className={`rounded-lg border border-slate-200 bg-[#f8fbfd] p-5 ${mobileFlow === "weeks" ? "block" : "hidden md:block"}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Ouverture du mois</div>
@@ -308,6 +340,13 @@ export default function SpiritualProgram() {
                   </div>
                   <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700">{visibleMonthWeeks.length} semaines</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileFlow("months")}
+                  className="mt-4 inline-flex min-h-[40px] items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 md:hidden"
+                >
+                  Retour aux mois
+                </button>
 
                 <div className="mt-4 space-y-3">
                   {visibleMonthWeeks.map((week) => {
@@ -318,7 +357,10 @@ export default function SpiritualProgram() {
                       <button
                         key={weekKey(week)}
                         type="button"
-                        onClick={() => setSelectedWeekId(weekKey(week))}
+                        onClick={() => {
+                          setSelectedWeekId(weekKey(week));
+                          setMobileFlow("content");
+                        }}
                         className={`w-full rounded-lg border p-4 text-left transition ${
                           isSelected ? "border-[#2ed06e] bg-white shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"
                         }`}
@@ -331,6 +373,9 @@ export default function SpiritualProgram() {
                           </div>
                           {isCurrent ? <span className="shrink-0 rounded-full bg-[#edf9f1] px-2 py-1 text-[11px] font-bold text-[#14623a]">Actuel</span> : null}
                         </div>
+                        <div className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white md:hidden">
+                          Voir les services
+                        </div>
                       </button>
                     );
                   })}
@@ -342,7 +387,25 @@ export default function SpiritualProgram() {
                 </div>
               </div>
 
-              <WeekContent week={selectedWeek} lang={lang} />
+              <div className={mobileFlow === "content" ? "block" : "hidden md:block"}>
+                <div className="mb-3 flex flex-wrap gap-2 md:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setMobileFlow("weeks")}
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800"
+                  >
+                    Retour aux semaines
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileFlow("months")}
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-bold text-white"
+                  >
+                    Retour aux mois
+                  </button>
+                </div>
+                <WeekContent week={selectedWeek} lang={lang} />
+              </div>
             </div>
           </>
         )}
@@ -351,6 +414,18 @@ export default function SpiritualProgram() {
       {!hasMobileThemeData && legacyWeeks.length ? <LegacyProgram weeks={legacyWeeks} currentWeek={currentLegacyWeek} /> : null}
     </div>
   );
+}
+
+function StepPill({ active, label }: { active: boolean; label: string }) {
+  return (
+    <span className={`rounded-full px-3 py-1 text-xs font-bold ${active ? "bg-[#2ed06e] text-white" : "bg-slate-100 text-slate-600"}`}>
+      {label}
+    </span>
+  );
+}
+
+function StepConnector() {
+  return <span className="h-px flex-1 bg-slate-200" />;
 }
 
 function WeekContent({ week, lang }: { week: ResolvedThemeWeek | null; lang: string }) {
