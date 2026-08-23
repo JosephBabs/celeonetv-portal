@@ -67,7 +67,7 @@ export default function CreateChatroom() {
               <option value="goun">goun</option>
               <option value="francais">francais</option>
               <option value="yoruba">yoruba</option>
-              <option value="anglais">anglais</option>
+              <option value="english">english</option>
             </select>
           </Field>
           <Field label={t("chatroom.description", "Description")}>

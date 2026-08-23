@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { onRequestGet as founderActivateGet, onRequestPost as founderActivatePost } from "../functions/api/founders/activate";
 import { onRequestGet as adminFounderAssetGet } from "../functions/api/admin/founders/asset";
 import { onRequestGet as adminFounderCredentialsGet, onRequestPost as adminFounderCredentialsPost } from "../functions/api/admin/founders/credentials";
@@ -28,6 +28,65 @@ const GENERATED_SHARE_IMAGE_HEIGHT = 630;
 const HOME_TITLE = "Cele One | CeleOne TV Platform for Celestial Church of Christ";
 const HOME_DESCRIPTION =
   "Cele One is the Celeone TV platform for the Celestial Church of Christ community, with spiritual programs, weekly themes, hymns, parish tools, documents, live TV, and social features.";
+
+
+type DynamicShareRoute = {
+  pattern: RegExp;
+  collection: string;
+  fallbackTitle: string;
+  fallbackDescription: string;
+};
+
+const DYNAMIC_SHARE_ROUTES: DynamicShareRoute[] = [
+  {
+    pattern: /^\/posts\/([^/]+)\/?$/,
+    collection: "posts",
+    fallbackTitle: "Cele One Post | Celeone TV",
+    fallbackDescription: "Read and share a Cele One post from the Celestial Church community.",
+  },
+  {
+    pattern: /^\/social\/([^/]+)\/?$/,
+    collection: "posts",
+    fallbackTitle: "Cele One Social Post | Celeone TV",
+    fallbackDescription: "Read a Cele One social post from the ECC and Celestial Church community.",
+  },
+  {
+    pattern: /^\/hymns\/([^/]+)\/?$/,
+    collection: "cantiques",
+    fallbackTitle: "Cele One Hymn | ECC Cantiques",
+    fallbackDescription: "Preview a Cele One hymn or cantique for the Celestial Church community.",
+  },
+  {
+    pattern: /^\/themes\/([^/]+)\/?$/,
+    collection: "weekly_themes",
+    fallbackTitle: "Theme of the Week | Cele One",
+    fallbackDescription: "Read a Cele One theme of the week with Bible readings, services and hymns.",
+  },
+  {
+    pattern: /^\/weekly-themes\/([^/]+)\/?$/,
+    collection: "weekly_themes",
+    fallbackTitle: "Weekly Theme | Cele One Spiritual Program",
+    fallbackDescription: "Read a Cele One weekly theme for the Celestial Church community.",
+  },
+  {
+    pattern: /^\/weekly-programs\/([^/]+)\/?$/,
+    collection: "weeklyPrograms",
+    fallbackTitle: "Weekly Program | Cele One",
+    fallbackDescription: "Preview a Cele One weekly spiritual program.",
+  },
+  {
+    pattern: /^\/videos\/([^/]+)\/?$/,
+    collection: "videos",
+    fallbackTitle: "Cele One Video | Celeone TV",
+    fallbackDescription: "Preview a Cele One video and open it in the mobile app.",
+  },
+  {
+    pattern: /^\/songs\/([^/]+)\/?$/,
+    collection: "songs",
+    fallbackTitle: "Cele One Song | Celeone TV",
+    fallbackDescription: "Preview a Cele One song or audio resource.",
+  },
+];
 
 const ROUTE_META: Array<
   [
@@ -148,14 +207,113 @@ function makeCompressedShareImage(input: string) {
   const imageUrl = (input || "").trim();
   if (!imageUrl) return DEFAULT_IMAGE;
   if (imageUrl === DEFAULT_IMAGE) return DEFAULT_IMAGE;
+  if (imageUrl.startsWith("/")) return `${SITE_URL}${imageUrl}`;
   if (!/^https?:\/\//i.test(imageUrl)) return DEFAULT_IMAGE;
-  return `https://wsrv.nl/?url=${encodeURIComponent(imageUrl)}&w=1200&h=630&fit=cover&output=jpg&q=72`;
+  // A normalized 1200x630 image gives WhatsApp/Facebook/X a predictable preview size.
+  return `https://wsrv.nl/?url=${encodeURIComponent(imageUrl)}&w=1200&h=630&fit=cover&output=jpg&q=78`;
 }
 
-function injectMeta(html: string, meta: string) {
-  const cleaned = stripExistingSocialMeta(html);
-  if (cleaned.includes("</head>")) return cleaned.replace("</head>", `${meta}\n</head>`);
-  return `${meta}\n${cleaned}`;
+function stripHtmlText(value: unknown) {
+  return String(value || "")
+    .replace(/<script[^>]*>.*?<\/script>/gis, " ")
+    .replace(/<style[^>]*>.*?<\/style>/gis, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function firestoreValueToJs(value: any): any {
+  if (!value || typeof value !== "object") return value;
+  if ("stringValue" in value) return value.stringValue;
+  if ("integerValue" in value) return Number(value.integerValue);
+  if ("doubleValue" in value) return Number(value.doubleValue);
+  if ("booleanValue" in value) return Boolean(value.booleanValue);
+  if ("timestampValue" in value) return value.timestampValue;
+  if ("nullValue" in value) return null;
+  if (value.arrayValue) return (value.arrayValue.values || []).map(firestoreValueToJs);
+  if (value.mapValue) {
+    return Object.fromEntries(
+      Object.entries(value.mapValue.fields || {}).map(([key, nested]) => [key, firestoreValueToJs(nested)]),
+    );
+  }
+  return undefined;
+}
+
+function firestoreFieldsToObject(fields: Record<string, any> = {}) {
+  return Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, firestoreValueToJs(value)]));
+}
+
+function textCandidate(value: any): string {
+  if (value == null) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value).trim();
+  if (Array.isArray(value)) return value.map(textCandidate).filter(Boolean).join(" · ");
+  if (typeof value === "object") {
+    for (const key of ["fr", "en", "es", "yo", "fon", "gou", "default", "text", "title", "name"]) {
+      const found = textCandidate(value[key]);
+      if (found) return found;
+    }
+    for (const nested of Object.values(value)) {
+      const found = textCandidate(nested);
+      if (found) return found;
+    }
+  }
+  return "";
+}
+
+function pickText(data: Record<string, any>, keys: string[]) {
+  for (const key of keys) {
+    const value = textCandidate(data[key]);
+    if (value) return value;
+  }
+  return "";
+}
+
+async function fetchPublicFirestoreDoc(env: WorkerEnv, collection: string, id: string) {
+  const projectId = env.FIREBASE_PROJECT_ID;
+  if (!projectId) return null;
+  const endpoint = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`;
+  const res = await fetchWithTimeout(endpoint, 3000, {
+    headers: { accept: "application/json" },
+  });
+  if (!res.ok) return null;
+  const json: any = await res.json();
+  return firestoreFieldsToObject(json?.fields || {});
+}
+
+function matchDynamicShareRoute(pathname: string) {
+  for (const config of DYNAMIC_SHARE_ROUTES) {
+    const match = pathname.match(config.pattern);
+    if (match) return { config, id: decodeURIComponent(match[1]) };
+  }
+  return null;
+}
+
+function buildSeoSnapshot({ title, description, image, pageUrl }: { title: string; description: string; image: string; pageUrl: string }) {
+  const cleanDescription = stripHtmlText(description).slice(0, 700);
+  const imageHtml = image && image !== DEFAULT_IMAGE
+    ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" width="1200" height="630" style="display:block;width:100%;height:auto;max-height:460px;object-fit:cover;border-radius:16px;margin:18px 0" />`
+    : "";
+  return `<section data-celeone-seo-snapshot="true" style="max-width:900px;margin:28px auto;padding:24px;font-family:Arial,sans-serif;color:#0f172a;line-height:1.6">
+    <h1 style="font-size:clamp(28px,5vw,46px);line-height:1.08;margin:0 0 14px">${escapeHtml(title)}</h1>
+    ${imageHtml}
+    <p style="font-size:17px;margin:0">${escapeHtml(cleanDescription)}</p>
+    <p style="margin-top:16px"><a href="${escapeHtml(pageUrl)}">${escapeHtml(pageUrl)}</a></p>
+  </section>`;
+}
+
+function injectMeta(html: string, meta: string, snapshot = "") {
+  let cleaned = stripExistingSocialMeta(html);
+  if (cleaned.includes("</head>")) cleaned = cleaned.replace("</head>", `${meta}\n</head>`);
+  else cleaned = `${meta}\n${cleaned}`;
+
+  if (snapshot) {
+    const emptyRoot = /<div([^>]*\bid=["']root["'][^>]*)>\s*<\/div>/i;
+    if (emptyRoot.test(cleaned)) {
+      cleaned = cleaned.replace(emptyRoot, `<div$1>${snapshot}</div>`);
+    }
+  }
+  return cleaned;
 }
 
 function buildMeta({
@@ -546,7 +704,45 @@ export default {
         pageUrl: `${SITE_URL}/`,
         type: "website",
       });
-      return htmlResponse(baseRes, injectMeta(html, meta));
+      const snapshot = buildSeoSnapshot({ title: HOME_TITLE, description: HOME_DESCRIPTION, image: DEFAULT_IMAGE, pageUrl: `${SITE_URL}/` });
+      return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
+    }
+
+    const dynamicShare = matchDynamicShareRoute(url.pathname);
+    if (dynamicShare) {
+      const { config, id } = dynamicShare;
+      let title = config.fallbackTitle;
+      let description = config.fallbackDescription;
+      let image = DEFAULT_IMAGE;
+
+      try {
+        const item = await fetchPublicFirestoreDoc(env, config.collection, id);
+        if (item) {
+          const resolvedTitle = pickText(item, [
+            "shareTitle", "title", "name", "theme", "bibleTheme", "hymnTitle", "caption",
+            "titleTranslations", "bibleThemeTranslations",
+          ]);
+          const resolvedDescription = pickText(item, [
+            "shareDescription", "description", "summary", "content", "hymnContent", "bibleLesson",
+            "bibleReadingText", "notes", "descriptionTranslations",
+          ]);
+          const resolvedImage = pickText(item, [
+            "shareImage", "image", "imageUrl", "coverUrl", "coverImageUrl", "thumbnail", "thumbnailUrl",
+            "posterUrl", "banner", "bannerUrl",
+          ]);
+          if (resolvedTitle) title = stripHtmlText(resolvedTitle).slice(0, 180);
+          if (resolvedDescription) description = stripHtmlText(resolvedDescription).slice(0, 320);
+          if (resolvedImage) image = makeCompressedShareImage(resolvedImage);
+        }
+      } catch {
+        // Keep route defaults if Firestore is temporarily unavailable.
+      }
+
+      const pageUrl = `${SITE_URL}${url.pathname}`;
+      const html = await baseRes.text();
+      const meta = buildMeta({ title, description, image, pageUrl, type: "article" });
+      const snapshot = buildSeoSnapshot({ title, description, image, pageUrl });
+      return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
     const postMatch = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
@@ -592,7 +788,8 @@ export default {
         pageUrl: `${SITE_URL}/posts/${postId}`,
         type: "article",
       });
-      return htmlResponse(baseRes, injectMeta(html, meta));
+      const snapshot = buildSeoSnapshot({ title, description, image, pageUrl: `${SITE_URL}/posts/${postId}` });
+      return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
     const known = ROUTE_META.find(([re]) => re.test(url.pathname));
@@ -607,7 +804,9 @@ export default {
         type: cfg.type || "website",
         robots: cfg.robots,
       });
-      return htmlResponse(baseRes, injectMeta(html, meta));
+      const pageUrl = `${SITE_URL}${cfg.canonicalPath || url.pathname}`;
+      const snapshot = cfg.robots?.startsWith("noindex") ? "" : buildSeoSnapshot({ title: cfg.title, description: cfg.description, image: DEFAULT_IMAGE, pageUrl });
+      return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
     const chTitle = titleFromChannelSlug(url.pathname);
@@ -622,7 +821,9 @@ export default {
         pageUrl: `${SITE_URL}${url.pathname}`,
         type: "website",
       });
-      return htmlResponse(baseRes, injectMeta(html, meta));
+      const pageUrl = `${SITE_URL}${url.pathname}`;
+      const snapshot = buildSeoSnapshot({ title, description, image: DEFAULT_IMAGE, pageUrl });
+      return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
     const html = await baseRes.text();
@@ -634,6 +835,10 @@ export default {
       type: "website",
       robots: "noindex,follow",
     });
-    return htmlResponse(baseRes, injectMeta(html, fallbackMeta));
+    const fallbackBody = injectMeta(html, fallbackMeta);
+    const headers = new Headers(baseRes.headers);
+    headers.set("content-type", "text/html; charset=UTF-8");
+    headers.set("cache-control", "public, max-age=60, s-maxage=60");
+    return new Response(fallbackBody, { status: 404, headers });
   },
 };

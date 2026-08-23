@@ -592,7 +592,7 @@ export default function AdminManagePage() {
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-200"
             >
               <option value="francais">francais</option>
-              <option value="anglais">anglais</option>
+              <option value="english">english</option>
               <option value="yoruba">yoruba</option>
               <option value="goun">goun</option>
             </select>
@@ -771,7 +771,7 @@ export default function AdminManagePage() {
                 <option value="goun">goun</option>
                 <option value="francais">francais</option>
                 <option value="yoruba">yoruba</option>
-                <option value="anglais">anglais</option>
+                <option value="english">english</option>
               </select>
             ) : null}
           </div>
