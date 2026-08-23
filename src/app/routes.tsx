@@ -4,6 +4,7 @@ import AppShell from "./AppShell";
 import Landing from "../pages/Landing";
 import ChannelLive from "../pages/ChannelLive";
 import Post from "../pages/Post";
+import ShareLanding from "../pages/ShareLanding";
 
 import CreatorRequest from "../pages/CreatorRequest";
 import AdminDashboard from "../pages/AdminDashboard";
@@ -40,6 +41,13 @@ export const router = createBrowserRouter([
 
       // Public content
       { path: "/posts/:postId", element: <Post /> },
+      { path: "/social/:contentId", element: <ShareLanding /> },
+      { path: "/hymns/:contentId", element: <ShareLanding /> },
+      { path: "/themes/:contentId", element: <ShareLanding /> },
+      { path: "/weekly-themes/:contentId", element: <ShareLanding /> },
+      { path: "/weekly-programs/:contentId", element: <ShareLanding /> },
+      { path: "/videos/:contentId", element: <ShareLanding /> },
+      { path: "/songs/:contentId", element: <ShareLanding /> },
 
       // Live page (public share)
       { path: "/:channelName/live", element: <ChannelLive /> },

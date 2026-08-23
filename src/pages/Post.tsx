@@ -2,6 +2,7 @@
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { openShareInApp } from "../lib/deepLinks";
 import { db } from "../lib/firebase";
 import { setPageMeta } from "../lib/seo";
 
@@ -12,28 +13,7 @@ export default function Post() {
 
   const openPostInApp = () => {
     if (!postId) return;
-
-    const packageName = "com.celeoneapp";
-    const playStoreUrl = `https://play.google.com/store/apps/details?id=${packageName}`;
-    const appSchemeUrl = `celeone://posts/${postId}`;
-    const intentUrl = `intent://posts/${postId}#Intent;scheme=celeone;package=${packageName};S.browser_fallback_url=${encodeURIComponent(
-      playStoreUrl
-    )};end`;
-    const ua = navigator.userAgent.toLowerCase();
-    const isAndroid = /android/.test(ua);
-
-    if (isAndroid) {
-      window.location.href = intentUrl;
-      return;
-    }
-
-    const startedAt = Date.now();
-    window.location.href = appSchemeUrl;
-    window.setTimeout(() => {
-      if (Date.now() - startedAt < 1800) {
-        window.location.href = playStoreUrl;
-      }
-    }, 1200);
+    openShareInApp("post", postId);
   };
 
   useEffect(() => {
