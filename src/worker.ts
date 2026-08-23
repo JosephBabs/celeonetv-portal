@@ -91,6 +91,35 @@ function isHtml(res: Response) {
   return ct.includes("text/html");
 }
 
+function shouldUseAppShell(pathname: string) {
+  if (pathname === "/" || pathname === "") return false;
+  if (/\/[^/]+\.[^/]+$/.test(pathname)) return false;
+  if (/^\/api(?:\/|$)/.test(pathname)) return false;
+  return true;
+}
+
+async function fetchAsset(request: Request, env: WorkerEnv, url: URL) {
+  const fetchFromAssets = async (req: Request) => {
+    if (env.ASSETS && typeof env.ASSETS.fetch === "function") return env.ASSETS.fetch(req);
+    return fetch(req);
+  };
+
+  const res = await fetchFromAssets(request);
+  if (!shouldUseAppShell(url.pathname)) return res;
+  if (res.status < 400 && isHtml(res)) return res;
+
+  const shellUrl = new URL("/", url.origin);
+  const shellRequest = new Request(shellUrl.toString(), request);
+  const shellRes = await fetchFromAssets(shellRequest);
+  if (shellRes.status < 400 && isHtml(shellRes)) {
+    return new Response(shellRes.body, {
+      status: 200,
+      headers: shellRes.headers,
+    });
+  }
+  return res;
+}
+
 async function fetchWithTimeout(url: string, ms: number, init: RequestInit = {}) {
   const ac = new AbortController();
   const t = setTimeout(() => ac.abort(), ms);
@@ -501,8 +530,7 @@ export default {
 
     let baseRes: Response;
     try {
-      if (env.ASSETS && typeof env.ASSETS.fetch === "function") baseRes = await env.ASSETS.fetch(request);
-      else baseRes = await fetch(request);
+      baseRes = await fetchAsset(request, env, url);
     } catch {
       return new Response("Assets fetch failed", { status: 500 });
     }
