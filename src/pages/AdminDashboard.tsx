@@ -111,6 +111,19 @@ export default function AdminDashboard() {
     spiritualProgram: 0,
     parishRegistrations: 0,
     mail: 0,
+    churchEvents: 0,
+    parishes: 0,
+    reports: 0,
+    weeklyThemes: 0,
+    alerts: 0,
+    academyCourses: 0,
+    donationProjects: 0,
+    donationReceipts: 0,
+    creatorPages: 0,
+    liveSessions: 0,
+    notifications: 0,
+    mediaAssets: 0,
+    featureFlags: 0,
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [loadingCounts, setLoadingCounts] = useState(true);
@@ -140,6 +153,20 @@ export default function AdminDashboard() {
         celebrationsSnap,
         parishRegistrationsSnap,
         mailSnap,
+        churchEventsSnap,
+        parishesSnap,
+        reportsSnap,
+        weeklyThemesSnap,
+        mobileWeeklyThemesSnap,
+        alertsSnap,
+        academySnap,
+        donationProjectsSnap,
+        donationReceiptsSnap,
+        pagesSnap,
+        livesSnap,
+        notificationsSnap,
+        assetsSnap,
+        flagsSnap,
       ] = await Promise.all([
         getDocs(collection(db, "user_data")),
         getDocs(collection(db, "chatrooms")),
@@ -160,6 +187,20 @@ export default function AdminDashboard() {
         getDocs(collection(db, "special_celebrations")),
         getDocs(collection(db, "parish_registration_requests")),
         getDocs(collection(db, "mail")),
+        getDocs(collection(db, "churchEvents")),
+        getDocs(collection(db, "parishes")),
+        getDocs(collection(db, "reports")),
+        getDocs(collection(db, "weeklyThemes")),
+        getDocs(collection(db, "weekly_themes")),
+        getDocs(collection(db, "urgentAnnouncements")),
+        getDocs(collection(db, "academyCourses")),
+        getDocs(collection(db, "donationProjects")),
+        getDocs(collection(db, "donationReceipts")),
+        getDocs(collection(db, "pages")),
+        getDocs(collection(db, "social_live_sessions")),
+        getDocs(collection(db, "notification_inbox")),
+        getDocs(collection(db, "media_assets")),
+        getDocs(collection(db, "feature_flags")),
       ]);
 
       setCounts({
@@ -175,9 +216,22 @@ export default function AdminDashboard() {
         videos: videosSnap.size,
         subscriptionPackages: subscriptionPackagesSnap.size,
         activeUserSubscriptions: userSubscriptionsSnap.docs.filter((d) => d.data()?.status === "active").length,
-        spiritualProgram: spiritualYearsSnap.size + spiritualWeeksSnap.size + spiritualServicesSnap.size + hymnProgramsSnap.size + celebrationsSnap.size,
+        spiritualProgram: spiritualYearsSnap.size + spiritualWeeksSnap.size + spiritualServicesSnap.size + hymnProgramsSnap.size + celebrationsSnap.size + weeklyThemesSnap.size + mobileWeeklyThemesSnap.size,
         parishRegistrations: parishRegistrationsSnap.docs.filter((d) => d.data()?.status !== "approved").length,
         mail: mailSnap.size,
+        churchEvents: churchEventsSnap.size,
+        parishes: parishesSnap.size,
+        reports: reportsSnap.size,
+        weeklyThemes: weeklyThemesSnap.size + mobileWeeklyThemesSnap.size,
+        alerts: alertsSnap.size,
+        academyCourses: academySnap.size,
+        donationProjects: donationProjectsSnap.size,
+        donationReceipts: donationReceiptsSnap.size,
+        creatorPages: pagesSnap.size,
+        liveSessions: livesSnap.size,
+        notifications: notificationsSnap.size,
+        mediaAssets: assetsSnap.size,
+        featureFlags: flagsSnap.size,
       });
 
       setLastUpdated(new Date());
@@ -964,6 +1018,32 @@ export default function AdminDashboard() {
     [counts]
   );
 
+  const managementModules = useMemo(
+    () => [
+      { label: "Utilisateurs", value: counts.users, route: "", manage: "user_data" as ManageKey },
+      { label: "Actualites", value: counts.posts, route: "/admin/posts", manage: "posts" as ManageKey },
+      { label: "Evenements", value: counts.churchEvents, route: "/admin/events" },
+      { label: "Documents", value: counts.documents, route: "/admin/documents", manage: "documents" as ManageKey },
+      { label: "Videos", value: counts.videos, route: "", manage: "videos" as ManageKey },
+      { label: "Chaines TV", value: counts.tvChannels, route: "/admin/channel-requests", manage: "channels" as ManageKey },
+      { label: "Musiques", value: counts.filmsAndSongs, route: "", manage: "songs" as ManageKey },
+      { label: "Cantiques", value: counts.cantiques, route: "/admin/cantiques", manage: "cantiques" as ManageKey },
+      { label: "Paroisses", value: counts.parishes, route: "/parishes" },
+      { label: "Signalements", value: counts.reports, route: "" },
+      { label: "Themes", value: counts.weeklyThemes, route: "/admin/spiritual-program" },
+      { label: "Alertes", value: counts.alerts, route: "" },
+      { label: "Academie", value: counts.academyCourses, route: "" },
+      { label: "Dons", value: counts.donationProjects + counts.donationReceipts, route: "" },
+      { label: "Abonnements", value: counts.subscriptionPackages, route: "" },
+      { label: "Pages createurs", value: counts.creatorPages, route: "" },
+      { label: "Lives", value: counts.liveSessions, route: "" },
+      { label: "Notifications", value: counts.notifications, route: "" },
+      { label: "Assets medias", value: counts.mediaAssets, route: "" },
+      { label: "Feature flags", value: counts.featureFlags, route: "" },
+    ],
+    [counts],
+  );
+
   const manageRouteMap: Partial<Record<ManageKey, string>> = {
     platformRequests: "/admin/functions",
     cantiques: "/admin/cantiques",
@@ -1022,6 +1102,55 @@ export default function AdminDashboard() {
               Parish Validation ({counts.parishRegistrations})
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-lg font-black">CeleOne Management Modules</div>
+            <div className="mt-1 text-sm text-slate-600">
+              Same collection map as the management desktop dashboard, with portal actions where available.
+            </div>
+          </div>
+          <button
+            onClick={() => nav("/spiritual-program")}
+            className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-extrabold text-white hover:bg-slate-800"
+          >
+            Public Spiritual Program
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+          {managementModules.map((module) => (
+            <div key={module.label} className="rounded-2xl border border-slate-200 bg-[#f8fbfd] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-extrabold text-slate-700">{module.label}</div>
+                  <div className="mt-1 text-2xl font-black text-slate-900">{loadingCounts ? "-" : module.value}</div>
+                </div>
+                <span className="rounded-full bg-white px-2 py-1 text-[11px] font-black text-slate-500">DB</span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {module.manage ? (
+                  <button
+                    onClick={() => openManage(module.manage)}
+                    className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-extrabold text-white hover:bg-slate-800"
+                  >
+                    Manage
+                  </button>
+                ) : null}
+                {module.route ? (
+                  <button
+                    onClick={() => nav(module.route)}
+                    className="rounded-xl bg-white px-3 py-2 text-xs font-extrabold text-slate-800 ring-1 ring-slate-200 hover:bg-slate-100"
+                  >
+                    Open
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

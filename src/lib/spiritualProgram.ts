@@ -234,6 +234,21 @@ export type ProgramBundle = {
 const mapDocs = <T,>(snap: Awaited<ReturnType<typeof getDocs>>): T[] =>
   snap.docs.map((item) => ({ id: item.id, ...(item.data() as Record<string, unknown>) } as T));
 
+export const MONTH_NAMES_FR = [
+  "Janvier",
+  "Fevrier",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Aout",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Decembre",
+];
+
 const safeGetDocs = async (path: string) => {
   try {
     return await getDocs(collection(db, path));
@@ -246,11 +261,33 @@ const safeGetDocs = async (path: string) => {
   }
 };
 
-const toYmd = (value: Date = new Date()) => {
+export const toYmd = (value: Date = new Date()) => {
   const year = value.getFullYear();
   const month = `${value.getMonth() + 1}`.padStart(2, "0");
   const day = `${value.getDate()}`.padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+export const normalizeDateValue = (value: unknown): Date | null => {
+  if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value === "number") {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  if (typeof value === "string") {
+    const ymdMatch = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+    const date = ymdMatch
+      ? new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]))
+      : new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  if (typeof value === "object" && value !== null) {
+    const candidate = value as { toDate?: () => Date; seconds?: number };
+    if (typeof candidate.toDate === "function") return normalizeDateValue(candidate.toDate());
+    if (typeof candidate.seconds === "number") return normalizeDateValue(candidate.seconds * 1000);
+  }
+  return null;
 };
 
 const normalizeDateText = (value: unknown): string => {
@@ -268,6 +305,30 @@ const normalizeDateText = (value: unknown): string => {
   }
   return "";
 };
+
+export const weekOverlapsMonth = (week: Pick<WeeklyTheme, "monthNumber" | "startDate" | "endDate" | "weekStart" | "weekEnd">, monthNumber: number) => {
+  const start = normalizeDateValue(week.startDate || week.weekStart);
+  const end = normalizeDateValue(week.endDate || week.weekEnd || week.startDate || week.weekStart);
+  if (!start || !end || !monthNumber) return Number(week.monthNumber || 0) === Number(monthNumber);
+
+  const cursor = new Date(start);
+  cursor.setHours(0, 0, 0, 0);
+  const last = new Date(end);
+  last.setHours(0, 0, 0, 0);
+
+  while (cursor <= last) {
+    if (cursor.getMonth() + 1 === Number(monthNumber)) return true;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return false;
+};
+
+export const formatLocalDateTime = (value: Date = new Date(), locale = "fr-FR") =>
+  new Intl.DateTimeFormat(locale, {
+    dateStyle: "full",
+    timeStyle: "short",
+  }).format(value);
 
 export const getLocalizedText = (value: unknown, translations?: LocalizedText, locale = "fr") => {
   const normalized = locale.toLowerCase();
@@ -407,7 +468,7 @@ export const resolveWeeks = (bundle: ProgramBundle): ResolvedWeek[] =>
   }));
 
 export const getCurrentWeek = (weeks: ResolvedWeek[]) => {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = toYmd(new Date());
   return (
     weeks.find((week) => week.isActive) ||
     weeks.find((week) => Boolean(week.isPublished) && week.startDate <= today && week.endDate >= today) ||
@@ -415,22 +476,30 @@ export const getCurrentWeek = (weeks: ResolvedWeek[]) => {
   );
 };
 
-const normalizeThemeWeek = (week: WeeklyTheme): ResolvedThemeWeek => ({
-  ...week,
-  year: Number(week.year || new Date().getFullYear()),
-  monthNumber: Number(week.monthNumber || 0),
-  monthName: week.monthName || "",
-  weekNumber: Number(week.weekNumber || 0),
-  title: week.title || week.theme || "Theme non defini",
-  description: week.description || week.content || "",
-  bibleTheme: week.bibleTheme || week.bibleReference || week.reference || "",
-  verses: week.verses || [],
-  scriptureReferences: week.scriptureReferences || [],
-  startDate: normalizeDateText(week.startDate || week.weekStart),
-  endDate: normalizeDateText(week.endDate || week.weekEnd || week.startDate || week.weekStart),
-  eventDays: [],
-  hymns: [],
-});
+const normalizeThemeWeek = (week: WeeklyTheme): ResolvedThemeWeek => {
+  const startDate = normalizeDateText(week.startDate || week.weekStart);
+  const endDate = normalizeDateText(week.endDate || week.weekEnd || week.startDate || week.weekStart);
+  const start = normalizeDateValue(startDate || week.startDate || week.weekStart);
+  const inferredMonth = start ? start.getMonth() + 1 : 0;
+  const monthNumber = Number(week.monthNumber || inferredMonth || 0);
+
+  return {
+    ...week,
+    year: Number(week.year || start?.getFullYear() || new Date().getFullYear()),
+    monthNumber,
+    monthName: week.monthName || MONTH_NAMES_FR[monthNumber - 1] || "",
+    weekNumber: Number(week.weekNumber || 0),
+    title: week.title || week.theme || "Theme non defini",
+    description: week.description || week.content || "",
+    bibleTheme: week.bibleTheme || week.bibleReference || week.reference || "",
+    verses: week.verses || [],
+    scriptureReferences: week.scriptureReferences || [],
+    startDate,
+    endDate,
+    eventDays: [],
+    hymns: [],
+  };
+};
 
 export const resolveThemeWeeks = (bundle: ProgramBundle): ResolvedThemeWeek[] =>
   sortThemeWeeks(bundle.themeWeeks.map(normalizeThemeWeek)).map((week) => ({
@@ -445,8 +514,8 @@ export const isThemeWeekVisible = (week: ResolvedThemeWeek | WeeklyTheme) => {
   return status === "published" || status === "active" || week.isPublished === true || week.isActive === true;
 };
 
-export const getCurrentThemeWeek = (weeks: ResolvedThemeWeek[]) => {
-  const today = toYmd(new Date());
+export const getCurrentThemeWeek = (weeks: ResolvedThemeWeek[], now: Date = new Date()) => {
+  const today = toYmd(now);
   return (
     weeks.find((week) => week.startDate <= today && week.endDate >= today && isThemeWeekVisible(week)) ||
     weeks.find((week) => week.startDate <= today && week.endDate >= today) ||
