@@ -23,6 +23,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   background: var(--portal-bg);
   color: var(--portal-ink);
   font-family: "DM Sans", sans-serif;

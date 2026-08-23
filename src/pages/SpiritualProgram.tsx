@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { openShareInApp, webPathForShare } from "../lib/deepLinks";
 import {
   MONTH_NAMES_FR,
@@ -186,12 +185,12 @@ export default function SpiritualProgram() {
   const today = toYmd(localNow);
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(8,24,40,0.05)] md:p-8">
+    <div className="max-w-full space-y-6 overflow-hidden">
+      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-[0_10px_30px_rgba(8,24,40,0.05)] md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-5">
-          <div className="max-w-3xl">
+          <div className="min-w-0 max-w-3xl">
             <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#2ed06e]">{t("spiritual.badge", "SPIRITUAL CALENDAR")}</div>
-            <h1 className="mt-3 text-[34px] font-bold leading-tight text-[#081828] md:text-[46px]">
+            <h1 className="mt-3 text-[28px] font-bold leading-tight text-[#081828] md:text-[46px]">
               {t("spiritual.title", "Weekly Themes and Hymn Programs")}
             </h1>
             <p className="mt-3 text-[15px] font-medium leading-8 text-slate-600">
@@ -199,12 +198,6 @@ export default function SpiritualProgram() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link to="/documentation" className="inline-flex min-h-[46px] items-center justify-center rounded-lg bg-slate-900 px-5 text-sm font-bold text-white">
-              {t("spiritual.read_docs", "Read documentation")}
-            </Link>
-            <Link to="/admin/spiritual-program" className="inline-flex min-h-[46px] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-900">
-              {t("spiritual.admin_link", "Open admin workflow")}
-            </Link>
             {currentThemeWeek ? (
               <button
                 type="button"
@@ -222,8 +215,8 @@ export default function SpiritualProgram() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1.25fr]">
-          <div className="rounded-lg border border-emerald-100 bg-[#edf9f1] p-5">
+        <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_0.9fr]">
+          <div className="rounded-lg border border-emerald-100 bg-[#edf9f1] p-4 md:p-5">
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#14623a]">{t("spiritual.current_week", "Current Week")}</div>
             {currentRange ? (
               <div className="mt-3">
@@ -237,7 +230,7 @@ export default function SpiritualProgram() {
               <div className="mt-3 text-sm text-slate-600">{t("spiritual.empty_current", "No active week has been published yet.")}</div>
             )}
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             <StatCard label={t("spiritual.years", "Years")} value={yearOptions.length} />
             <StatCard label={t("spiritual.weeks", "Weeks")} value={activeThemeWeeks.length || bundle.weeks.length} />
             <StatCard label={t("spiritual.services", "Services")} value={activeThemeWeeks.length ? bundle.eventDays.length : bundle.services.length} />
@@ -250,11 +243,11 @@ export default function SpiritualProgram() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(8,24,40,0.05)]">
+      <section className="max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-[0_10px_30px_rgba(8,24,40,0.05)] md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#2ed06e]">Theme de la semaine</div>
-            <div className="mt-2 text-2xl font-bold text-[#081828]">
+            <div className="mt-2 break-words text-xl font-bold text-[#081828] md:text-2xl">
               {mobileFlow === "months"
                 ? t("spiritual.month_listing", "Months listing")
                 : mobileFlow === "weeks"
@@ -262,12 +255,12 @@ export default function SpiritualProgram() {
                   : "Contenu de la semaine"}
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid w-full min-w-0 gap-2 sm:w-auto sm:grid-cols-[minmax(220px,1fr)_auto]">
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t("spiritual.search", "Search by theme or scripture")}
-              className="min-h-[44px] rounded-lg border border-slate-200 bg-[#f8fafc] px-4 text-sm font-medium outline-none"
+              className="min-h-[44px] min-w-0 rounded-lg border border-slate-200 bg-[#f8fafc] px-4 text-sm font-medium outline-none"
             />
             <select
               value={year}
@@ -275,7 +268,7 @@ export default function SpiritualProgram() {
                 setYear(event.target.value);
                 setSelectedWeekId("");
               }}
-              className="min-h-[44px] rounded-lg border border-slate-200 bg-[#f8fafc] px-4 text-sm font-medium outline-none"
+              className="min-h-[44px] min-w-0 rounded-lg border border-slate-200 bg-[#f8fafc] px-4 text-sm font-medium outline-none"
             >
               {yearOptions.length === 0 ? <option value={year}>{year}</option> : null}
               {yearOptions.map((item) => (
@@ -299,7 +292,7 @@ export default function SpiritualProgram() {
           <div className="mt-6 rounded-lg bg-slate-50 p-5 text-sm text-slate-600">{t("spiritual.loading", "Loading spiritual program...")}</div>
         ) : (
           <>
-            <div className={`mt-5 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${mobileFlow === "months" ? "grid" : "hidden md:grid"}`}>
+            <div className={`mt-5 max-w-full gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${mobileFlow === "months" ? "grid" : "hidden md:grid"}`}>
               {monthCards.map((month) => (
                 <button
                   key={month.monthNumber}
@@ -309,7 +302,7 @@ export default function SpiritualProgram() {
                     setSelectedWeekId("");
                     setMobileFlow("weeks");
                   }}
-                  className={`min-h-[130px] rounded-lg border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
+                  className={`min-h-[116px] min-w-0 rounded-lg border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm md:min-h-[130px] md:p-4 ${
                     selectedMonth === month.monthNumber
                       ? "border-[#2ed06e] bg-[#edf9f1]"
                       : "border-slate-200 bg-white hover:border-slate-300"
@@ -317,7 +310,7 @@ export default function SpiritualProgram() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-lg font-bold text-slate-900">{month.name}</div>
+                      <div className="break-words text-base font-bold text-slate-900 md:text-lg">{month.name}</div>
                       <div className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">Mois {String(month.monthNumber).padStart(2, "0")}</div>
                     </div>
                     {month.isCurrent ? <span className="rounded-full bg-[#2ed06e] px-2 py-1 text-[11px] font-bold text-white">Actuel</span> : null}
@@ -330,8 +323,8 @@ export default function SpiritualProgram() {
               ))}
             </div>
 
-            <div className="mt-6 grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
-              <div className={`rounded-lg border border-slate-200 bg-[#f8fbfd] p-5 ${mobileFlow === "weeks" ? "block" : "hidden md:block"}`}>
+            <div className="mt-6 grid max-w-full gap-5 xl:grid-cols-[0.85fr_1.15fr]">
+              <div className={`min-w-0 rounded-lg border border-slate-200 bg-[#f8fbfd] p-3 md:p-5 ${mobileFlow === "weeks" ? "block" : "hidden md:block"}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Ouverture du mois</div>
@@ -362,14 +355,14 @@ export default function SpiritualProgram() {
                           setSelectedWeekId(weekKey(week));
                           setMobileFlow("content");
                         }}
-                        className={`w-full rounded-lg border p-4 text-left transition ${
+                        className={`w-full min-w-0 rounded-lg border p-3 text-left transition md:p-4 ${
                           isSelected ? "border-[#2ed06e] bg-white shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="text-xs font-bold uppercase tracking-wide text-[#2ed06e]">Semaine {week.weekNumber || "-"}</div>
-                            <div className="mt-1 truncate text-base font-bold text-slate-900">{title || "Theme non defini"}</div>
+                            <div className="mt-1 break-words text-base font-bold text-slate-900">{title || "Theme non defini"}</div>
                             <div className="mt-1 text-xs font-semibold text-slate-500">{week.startDate} - {week.endDate}</div>
                           </div>
                           {isCurrent ? <span className="shrink-0 rounded-full bg-[#edf9f1] px-2 py-1 text-[11px] font-bold text-[#14623a]">Actuel</span> : null}
@@ -388,7 +381,7 @@ export default function SpiritualProgram() {
                 </div>
               </div>
 
-              <div className={mobileFlow === "content" ? "block" : "hidden md:block"}>
+              <div className={`min-w-0 ${mobileFlow === "content" ? "block" : "hidden md:block"}`}>
                 <div className="mb-3 flex flex-wrap gap-2 md:hidden">
                   <button
                     type="button"
@@ -432,7 +425,7 @@ function StepConnector() {
 function WeekContent({ week, lang }: { week: ResolvedThemeWeek | null; lang: string }) {
   if (!week) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-6">
+      <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 md:p-6">
         <div className="text-lg font-bold text-[#081828]">Contenu de la semaine</div>
         <p className="mt-2 text-sm font-medium text-slate-600">Choisissez un mois puis une semaine pour ouvrir le programme.</p>
       </div>
@@ -447,11 +440,11 @@ function WeekContent({ week, lang }: { week: ResolvedThemeWeek | null; lang: str
   const shareText = buildWeekWhatsAppText(week, lang, weekUrl);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 md:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#2ed06e]">Ouverture de la semaine</div>
-          <h2 className="mt-2 text-2xl font-bold leading-tight text-[#081828]">{title || "Theme non defini"}</h2>
+          <h2 className="mt-2 break-words text-xl font-bold leading-tight text-[#081828] md:text-2xl">{title || "Theme non defini"}</h2>
           <div className="mt-2 text-sm font-bold text-slate-600">
             {week.monthName} | Semaine {week.weekNumber} | {week.startDate} - {week.endDate}
           </div>
@@ -618,10 +611,10 @@ function ServiceCard({ service, lang, special = false }: { service: WeeklyThemeE
   const title = getLocalizedText(service.title, service.titleTranslations, lang) || (special ? "Celebration" : "Service");
   const lesson = getLocalizedText(service.bibleLesson || service.bibleTheme || service.bibleReadingText, service.bibleThemeTranslations, lang);
   return (
-    <div className="rounded-lg border border-slate-200 bg-[#f8fbfd] p-4 text-sm">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-[#f8fbfd] p-3 text-sm md:p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <div className="font-bold text-slate-900">{title}</div>
+        <div className="min-w-0">
+          <div className="break-words font-bold text-slate-900">{title}</div>
           <div className="mt-1 font-semibold text-slate-600">
             {[service.dayOfWeek || service.dayKey, service.date || service.serviceDate, service.time || service.serviceTime].filter(Boolean).join(" | ") || "-"}
           </div>
@@ -641,7 +634,7 @@ function ContentBlock({ title, empty, children }: { title: string; empty: string
   return (
     <div className="mt-6">
       <div className="text-sm font-bold uppercase tracking-[0.14em] text-slate-500">{title}</div>
-      <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="mt-3 grid min-w-0 gap-3 md:grid-cols-2">
         {items.length ? items : <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm font-medium text-slate-600">{empty}</div>}
       </div>
     </div>
@@ -667,9 +660,9 @@ function LegacyProgram({ weeks, currentWeek }: { weeks: ResolvedWeek[]; currentW
 
 function StatCard({ label, value, compact = false }: { label: string; value: number | string; compact?: boolean }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <div className="text-xs font-bold uppercase tracking-[0.14em] text-[#2ed06e]">{label}</div>
-      <div className={`mt-2 font-bold text-[#081828] ${compact ? "text-xl" : "text-3xl"}`}>{value}</div>
+    <div className="min-h-[72px] rounded-lg border border-slate-200 bg-white px-3 py-2">
+      <div className="truncate text-[10px] font-bold uppercase tracking-[0.08em] text-[#2ed06e]">{label}</div>
+      <div className={`mt-1 truncate font-bold text-[#081828] ${compact ? "text-sm md:text-base" : "text-xl md:text-2xl"}`}>{value}</div>
     </div>
   );
 }
