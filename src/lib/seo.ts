@@ -1,3 +1,5 @@
+import { localizedPath, splitLocalePath, type RouteLocale } from "./localizedPaths";
+
 type MetaInput = {
   title: string;
   description?: string;
@@ -19,6 +21,74 @@ const DEFAULT_SITE_NAME = "Celeone TV";
 const DEFAULT_DESCRIPTION =
   "Cele One, also known as CeleOne and Celeone TV, is a platform for the Celestial Church of Christ community with ECC news, spiritual programs, hymns, parish tools, live TV, documents, and social features.";
 const SEO_JSON_ID = "celeone-route-jsonld";
+
+const localizedDefaults: Record<RouteLocale, { siteName: string; description: string }> = {
+  fr: {
+    siteName: "Celeone TV",
+    description:
+      "Cele One, aussi appele CeleOne et Celeone TV, est une plateforme pour la communaute de l'Eglise du Christianisme Celeste avec actualites ECC, programmes spirituels, cantiques, paroisses, direct TV, documents et reseau social.",
+  },
+  en: {
+    siteName: "Celeone TV",
+    description: DEFAULT_DESCRIPTION,
+  },
+  es: {
+    siteName: "Celeone TV",
+    description:
+      "Cele One, tambien conocido como CeleOne y Celeone TV, es una plataforma para la comunidad de la Iglesia Celestial de Cristo con noticias ECC, programas espirituales, himnos, parroquias, TV en vivo, documentos y funciones sociales.",
+  },
+};
+
+const routeTranslations: Record<string, Partial<Record<RouteLocale, Pick<MetaInput, "title" | "description">>>> = {
+  "/": {
+    fr: {
+      title: "Cele One | Plateforme Celeone TV pour l'Eglise du Christianisme Celeste",
+      description:
+        "Cele One est la plateforme numerique de la communaute de l'Eglise du Christianisme Celeste : actualites ECC et LECC, programmes spirituels, themes de la semaine, cantiques, paroisses, documents et reseau social.",
+    },
+    es: {
+      title: "Cele One | Plataforma Celeone TV para la Iglesia Celestial de Cristo",
+      description:
+        "Cele One es la plataforma digital de la comunidad de la Iglesia Celestial de Cristo: noticias ECC y LECC, programas espirituales, temas semanales, himnos, parroquias, documentos y red social.",
+    },
+  },
+  "/parishes": {
+    fr: {
+      title: "Carte des paroisses de l'Eglise du Christianisme Celeste | Cele One",
+      description:
+        "Trouvez les paroisses approuvees de l'Eglise du Christianisme Celeste et de l'ECC autour de vous avec geolocalisation, distance et itineraires sur Cele One.",
+    },
+    es: {
+      title: "Mapa de parroquias de la Iglesia Celestial de Cristo | Cele One",
+      description:
+        "Encuentre parroquias aprobadas de la Iglesia Celestial de Cristo y ECC cerca de usted con geolocalizacion, distancia e indicaciones en Cele One.",
+    },
+  },
+  "/parishes/register": {
+    fr: {
+      title: "Enregistrer une paroisse ECC | Cele One",
+      description:
+        "Soumettez le nom, le pays et la position GPS exacte d'une paroisse de l'Eglise du Christianisme Celeste pour verification sur la carte mondiale Cele One.",
+    },
+    es: {
+      title: "Registrar una parroquia ECC | Cele One",
+      description:
+        "Envie el nombre, pais y ubicacion GPS exacta de una parroquia de la Iglesia Celestial de Cristo para revision en el mapa global de Cele One.",
+    },
+  },
+  "/spiritual-program": {
+    fr: {
+      title: "Programme spirituel ECC et theme de la semaine | Cele One",
+      description:
+        "Consultez les themes hebdomadaires, lectures bibliques, cultes, celebrations speciales et cantiques programmes de l'Eglise du Christianisme Celeste sur Cele One.",
+    },
+    es: {
+      title: "Programa espiritual ECC y tema semanal | Cele One",
+      description:
+        "Lea temas semanales, lecturas biblicas, cultos, celebraciones especiales e himnos programados de la Iglesia Celestial de Cristo en Cele One.",
+    },
+  },
+};
 
 const indexedRoutes: RouteSeo[] = [
   {
@@ -237,7 +307,7 @@ function setStructuredData(data?: MetaInput["structuredData"]) {
   document.head.appendChild(script);
 }
 
-function baseStructuredData(title: string, url: string) {
+function baseStructuredData(title: string, url: string, locale: RouteLocale, description: string) {
   const pagePath = new URL(url).pathname;
   const about = [
     "Cele One",
@@ -267,16 +337,16 @@ function baseStructuredData(title: string, url: string) {
       ],
       url: SITE_URL,
       logo: DEFAULT_IMAGE,
-      description: DEFAULT_DESCRIPTION,
+      description: localizedDefaults[locale].description,
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: DEFAULT_SITE_NAME,
       alternateName: ["Cele One", "CeleOne", "Cele TV", "Cele One TV", "Plateforme ECC", "Celestial Church social media"],
-      description: DEFAULT_DESCRIPTION,
+      description: localizedDefaults[locale].description,
       url: SITE_URL,
-      inLanguage: ["fr", "en", "es"],
+      inLanguage: locale,
       potentialAction: {
         "@type": "SearchAction",
         target: `${SITE_URL}/documentation?search={search_term_string}`,
@@ -287,9 +357,9 @@ function baseStructuredData(title: string, url: string) {
       "@context": "https://schema.org",
       "@type": "WebPage",
       name: title,
-      description: DEFAULT_DESCRIPTION,
+      description,
       url,
-      inLanguage: ["fr", "en", "es"],
+      inLanguage: locale,
       primaryImageOfPage: DEFAULT_IMAGE,
       about,
       isPartOf: {
@@ -334,39 +404,47 @@ export function setPageMeta({
   canonicalPath,
   structuredData,
 }: MetaInput) {
-  const canonicalUrl = absoluteUrl(canonicalPath || url || window.location.pathname);
-  const shareUrl = url ? absoluteUrl(url) : canonicalUrl;
+  const localeInfo = splitLocalePath(window.location.pathname);
+  const locale = localeInfo.locale || (localStorage.getItem("celeone_lang") as RouteLocale) || "fr";
+  const routePath = localeInfo.pathname;
+  const translated = routeTranslations[canonicalPath || routePath]?.[locale];
+  const localizedTitle = translated?.title || title;
+  const localizedDescription = translated?.description || description;
+  const canonicalUrl = absoluteUrl(canonicalPath || url || routePath);
+  const shareUrl = url ? absoluteUrl(url) : absoluteUrl(localizedPath(canonicalPath || routePath, locale));
   const shareImage = absoluteUrl(image);
 
-  document.title = title;
-  document.documentElement.lang = localStorage.getItem("celeone_lang") || "fr";
+  document.title = localizedTitle;
+  document.documentElement.lang = locale;
 
-  upsertMeta('meta[name="description"]', { content: description });
+  upsertMeta('meta[name="description"]', { content: localizedDescription });
   upsertMeta('meta[name="robots"]', { content: robots });
   upsertMeta('meta[name="application-name"]', { content: DEFAULT_SITE_NAME });
   upsertMeta('meta[name="theme-color"]', { content: "#14B8A6" });
   upsertMeta('meta[property="og:type"]', { content: type });
   upsertMeta('meta[property="og:site_name"]', { content: DEFAULT_SITE_NAME });
-  upsertMeta('meta[property="og:title"]', { content: title });
-  upsertMeta('meta[property="og:description"]', { content: description });
+  upsertMeta('meta[property="og:locale"]', { content: locale === "fr" ? "fr_FR" : locale === "es" ? "es_ES" : "en_US" });
+  upsertMeta('meta[property="og:title"]', { content: localizedTitle });
+  upsertMeta('meta[property="og:description"]', { content: localizedDescription });
   upsertMeta('meta[property="og:image"]', { content: shareImage });
   upsertMeta('meta[property="og:url"]', { content: shareUrl });
   upsertMeta('meta[name="twitter:card"]', { content: "summary_large_image" });
-  upsertMeta('meta[name="twitter:title"]', { content: title });
-  upsertMeta('meta[name="twitter:description"]', { content: description });
+  upsertMeta('meta[name="twitter:title"]', { content: localizedTitle });
+  upsertMeta('meta[name="twitter:description"]', { content: localizedDescription });
   upsertMeta('meta[name="twitter:image"]', { content: shareImage });
 
   upsertLink("canonical", canonicalUrl);
   upsertLink("alternate", canonicalUrl, "x-default");
-  upsertLink("alternate", `${canonicalUrl}?lang=fr`, "fr");
-  upsertLink("alternate", `${canonicalUrl}?lang=en`, "en");
-  upsertLink("alternate", `${canonicalUrl}?lang=es`, "es");
+  upsertLink("alternate", absoluteUrl(localizedPath(canonicalPath || routePath, "fr")), "fr");
+  upsertLink("alternate", absoluteUrl(localizedPath(canonicalPath || routePath, "en")), "en");
+  upsertLink("alternate", absoluteUrl(localizedPath(canonicalPath || routePath, "es")), "es");
 
-  setStructuredData(structuredData || baseStructuredData(title, canonicalUrl));
+  setStructuredData(structuredData || baseStructuredData(localizedTitle, shareUrl, locale, localizedDescription));
 }
 
 export function getRouteSeo(pathname: string): MetaInput {
-  const match = [...indexedRoutes, ...noIndexRoutes].find((route) => route.pattern.test(pathname));
+  const routePath = splitLocalePath(pathname).pathname;
+  const match = [...indexedRoutes, ...noIndexRoutes].find((route) => route.pattern.test(routePath));
   return (
     match || {
       title: "Page Not Found | Celeone TV",

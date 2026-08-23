@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { splitLocalePath, type RouteLocale } from "./localizedPaths";
 
 type Lang = "en" | "fr" | "es";
 type Dict = Record<string, any>;
@@ -27,6 +28,11 @@ function getPath(obj: Dict, path: string): unknown {
   }, obj);
 }
 
+function pathLang(): RouteLocale | null {
+  if (typeof window === "undefined") return null;
+  return splitLocalePath(window.location.pathname).locale;
+}
+
 async function loadLocale(lang: Lang): Promise<Dict> {
   try {
     const res = await fetch(`/locales/${lang}.json`, { cache: "no-store" });
@@ -39,6 +45,8 @@ async function loadLocale(lang: Lang): Promise<Dict> {
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
+    const fromPath = pathLang();
+    if (fromPath) return fromPath;
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved === "en" || saved === "fr" || saved === "es" ? saved : DEFAULT_LANG;
   });
@@ -55,6 +63,13 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
+  }, [lang]);
+
+  useEffect(() => {
+    const fromPath = pathLang();
+    if (!fromPath || fromPath === lang) return;
+    setLangState(fromPath);
+    localStorage.setItem(STORAGE_KEY, fromPath);
   }, [lang]);
 
   const setLang = (next: Lang) => {

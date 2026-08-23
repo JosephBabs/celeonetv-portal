@@ -7,6 +7,7 @@ import { onRequestGet as founderAssetGet } from "../functions/api/founders/asset
 import { onRequestGet as founderCredentialsGet, onRequestPost as founderCredentialsPost } from "../functions/api/founders/credentials";
 import type { PortalEnv } from "../functions/_lib/types";
 import { translatePlainTextEmbedded } from "./lib/embeddedTranslator";
+import { localizedPath, splitLocalePath, type RouteLocale } from "./lib/localizedPaths";
 
 export interface Env {
   FIREBASE_PROJECT_ID?: string;
@@ -20,15 +21,92 @@ export interface Env {
 type WorkerEnv = Env & PortalEnv;
 
 const SITE_URL = "https://celeonetv.com";
-const DEFAULT_IMAGE = `${SITE_URL}/logo.jpeg`;
-const DEFAULT_IMAGE_WIDTH = 679;
-const DEFAULT_IMAGE_HEIGHT = 559;
+const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
+const DEFAULT_IMAGE_WIDTH = 2953;
+const DEFAULT_IMAGE_HEIGHT = 2953;
 const GENERATED_SHARE_IMAGE_WIDTH = 1200;
 const GENERATED_SHARE_IMAGE_HEIGHT = 630;
 const HOME_TITLE = "Cele One | CeleOne TV Platform for Celestial Church of Christ";
 const HOME_DESCRIPTION =
   "Cele One is the Celeone TV platform for the Celestial Church of Christ community, with spiritual programs, weekly themes, hymns, parish tools, documents, live TV, and social features.";
 
+const LOCALE_META: Record<RouteLocale, { ogLocale: string; homeTitle: string; homeDescription: string }> = {
+  fr: {
+    ogLocale: "fr_FR",
+    homeTitle: "Cele One | Plateforme Celeone TV pour l'Eglise du Christianisme Celeste",
+    homeDescription:
+      "Cele One est la plateforme de la communaute de l'Eglise du Christianisme Celeste avec programmes spirituels, themes de la semaine, cantiques, paroisses, documents, direct TV et reseau social.",
+  },
+  en: {
+    ogLocale: "en_US",
+    homeTitle: HOME_TITLE,
+    homeDescription: HOME_DESCRIPTION,
+  },
+  es: {
+    ogLocale: "es_ES",
+    homeTitle: "Cele One | Plataforma Celeone TV para la Iglesia Celestial de Cristo",
+    homeDescription:
+      "Cele One es la plataforma de la comunidad de la Iglesia Celestial de Cristo con programas espirituales, temas semanales, himnos, parroquias, documentos, TV en vivo y red social.",
+  },
+};
+
+const ROUTE_TRANSLATIONS: Record<string, Partial<Record<RouteLocale, { title: string; description: string }>>> = {
+  "/parishes": {
+    fr: {
+      title: "Carte des paroisses de l'Eglise du Christianisme Celeste | Cele One",
+      description:
+        "Trouvez les paroisses approuvees de l'Eglise du Christianisme Celeste et de l'ECC autour de vous avec geolocalisation, distance et itineraires sur Cele One.",
+    },
+    es: {
+      title: "Mapa de parroquias de la Iglesia Celestial de Cristo | Cele One",
+      description:
+        "Encuentre parroquias aprobadas de la Iglesia Celestial de Cristo y ECC cerca de usted con geolocalizacion, distancia e indicaciones en Cele One.",
+    },
+  },
+  "/parishes/register": {
+    fr: {
+      title: "Enregistrer une paroisse ECC | Cele One",
+      description:
+        "Soumettez le nom, le pays et la position GPS exacte d'une paroisse de l'Eglise du Christianisme Celeste pour verification sur la carte mondiale Cele One.",
+    },
+    es: {
+      title: "Registrar una parroquia ECC | Cele One",
+      description:
+        "Envie el nombre, pais y ubicacion GPS exacta de una parroquia de la Iglesia Celestial de Cristo para revision en el mapa global de Cele One.",
+    },
+  },
+  "/spiritual-program": {
+    fr: {
+      title: "Programme spirituel ECC et theme de la semaine | Cele One",
+      description:
+        "Consultez les themes hebdomadaires, lectures bibliques, cultes, celebrations speciales et cantiques programmes de l'Eglise du Christianisme Celeste sur Cele One.",
+    },
+    es: {
+      title: "Programa espiritual ECC y tema semanal | Cele One",
+      description:
+        "Lea temas semanales, lecturas biblicas, cultos, celebraciones especiales e himnos programados de la Iglesia Celestial de Cristo en Cele One.",
+    },
+  },
+  "/documentation": {
+    fr: {
+      title: "Documentation Cele One | Plateforme ECC, reseau social et TV",
+      description:
+        "Explorez la documentation publique de Cele One pour la plateforme ECC, les fonctionnalites sociales, Cele TV, les programmes spirituels, les paroisses et les politiques.",
+    },
+    es: {
+      title: "Documentacion Cele One | Plataforma ECC, red social y TV",
+      description:
+        "Explore la documentacion publica de Cele One para la plataforma ECC, funciones sociales, Cele TV, programas espirituales, parroquias y politicas.",
+    },
+  },
+};
+
+function localizedMeta(pathname: string, locale: RouteLocale, title: string, description: string) {
+  if (pathname === "/") {
+    return { title: LOCALE_META[locale].homeTitle, description: LOCALE_META[locale].homeDescription };
+  }
+  return ROUTE_TRANSLATIONS[pathname]?.[locale] || { title, description };
+}
 
 type DynamicShareRoute = {
   pattern: RegExp;
@@ -289,6 +367,10 @@ function matchDynamicShareRoute(pathname: string) {
   return null;
 }
 
+function localizedShareUrl(pathname: string, locale: RouteLocale) {
+  return `${SITE_URL}${localizedPath(pathname, locale)}`;
+}
+
 function buildSeoSnapshot({ title, description, image, pageUrl }: { title: string; description: string; image: string; pageUrl: string }) {
   const cleanDescription = stripHtmlText(description).slice(0, 700);
   const imageHtml = image && image !== DEFAULT_IMAGE
@@ -323,6 +405,8 @@ function buildMeta({
   pageUrl,
   type,
   robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
+  canonicalUrl,
+  locale = "fr",
 }: {
   title: string;
   description: string;
@@ -330,6 +414,8 @@ function buildMeta({
   pageUrl: string;
   type: "website" | "article";
   robots?: string;
+  canonicalUrl?: string;
+  locale?: RouteLocale;
 }) {
   const isDefaultImage = image === DEFAULT_IMAGE;
   const imageWidth = isDefaultImage ? DEFAULT_IMAGE_WIDTH : GENERATED_SHARE_IMAGE_WIDTH;
@@ -353,7 +439,7 @@ function buildMeta({
         description,
         image,
         url: pageUrl,
-        inLanguage: ["fr", "en", "es"],
+        inLanguage: locale,
         isPartOf: {
           "@type": "WebSite",
           name: "Celeone TV",
@@ -384,7 +470,7 @@ function buildMeta({
 <meta itemprop="image" content="${escapeHtml(image)}" />
 
 <meta property="og:type" content="${type}" />
-<meta property="og:locale" content="fr_FR" />
+<meta property="og:locale" content="${LOCALE_META[locale].ogLocale}" />
 <meta property="og:site_name" content="Celeone TV" />
 <meta property="og:title" content="${escapeHtml(title)}" />
 <meta property="og:description" content="${escapeHtml(description)}" />
@@ -404,7 +490,11 @@ function buildMeta({
 <meta name="twitter:image" content="${escapeHtml(image)}" />
 <meta name="twitter:image:alt" content="${escapeHtml(title)}" />
 
-<link rel="canonical" href="${escapeHtml(pageUrl)}" />
+<link rel="canonical" href="${escapeHtml(canonicalUrl || pageUrl)}" />
+<link rel="alternate" hreflang="x-default" href="${escapeHtml(canonicalUrl || pageUrl)}" />
+<link rel="alternate" hreflang="fr" href="${escapeHtml(localizedShareUrl(new URL(canonicalUrl || pageUrl).pathname, "fr"))}" />
+<link rel="alternate" hreflang="en" href="${escapeHtml(localizedShareUrl(new URL(canonicalUrl || pageUrl).pathname, "en"))}" />
+<link rel="alternate" hreflang="es" href="${escapeHtml(localizedShareUrl(new URL(canonicalUrl || pageUrl).pathname, "es"))}" />
 <link rel="icon" href="${escapeHtml(DEFAULT_IMAGE)}" />
 <script type="application/ld+json">${structuredData}</script>
   `.trim();
@@ -583,10 +673,13 @@ async function handleTranslate(request: Request, env: Env) {
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const url = new URL(request.url);
+    const localeInfo = splitLocalePath(url.pathname);
+    const locale = localeInfo.locale || "fr";
+    const routePath = localeInfo.pathname;
     const method = request.method.toUpperCase();
 
-    if (/^\/api\/translate\/?$/.test(url.pathname)) return handleTranslate(request, env);
-    if (/^\/api\/founders\/activate\/?$/.test(url.pathname)) {
+    if (/^\/api\/translate\/?$/.test(routePath)) return handleTranslate(request, env);
+    if (/^\/api\/founders\/activate\/?$/.test(routePath)) {
       if (method === "GET") return founderActivateGet({ request, env });
       if (method === "POST") return founderActivatePost({ request, env });
       if (method === "OPTIONS") {
@@ -601,7 +694,7 @@ export default {
       }
       return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
     }
-    if (/^\/api\/founders\/config\/?$/.test(url.pathname)) {
+    if (/^\/api\/founders\/config\/?$/.test(routePath)) {
       if (method === "GET") return founderConfigGet({ env });
       if (method === "OPTIONS") {
         return new Response(null, {
@@ -615,7 +708,7 @@ export default {
       }
       return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
     }
-    if (/^\/api\/founders\/credentials\/?$/.test(url.pathname)) {
+    if (/^\/api\/founders\/credentials\/?$/.test(routePath)) {
       if (method === "GET") return founderCredentialsGet({ request, env });
       if (method === "POST") return founderCredentialsPost({ request, env });
       if (method === "OPTIONS") {
@@ -630,7 +723,7 @@ export default {
       }
       return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
     }
-    if (/^\/api\/founders\/asset\/?$/.test(url.pathname)) {
+    if (/^\/api\/founders\/asset\/?$/.test(routePath)) {
       if (method === "GET") return founderAssetGet({ request, env });
       if (method === "OPTIONS") {
         return new Response(null, {
@@ -644,7 +737,7 @@ export default {
       }
       return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
     }
-    if (/^\/api\/admin\/founders\/credentials\/?$/.test(url.pathname)) {
+    if (/^\/api\/admin\/founders\/credentials\/?$/.test(routePath)) {
       if (method === "GET") return adminFounderCredentialsGet({ request, env });
       if (method === "POST") return adminFounderCredentialsPost({ request, env });
       if (method === "OPTIONS") {
@@ -659,7 +752,7 @@ export default {
       }
       return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
     }
-    if (/^\/api\/admin\/founders\/asset\/?$/.test(url.pathname)) {
+    if (/^\/api\/admin\/founders\/asset\/?$/.test(routePath)) {
       if (method === "GET") return adminFounderAssetGet({ request, env });
       if (method === "OPTIONS") {
         return new Response(null, {
@@ -695,20 +788,23 @@ export default {
 
     if (!isHtml(baseRes)) return baseRes;
 
-    if (url.pathname === "/" || url.pathname === "") {
+    if (routePath === "/" || routePath === "") {
       const html = await baseRes.text();
+      const home = localizedMeta("/", locale, HOME_TITLE, HOME_DESCRIPTION);
       const meta = buildMeta({
-        title: HOME_TITLE,
-        description: HOME_DESCRIPTION,
+        title: home.title,
+        description: home.description,
         image: DEFAULT_IMAGE,
-        pageUrl: `${SITE_URL}/`,
+        pageUrl: localizedShareUrl("/", locale),
+        canonicalUrl: `${SITE_URL}/`,
         type: "website",
+        locale,
       });
-      const snapshot = buildSeoSnapshot({ title: HOME_TITLE, description: HOME_DESCRIPTION, image: DEFAULT_IMAGE, pageUrl: `${SITE_URL}/` });
+      const snapshot = buildSeoSnapshot({ title: home.title, description: home.description, image: DEFAULT_IMAGE, pageUrl: localizedShareUrl("/", locale) });
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
-    const dynamicShare = matchDynamicShareRoute(url.pathname);
+    const dynamicShare = matchDynamicShareRoute(routePath);
     if (dynamicShare) {
       const { config, id } = dynamicShare;
       let title = config.fallbackTitle;
@@ -738,14 +834,17 @@ export default {
         // Keep route defaults if Firestore is temporarily unavailable.
       }
 
-      const pageUrl = `${SITE_URL}${url.pathname}`;
+      const localized = localizedMeta(routePath, locale, title, description);
+      title = localized.title;
+      description = localized.description;
+      const pageUrl = localizedShareUrl(routePath, locale);
       const html = await baseRes.text();
-      const meta = buildMeta({ title, description, image, pageUrl, type: "article" });
+      const meta = buildMeta({ title, description, image, pageUrl, canonicalUrl: `${SITE_URL}${routePath}`, type: "article", locale });
       const snapshot = buildSeoSnapshot({ title, description, image, pageUrl });
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
-    const postMatch = url.pathname.match(/^\/posts\/([^/]+)\/?$/);
+    const postMatch = routePath.match(/^\/posts\/([^/]+)\/?$/);
     if (postMatch) {
       const postId = postMatch[1];
       let title = "Celeone TV";
@@ -785,31 +884,37 @@ export default {
         title,
         description,
         image,
-        pageUrl: `${SITE_URL}/posts/${postId}`,
+        pageUrl: localizedShareUrl(`/posts/${postId}`, locale),
+        canonicalUrl: `${SITE_URL}/posts/${postId}`,
         type: "article",
+        locale,
       });
-      const snapshot = buildSeoSnapshot({ title, description, image, pageUrl: `${SITE_URL}/posts/${postId}` });
+      const snapshot = buildSeoSnapshot({ title, description, image, pageUrl: localizedShareUrl(`/posts/${postId}`, locale) });
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
-    const known = ROUTE_META.find(([re]) => re.test(url.pathname));
+    const known = ROUTE_META.find(([re]) => re.test(routePath));
     if (known) {
       const html = await baseRes.text();
       const cfg = known[1];
+      const canonicalPath = cfg.canonicalPath || routePath;
+      const translated = localizedMeta(canonicalPath, locale, cfg.title, cfg.description);
+      const pageUrl = localizedShareUrl(canonicalPath, locale);
       const meta = buildMeta({
-        title: cfg.title,
-        description: cfg.description,
+        title: translated.title,
+        description: translated.description,
         image: DEFAULT_IMAGE,
-        pageUrl: `${SITE_URL}${cfg.canonicalPath || url.pathname}`,
+        pageUrl,
+        canonicalUrl: `${SITE_URL}${canonicalPath}`,
         type: cfg.type || "website",
         robots: cfg.robots,
+        locale,
       });
-      const pageUrl = `${SITE_URL}${cfg.canonicalPath || url.pathname}`;
-      const snapshot = cfg.robots?.startsWith("noindex") ? "" : buildSeoSnapshot({ title: cfg.title, description: cfg.description, image: DEFAULT_IMAGE, pageUrl });
+      const snapshot = cfg.robots?.startsWith("noindex") ? "" : buildSeoSnapshot({ title: translated.title, description: translated.description, image: DEFAULT_IMAGE, pageUrl });
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
-    const chTitle = titleFromChannelSlug(url.pathname);
+    const chTitle = titleFromChannelSlug(routePath);
     if (chTitle) {
       const html = await baseRes.text();
       const title = `${chTitle} Live | Celeone TV`;
@@ -818,10 +923,12 @@ export default {
         title,
         description,
         image: DEFAULT_IMAGE,
-        pageUrl: `${SITE_URL}${url.pathname}`,
+        pageUrl: localizedShareUrl(routePath, locale),
+        canonicalUrl: `${SITE_URL}${routePath}`,
         type: "website",
+        locale,
       });
-      const pageUrl = `${SITE_URL}${url.pathname}`;
+      const pageUrl = localizedShareUrl(routePath, locale);
       const snapshot = buildSeoSnapshot({ title, description, image: DEFAULT_IMAGE, pageUrl });
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
@@ -831,9 +938,11 @@ export default {
       title: "Celeone TV Portal",
       description: HOME_DESCRIPTION,
       image: DEFAULT_IMAGE,
-      pageUrl: `${SITE_URL}${url.pathname}`,
+      pageUrl: localizedShareUrl(routePath, locale),
+      canonicalUrl: `${SITE_URL}${routePath}`,
       type: "website",
       robots: "noindex,follow",
+      locale,
     });
     const fallbackBody = injectMeta(html, fallbackMeta);
     const headers = new Headers(baseRes.headers);

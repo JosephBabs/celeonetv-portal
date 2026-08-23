@@ -33,52 +33,64 @@ import ChildSafetyStandards from "../pages/ChildSafetyStandards";
 import ParishRegistration from "../pages/ParishRegistration";
 import ParishMap from "../pages/ParishMap";
 
+const publicRoutes = [
+  { path: "/", element: <Landing /> },
+  { path: "/posts/:postId", element: <Post /> },
+  { path: "/social/:contentId", element: <ShareLanding /> },
+  { path: "/hymns/:contentId", element: <ShareLanding /> },
+  { path: "/themes/:contentId", element: <ShareLanding /> },
+  { path: "/weekly-themes/:contentId", element: <ShareLanding /> },
+  { path: "/weekly-programs/:contentId", element: <ShareLanding /> },
+  { path: "/videos/:contentId", element: <ShareLanding /> },
+  { path: "/songs/:contentId", element: <ShareLanding /> },
+  { path: "/:channelName/live", element: <ChannelLive /> },
+  { path: "/creator/request", element: <CreatorRequest /> },
+  { path: "/documentation", element: <Documentation /> },
+  { path: "/app/privacy", element: <PrivacyPolicy /> },
+  { path: "/account/request_delete", element: <AccountDeletionRequest /> },
+  { path: "/app/child-safety-standards", element: <ChildSafetyStandards /> },
+  { path: "/spiritual-program", element: <SpiritualProgram /> },
+  { path: "/parishes", element: <ParishMap /> },
+  { path: "/parishes/register", element: <ParishRegistration /> },
+  { path: "/login", element: <Login /> },
+  { path: "/logout", element: <Login /> },
+  { path: "/register", element: <Register /> },
+  { path: "/donate", element: <DonateRedirect /> },
+  { path: "/prelaunch-registration", element: <PrelaunchRegistration /> },
+  { path: "/founder-pass", element: <Founders /> },
+  { path: "/founders/activate", element: <FounderActivate /> },
+  { path: "/founders/certificate", element: <FounderCertificate /> },
+  { path: "/founders/dashboard", element: <FounderDashboard /> },
+  { path: "/founders/wall", element: <FounderWall /> },
+  { path: "/founders/verify", element: <FounderVerify /> },
+  { path: "/founders/verify/:founderId", element: <FounderVerify /> },
+  { path: "/founders/:section", element: <FounderHubPage /> },
+];
+
+const localizedPublicRoutes = ["fr", "en", "es"].flatMap((locale) =>
+  publicRoutes.map((route) => ({
+    ...route,
+    path: route.path === "/" ? `/${locale}` : `/${locale}${route.path}`,
+  })),
+);
+
 export const router = createBrowserRouter([
   {
     element: <AppShell />,
     errorElement: <RouteError />,
     children: [
-      { path: "/", element: <Landing /> },
+      ...publicRoutes,
+      ...localizedPublicRoutes,
 
       // Public content
-      { path: "/posts/:postId", element: <Post /> },
-      { path: "/social/:contentId", element: <ShareLanding /> },
-      { path: "/hymns/:contentId", element: <ShareLanding /> },
-      { path: "/themes/:contentId", element: <ShareLanding /> },
-      { path: "/weekly-themes/:contentId", element: <ShareLanding /> },
-      { path: "/weekly-programs/:contentId", element: <ShareLanding /> },
-      { path: "/videos/:contentId", element: <ShareLanding /> },
-      { path: "/songs/:contentId", element: <ShareLanding /> },
 
       // Live page (public share)
-      { path: "/:channelName/live", element: <ChannelLive /> },
 
       // Creator
-      { path: "/creator/request", element: <CreatorRequest /> },
       { path: "/creator", element: <Navigate to="/" replace /> },
       { path: "/chatrooms/create", element: <Navigate to="/" replace /> },
-      { path: "/documentation", element: <Documentation /> },
-      { path: "/app/privacy", element: <PrivacyPolicy /> },
-      { path: "/account/request_delete", element: <AccountDeletionRequest /> },
-      { path: "/app/child-safety-standards", element: <ChildSafetyStandards /> },
-      { path: "/spiritual-program", element: <SpiritualProgram /> },
-      { path: "/parishes", element: <ParishMap /> },
-      { path: "/parishes/register", element: <ParishRegistration /> },
       { path: "/jeunesse", element: <Navigate to="/" replace /> },
-      { path: "/login", element: <Login /> },
-      { path: "/logout", element: <Login /> },
-      { path: "/register", element: <Register /> },
-      { path: "/donate", element: <DonateRedirect /> },
-      { path: "/prelaunch-registration", element: <PrelaunchRegistration /> },
-      { path: "/founder-pass", element: <Founders /> },
       { path: "/founders", element: <Navigate to="/founder-pass" replace /> },
-      { path: "/founders/activate", element: <FounderActivate /> },
-      { path: "/founders/certificate", element: <FounderCertificate /> },
-      { path: "/founders/dashboard", element: <FounderDashboard /> },
-      { path: "/founders/wall", element: <FounderWall /> },
-      { path: "/founders/verify", element: <FounderVerify /> },
-      { path: "/founders/verify/:founderId", element: <FounderVerify /> },
-      { path: "/founders/:section", element: <FounderHubPage /> },
 
 
       // Admin

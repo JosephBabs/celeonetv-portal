@@ -4,10 +4,12 @@ import TopNav from "../components/TopNav";
 import Footer from "../components/Footer";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { applyRouteSeo } from "../lib/seo";
+import { splitLocalePath } from "../lib/localizedPaths";
 
 export default function AppShell() {
   const { pathname } = useLocation();
-  const hideTopNav = /^\/posts\/[^/]+\/?$/.test(pathname);
+  const routePath = splitLocalePath(pathname).pathname;
+  const hideTopNav = /^\/posts\/[^/]+\/?$/.test(routePath);
 
   useEffect(() => {
     applyRouteSeo(pathname);
