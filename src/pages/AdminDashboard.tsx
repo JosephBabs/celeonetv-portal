@@ -54,6 +54,7 @@ type ManageKey =
   | "songs"
   | "videos"
   | "spiritual_program"
+  | "mail"
   | "founders";
 
 const COLLECTION_META: Record<
@@ -77,6 +78,7 @@ const COLLECTION_META: Record<
   songs: { label: "Songs", icon: "🎧", primary: "title", secondary: "artist", orderField: "createdAt" },
   videos: { label: "Videos", icon: "🎬", primary: "title", secondary: "channelName", orderField: "createdAt" },
   spiritual_program: { label: "Spiritual Program", icon: "SP", primary: "title", secondary: "startDate", orderField: "updatedAt" },
+  mail: { label: "Mail", icon: "MAIL", primary: "to", secondary: "delivery.state", orderField: "createdAt" },
   founders: { label: "Founder's Pass", icon: "CO", primary: "publicFounderId", secondary: "status", orderField: "createdAt" },
 };
 
@@ -108,6 +110,7 @@ export default function AdminDashboard() {
     activeUserSubscriptions: 0,
     spiritualProgram: 0,
     parishRegistrations: 0,
+    mail: 0,
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [loadingCounts, setLoadingCounts] = useState(true);
@@ -136,6 +139,7 @@ export default function AdminDashboard() {
         hymnProgramsSnap,
         celebrationsSnap,
         parishRegistrationsSnap,
+        mailSnap,
       ] = await Promise.all([
         getDocs(collection(db, "user_data")),
         getDocs(collection(db, "chatrooms")),
@@ -155,6 +159,7 @@ export default function AdminDashboard() {
         getDocs(collection(db, "hymn_programs")),
         getDocs(collection(db, "special_celebrations")),
         getDocs(collection(db, "parish_registration_requests")),
+        getDocs(collection(db, "mail")),
       ]);
 
       setCounts({
@@ -172,6 +177,7 @@ export default function AdminDashboard() {
         activeUserSubscriptions: userSubscriptionsSnap.docs.filter((d) => d.data()?.status === "active").length,
         spiritualProgram: spiritualYearsSnap.size + spiritualWeeksSnap.size + spiritualServicesSnap.size + hymnProgramsSnap.size + celebrationsSnap.size,
         parishRegistrations: parishRegistrationsSnap.docs.filter((d) => d.data()?.status !== "approved").length,
+        mail: mailSnap.size,
       });
 
       setLastUpdated(new Date());
@@ -953,6 +959,7 @@ export default function AdminDashboard() {
       { key: "songs" as ManageKey, label: "Songs", value: counts.filmsAndSongs, icon: "🎧" },
       { key: "videos" as ManageKey, label: "Videos", value: counts.videos, icon: "🎬" },
       { key: "spiritual_program" as ManageKey, label: "Spiritual Program", value: counts.spiritualProgram, icon: "SP" },
+      { key: "mail" as ManageKey, label: "Mail", value: counts.mail, icon: "MAIL" },
     ],
     [counts]
   );
@@ -2105,8 +2112,9 @@ function KeyValueEditor({
 
 function pickField(obj: any, key?: string) {
   if (!obj || !key) return "";
-  const v = obj[key];
+  const v = key.split(".").reduce((acc, part) => (acc == null ? undefined : acc[part]), obj);
   if (v === null || v === undefined) return "";
+  if (Array.isArray(v)) return v.join(", ");
   if (typeof v === "string") return v;
   if (typeof v === "number") return String(v);
   if (typeof v === "boolean") return v ? "true" : "false";

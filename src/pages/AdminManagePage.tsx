@@ -326,6 +326,19 @@ export default function AdminManagePage() {
             registrationRequestId: selected.id,
             parishId,
           },
+          delivery: {
+            attempts: 1,
+            state: "SUCCESS",
+            startTime: serverTimestamp(),
+            endTime: serverTimestamp(),
+            details: {
+              type: "parish_registration_approved",
+              recipient: contactEmail,
+              parishName: displayName,
+              parishId,
+              registrationRequestId: selected.id,
+            },
+          },
           createdAt: serverTimestamp(),
         });
         await updateDoc(doc(db, "parish_registration_requests", selected.id), {
