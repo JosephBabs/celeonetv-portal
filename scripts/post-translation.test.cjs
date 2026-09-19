@@ -1,0 +1,25 @@
+const esbuild = require('esbuild');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+(async () => {
+  const outfile=path.resolve('node_modules/.cache/post-translation-test.cjs');
+  await esbuild.build({entryPoints:['src/lib/postTranslation.ts'],outfile,bundle:true,platform:'node',format:'cjs',target:'node20',logLevel:'silent'});
+  const {phoneLanguage,translateText}=require(outfile);
+  assert.equal(phoneLanguage(['pt-BR','en-US']),'pt');
+  assert.equal(phoneLanguage(['fr-FR']),'fr');
+  assert.equal(phoneLanguage([]),'en');
+  const signal=new AbortController().signal;
+  const calls=[];
+  global.fetch=async (url,init)=>{const data=JSON.parse(init.body);calls.push(data);assert.equal(url,'/api/translate');assert.equal(init.signal,signal);return Response.json({translatedText:data.text.toUpperCase()});};
+  const text='a'.repeat(13000);
+  assert.equal(await translateText(text,'es',signal),text.toUpperCase());
+  assert.equal(calls.length,3);
+  assert.ok(calls.every(c=>c.target==='es' && c.source==='auto' && c.text.length<=5000));
+  await translateText(text,'es',signal);
+  assert.equal(calls.length,3,'reuse translated text without another request');
+  await translateText(text,'fr',signal);
+  assert.equal(calls.length,6,'language-specific cache');
+  global.fetch=async()=>new Response('{}',{status:503});
+  await assert.rejects(translateText('unavailable','de',signal),/unavailable/);
+  console.log('Translation checks passed: phone locale, long text, target isolation, cache, provider failure.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -376,5 +376,12 @@
       "shared": "Le contenu que vous avez partage avec d'autres utilisateurs lorsque sa suppression affecterait leur propre historique, sauf obligation legale de suppression.",
       "backups": "Les sauvegardes et journaux pendant une periode limitee, jusqu'a leur ecrasement ou lorsqu'ils ne sont plus necessaires a la recuperation, la securite ou la conformite legale."
     }
+  },
+  "post": {
+    "translating": "Traduction en cours...",
+    "translation_unavailable": "Texte original affiché. Traduction indisponible.",
+    "auto_translated": "Traduction automatique",
+    "see_translation": "Voir la traduction",
+    "see_original": "Voir l’original"
   }
 }

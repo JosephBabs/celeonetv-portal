@@ -376,5 +376,12 @@
       "shared": "Content that you shared with other users where removal would affect their own account history, unless deletion is legally required.",
       "backups": "Backups and logs for a limited period until they are overwritten or no longer needed for recovery, security, or legal compliance."
     }
+  },
+  "post": {
+    "translating": "Translating...",
+    "translation_unavailable": "Showing the original. Translation is unavailable.",
+    "auto_translated": "Automatically translated",
+    "see_translation": "See translation",
+    "see_original": "See original"
   }
 }

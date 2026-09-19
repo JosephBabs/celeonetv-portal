@@ -376,5 +376,12 @@
       "shared": "Contenido que compartiste con otros usuarios cuando eliminarlo afectaria su propio historial, salvo que la ley exija la eliminacion.",
       "backups": "Copias de seguridad y registros durante un periodo limitado, hasta que se sobrescriban o ya no sean necesarios para recuperacion, seguridad o cumplimiento legal."
     }
+  },
+  "post": {
+    "translating": "Traduciendo...",
+    "translation_unavailable": "Se muestra el original. Traducción no disponible.",
+    "auto_translated": "Traducción automática",
+    "see_translation": "Ver traducción",
+    "see_original": "Ver original"
   }
 }

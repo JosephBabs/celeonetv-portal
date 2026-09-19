@@ -4,7 +4,7 @@ export function postImages(post: PublicPost): string[] {
  const media = Array.isArray(post.media) ? post.media : [];
  const urls = media.filter(m => !String(m.type || m.mime || '').startsWith('video')).map(m => m.previewUrl || m.smallUrl || m.thumbnailUrl || m.url || m.uri);
  const images = Array.isArray(post.images) ? post.images.map(i => typeof i === 'string' ? i : (i as Record<string, unknown>)?.url) : [];
- return [...new Set([...urls, ...images, ...media.map(m=>m.thumbnailUrl || m.posterUrl || m.poster), post.previewUrl || post.smallUrl || post.thumbnailUrl || post.posterUrl || post.imageUrl || post.image || post.shareImage].filter((x): x is string => typeof x === 'string' && /^https?:\/\//i.test(x)))];
+ return [...new Set([...(postVideo(post)?[post.thumbnailUrl || post.posterUrl]:[]), ...urls, ...images, ...media.map(m=>m.thumbnailUrl || m.posterUrl || m.poster), post.previewUrl || post.smallUrl || post.thumbnailUrl || post.posterUrl || post.imageUrl || post.image || post.shareImage].filter((x): x is string => typeof x === 'string' && /^https?:\/\//i.test(x)))];
 }
 export function bootstrapPost(id: string, kind = 'posts'): PublicPost | null {
  try {const p=JSON.parse(document.getElementById('celeone-post-data')?.textContent || 'null');return p?.requestedId===id && (p.kind || 'posts')===kind ? p.post : null;} catch {return null;}
@@ -28,7 +28,7 @@ export function safePostHtml(raw: string): string {
 
 export function postVideo(post: PublicPost): string | undefined {
  const media=Array.isArray(post.media)?post.media:[];
- const video=media.find(m=>String(m.type||m.mime||'').startsWith('video'));
+ const video=media.find(m=>String(m.type||m.mime||'').startsWith('video') || /\.(mp4|mov|webm|m3u8)(\?|$)/i.test(String(m.url || m.uri || '')));
  const url=post.videoUrl || video?.url || video?.uri;
  return typeof url==='string' && /^https?:\/\//i.test(url)?url:undefined;
 }

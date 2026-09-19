@@ -571,12 +571,14 @@ function buildMeta({
   robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
   canonicalUrl,
   locale = "fr",
+  video,
 }: {
   title: string;
   description: string;
   image: string;
   pageUrl: string;
-  type: "website" | "article";
+  type: "website" | "article" | "video.other";
+  video?: string;
   robots?: string;
   canonicalUrl?: string;
   locale?: RouteLocale;
@@ -664,6 +666,7 @@ function buildMeta({
 <meta itemprop="image" content="${escapeHtml(image)}" />
 
 <meta property="og:type" content="${type}" />
+${video ? `<meta property="og:video" content="${escapeHtml(video)}" /><meta property="og:video:secure_url" content="${escapeHtml(video)}" /><meta property="og:video:type" content="${/\.m3u8(?:\?|$)/i.test(video)?"application/vnd.apple.mpegurl":/\.webm(?:\?|$)/i.test(video)?"video/webm":"video/mp4"}" />` : ""}
 <meta property="og:locale" content="${LOCALE_META[locale].ogLocale}" />
 <meta property="og:site_name" content="Celeone TV" />
 <meta property="og:title" content="${escapeHtml(title)}" />
@@ -1041,18 +1044,19 @@ export default {
       try {const response=await publicPostResponse(requestedId,env,kind);status=response.ok?200:response.status===404?404:503;if(response.ok)post=(await response.json() as {data:PublicPost}).data;} catch { status=503; }
       const title=String(post?.shareTitle || post?.title || "Cele One");
       const description=post?stripHtmlText(String(post.shareDescription || postText(post))).slice(0,220):"Cele One post";
-      const image=post?postImages(post)[0] || DEFAULT_IMAGE:DEFAULT_IMAGE;
+      const poster=post?postImages(post)[0] || DEFAULT_IMAGE:DEFAULT_IMAGE;
+      const video=post?postVideo(post):undefined;
+      const image=video && typeof post?.videoShareImage==='string' && /^https:\/\//i.test(post.videoShareImage)?post.videoShareImage:poster;
       const canonical=`${SITE_URL}/${kind}/${encodeURIComponent(post?.id || requestedId)}`;
-      const meta=buildMeta({title,description,image,pageUrl:canonical,canonicalUrl:canonical,type:"article",locale,robots:post?undefined:"noindex,nofollow"});
+      const meta=buildMeta({title,description,image,pageUrl:canonical,canonicalUrl:canonical,type:video?"video.other":"article",video,locale,robots:post?undefined:"noindex,nofollow"});
       const snapshot=buildSeoSnapshot({title,description,image,pageUrl:canonical});
       let html=injectMeta(await baseRes.text(),meta,snapshot);
       if(post){
         const json=JSON.stringify({requestedId,kind,post}).replace(/</g,"\\u003c");
-        const video=postVideo(post);
         const rawDate=post.createdAtMs || post.createdAt;
         const date=typeof rawDate==='number'||typeof rawDate==='string'?new Date(rawDate):null;
-        const schema=video && image!==DEFAULT_IMAGE && date && !Number.isNaN(date.getTime()) ? `<script type="application/ld+json">${JSON.stringify({"@context":"https://schema.org","@type":"VideoObject",name:title,description,thumbnailUrl:[image],uploadDate:date.toISOString(),contentUrl:video,url:canonical}).replace(/</g,"\\u003c")}</script>`:"";
-        const preload=image!==DEFAULT_IMAGE?`<link rel="preload" as="image" href="${escapeHtml(image)}" fetchpriority="high">`:"";
+        const schema=video && poster!==DEFAULT_IMAGE && date && !Number.isNaN(date.getTime()) ? `<script type="application/ld+json">${JSON.stringify({"@context":"https://schema.org","@type":"VideoObject",name:title,description,thumbnailUrl:[poster],uploadDate:date.toISOString(),contentUrl:video,url:canonical}).replace(/</g,"\\u003c")}</script>`:"";
+        const preload=poster!==DEFAULT_IMAGE?`<link rel="preload" as="image" href="${escapeHtml(poster)}" fetchpriority="high">`:"";
         html=html.replace("</head>",`${preload}${schema}<script type="application/json" id="celeone-post-data">${json}</script></head>`);
       }
       const result=htmlResponse(baseRes,html);

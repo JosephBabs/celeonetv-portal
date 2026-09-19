@@ -48,7 +48,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     const fromPath = pathLang();
     if (fromPath) return fromPath;
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved === "en" || saved === "fr" || saved === "es" ? saved : DEFAULT_LANG;
+    const phone=(navigator.languages?.[0] || navigator.language || 'en').split('-')[0];
+    return saved === "en" || saved === "fr" || saved === "es" ? saved : phone==='fr'||phone==='es'?phone:'en';
   });
   const [dict, setDict] = useState<Dict>({});
 
