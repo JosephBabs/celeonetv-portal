@@ -293,3 +293,9 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 } */
+
+.celeone-post-body p, .celeone-post-body div { margin: 0 0 0.8em; }
+.celeone-post-body ul { list-style: disc; padding-left: 1.5em; }
+.celeone-post-body ol { list-style: decimal; padding-left: 1.5em; }
+.celeone-post-body a { color: #0f766e; text-decoration: underline; }
+.celeone-post-body blockquote { border-left: 3px solid #99f6e4; padding-left: 1em; }

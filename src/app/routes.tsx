@@ -36,7 +36,7 @@ import ParishMap from "../pages/ParishMap";
 const publicRoutes = [
   { path: "/", element: <Landing /> },
   { path: "/posts/:postId", element: <Post /> },
-  { path: "/social/:contentId", element: <ShareLanding /> },
+  { path: "/social/:contentId", element: <Post /> },
   { path: "/hymns/:contentId", element: <ShareLanding /> },
   { path: "/themes/:contentId", element: <ShareLanding /> },
   { path: "/weekly-themes/:contentId", element: <ShareLanding /> },

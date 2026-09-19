@@ -1,3 +1,4 @@
+import { postImages, postText, type PublicPost } from "./lib/publicPost";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { onRequestGet as founderActivateGet, onRequestPost as founderActivatePost } from "../functions/api/founders/activate";
 import { onRequestGet as adminFounderAssetGet } from "../functions/api/admin/founders/asset";
@@ -11,6 +12,7 @@ import { localizedPath, splitLocalePath, type RouteLocale } from "./lib/localize
 import { SEO_KEYWORDS, SEO_KEYWORDS_CONTENT, SEO_TOPIC_THINGS } from "./lib/seoKeywords";
 
 export interface Env {
+  LARAVEL_API_URL?: string;
   FIREBASE_PROJECT_ID?: string;
   OPENAI_API_KEY?: string;
   OPENAI_MODEL?: string;
@@ -862,12 +864,26 @@ async function handleTranslate(request: Request, env: Env) {
   return response;
 }
 
+async function publicPostResponse(id: string, env: Env): Promise<Response> {
+ const base=(env.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+ return fetchWithTimeout(`${base}/public/posts/${encodeURIComponent(id)}`,5000,{headers:{Accept:"application/json"}});
+}
+
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const url = new URL(request.url);
     const localeInfo = splitLocalePath(url.pathname);
     const locale = localeInfo.locale || "fr";
     const routePath = localeInfo.pathname;
+    const publicPostApi = routePath.match(/^\/api\/public\/posts\/([^/]+)\/?$/);
+    if (publicPostApi && request.method === "GET") {
+      try {
+        const upstream=await publicPostResponse(decodeURIComponent(publicPostApi[1]),env);
+        if(!upstream.ok)return Response.json({message:upstream.status===404?"Post not found":"Post temporarily unavailable"},{status:upstream.status===404?404:503});
+        const payload=await upstream.json();return Response.json(payload,{headers:{"Cache-Control":"public, max-age=30"}});
+      } catch {return Response.json({message:"Post temporarily unavailable"},{status:503});}
+    }
+
     const method = request.method.toUpperCase();
 
     if (localeInfo.locale && isStaticAssetPath(routePath)) {
@@ -1002,6 +1018,26 @@ export default {
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
+    const postMatch = routePath.match(/^\/(?:posts|social)\/([^/]+)\/?$/);
+    if (postMatch) {
+      const requestedId=decodeURIComponent(postMatch[1]);
+      let post: PublicPost | null=null;
+      try {const response=await publicPostResponse(requestedId,env);if(response.ok)post=(await response.json() as {data:PublicPost}).data;} catch { /* Client presents a retry when the origin is unavailable. */ }
+      const title=String(post?.shareTitle || post?.title || "Cele One");
+      const description=post?stripHtmlText(String(post.shareDescription || postText(post))).slice(0,220):"Cele One post";
+      const image=post?postImages(post)[0] || DEFAULT_IMAGE:DEFAULT_IMAGE;
+      const canonical=`${SITE_URL}/posts/${encodeURIComponent(post?.id || requestedId)}`;
+      const meta=buildMeta({title,description,image,pageUrl:canonical,canonicalUrl:canonical,type:"article",locale});
+      const snapshot=buildSeoSnapshot({title,description,image,pageUrl:canonical});
+      let html=injectMeta(await baseRes.text(),meta,snapshot);
+      if(post){
+        const json=JSON.stringify({requestedId,post}).replace(/</g,"\\u003c");
+        const preload=image!==DEFAULT_IMAGE?`<link rel="preload" as="image" href="${escapeHtml(image)}" fetchpriority="high">`:"";
+        html=html.replace("</head>",`${preload}<script type="application/json" id="celeone-post-data">${json}</script></head>`);
+      }
+      return htmlResponse(baseRes,html);
+    }
+
     const dynamicShare = matchDynamicShareRoute(routePath);
     if (dynamicShare) {
       const { config, id } = dynamicShare;
@@ -1046,55 +1082,6 @@ export default {
       const html = await baseRes.text();
       const meta = buildMeta({ title, description, image, pageUrl, canonicalUrl: `${SITE_URL}${routePath}`, type: "article", locale });
       const snapshot = buildSeoSnapshot({ title, description, image, pageUrl });
-      return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
-    }
-
-    const postMatch = routePath.match(/^\/posts\/([^/]+)\/?$/);
-    if (postMatch) {
-      const postId = postMatch[1];
-      let title = "Celeone TV";
-      let description = "Decouvrez les contenus sur Celeone TV.";
-      let image = DEFAULT_IMAGE;
-
-      try {
-        const projectId = env.FIREBASE_PROJECT_ID;
-        if (projectId) {
-          const firebaseURL = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/posts/${postId}`;
-          const fr = await fetchWithTimeout(firebaseURL, 2500);
-          if (fr.ok) {
-            const data: any = await fr.json();
-            const fields = data?.fields || {};
-            const shareTitle = fields.shareTitle?.stringValue;
-            const shareDesc = fields.shareDescription?.stringValue;
-            const shareImage = fields.shareImage?.stringValue;
-            const fallbackTitle = fields.title?.stringValue;
-            const fallbackDesc = fields.content?.stringValue;
-            const fallbackImage = fields.image?.stringValue;
-
-            const resolvedTitle = shareTitle || fallbackTitle;
-            const resolvedDesc = shareDesc || fallbackDesc;
-            const resolvedImage = shareImage || fallbackImage;
-
-            if (resolvedTitle) title = String(resolvedTitle);
-            if (resolvedDesc) description = String(resolvedDesc).trim().replace(/\s+/g, " ").slice(0, 220);
-            if (resolvedImage) image = makeCompressedShareImage(String(resolvedImage));
-          }
-        }
-      } catch {
-        // Keep defaults on fetch failure.
-      }
-
-      const html = await baseRes.text();
-      const meta = buildMeta({
-        title,
-        description,
-        image,
-        pageUrl: localizedShareUrl(`/posts/${postId}`, locale),
-        canonicalUrl: `${SITE_URL}/posts/${postId}`,
-        type: "article",
-        locale,
-      });
-      const snapshot = buildSeoSnapshot({ title, description, image, pageUrl: localizedShareUrl(`/posts/${postId}`, locale) });
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
