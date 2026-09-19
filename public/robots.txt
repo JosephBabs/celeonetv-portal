@@ -7,3 +7,5 @@ Disallow: /founders/certificate
 Disallow: /founders/dashboard
 
 Sitemap: https://celeonetv.com/sitemap.xml
+
+Sitemap: https://celeonetv.com/sitemap-content.xml

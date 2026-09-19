@@ -1,4 +1,4 @@
-import { postImages, postText, type PublicPost } from "./lib/publicPost";
+import { postImages, postText, postVideo, type PublicPost } from "./lib/publicPost";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { onRequestGet as founderActivateGet, onRequestPost as founderActivatePost } from "../functions/api/founders/activate";
 import { onRequestGet as adminFounderAssetGet } from "../functions/api/admin/founders/asset";
@@ -864,9 +864,9 @@ async function handleTranslate(request: Request, env: Env) {
   return response;
 }
 
-async function publicPostResponse(id: string, env: Env): Promise<Response> {
+async function publicPostResponse(id: string, env: Env, kind = "posts"): Promise<Response> {
  const base=(env.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
- return fetchWithTimeout(`${base}/public/posts/${encodeURIComponent(id)}`,5000,{headers:{Accept:"application/json"}});
+ return fetchWithTimeout(`${base}/public/${kind}/${encodeURIComponent(id)}`,5000,{headers:{Accept:"application/json"}});
 }
 
 export default {
@@ -875,10 +875,24 @@ export default {
     const localeInfo = splitLocalePath(url.pathname);
     const locale = localeInfo.locale || "fr";
     const routePath = localeInfo.pathname;
-    const publicPostApi = routePath.match(/^\/api\/public\/posts\/([^/]+)\/?$/);
+    const sitemap=routePath.match(/^\/sitemap-content(?:-(\d+))?\.xml$/);
+    if(sitemap && (request.method==='GET'||request.method==='HEAD')) {
+      const page=sitemap[1];
+      if(page && (!/^[1-9]\d*$/.test(page)||Number(page)>50000))return new Response('Not found',{status:404});
+      try {
+        const base=(env.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+        const upstream=await fetchWithTimeout(`${base}/public/content-index${page?`?page=${page}`:''}`,10000,{headers:{Accept:'application/json'}});
+        if(!upstream.ok)throw new Error('Origin unavailable');
+        const data=await upstream.json() as {pages:number;items?:Array<{id:string;type:string}>};
+        if(page && Number(page)>data.pages)return new Response('Not found',{status:404});
+        const body=page?`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${(data.items||[]).map(item=>`<url><loc>${escapeHtml(`${SITE_URL}/${item.type}/${encodeURIComponent(item.id)}`)}</loc></url>`).join('')}</urlset>`:`<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${Array.from({length:Math.min(50000,data.pages)},(_,i)=>`<sitemap><loc>${SITE_URL}/sitemap-content-${i+1}.xml</loc></sitemap>`).join('')}</sitemapindex>`;
+        return new Response(request.method==='HEAD'?null:`<?xml version="1.0" encoding="UTF-8"?>${body}`,{headers:{'Content-Type':'application/xml; charset=utf-8','Cache-Control':'public, max-age=60'}});
+      } catch {return new Response('Temporarily unavailable',{status:503,headers:{'Cache-Control':'no-store'}});}
+    }
+    const publicPostApi = routePath.match(/^\/api\/public\/(posts|reels)\/([^/]+)\/?$/);
     if (publicPostApi && request.method === "GET") {
       try {
-        const upstream=await publicPostResponse(decodeURIComponent(publicPostApi[1]),env);
+        const upstream=await publicPostResponse(decodeURIComponent(publicPostApi[2]),env,publicPostApi[1]);
         if(!upstream.ok)return Response.json({message:upstream.status===404?"Post not found":"Post temporarily unavailable"},{status:upstream.status===404?404:503});
         const payload=await upstream.json();return Response.json(payload,{headers:{"Cache-Control":"public, max-age=30"}});
       } catch {return Response.json({message:"Post temporarily unavailable"},{status:503});}
@@ -1018,24 +1032,31 @@ export default {
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
-    const postMatch = routePath.match(/^\/(?:posts|social)\/([^/]+)\/?$/);
+    const postMatch = routePath.match(/^\/(posts|social|reels)\/([^/]+)\/?$/);
     if (postMatch) {
-      const requestedId=decodeURIComponent(postMatch[1]);
+      const requestedId=decodeURIComponent(postMatch[2]);
+      const kind=postMatch[1]==="reels"?"reels":"posts";
+      let status=503;
       let post: PublicPost | null=null;
-      try {const response=await publicPostResponse(requestedId,env);if(response.ok)post=(await response.json() as {data:PublicPost}).data;} catch { /* Client presents a retry when the origin is unavailable. */ }
+      try {const response=await publicPostResponse(requestedId,env,kind);status=response.ok?200:response.status===404?404:503;if(response.ok)post=(await response.json() as {data:PublicPost}).data;} catch { status=503; }
       const title=String(post?.shareTitle || post?.title || "Cele One");
       const description=post?stripHtmlText(String(post.shareDescription || postText(post))).slice(0,220):"Cele One post";
       const image=post?postImages(post)[0] || DEFAULT_IMAGE:DEFAULT_IMAGE;
-      const canonical=`${SITE_URL}/posts/${encodeURIComponent(post?.id || requestedId)}`;
-      const meta=buildMeta({title,description,image,pageUrl:canonical,canonicalUrl:canonical,type:"article",locale});
+      const canonical=`${SITE_URL}/${kind}/${encodeURIComponent(post?.id || requestedId)}`;
+      const meta=buildMeta({title,description,image,pageUrl:canonical,canonicalUrl:canonical,type:"article",locale,robots:post?undefined:"noindex,nofollow"});
       const snapshot=buildSeoSnapshot({title,description,image,pageUrl:canonical});
       let html=injectMeta(await baseRes.text(),meta,snapshot);
       if(post){
-        const json=JSON.stringify({requestedId,post}).replace(/</g,"\\u003c");
+        const json=JSON.stringify({requestedId,kind,post}).replace(/</g,"\\u003c");
+        const video=postVideo(post);
+        const rawDate=post.createdAtMs || post.createdAt;
+        const date=typeof rawDate==='number'||typeof rawDate==='string'?new Date(rawDate):null;
+        const schema=video && image!==DEFAULT_IMAGE && date && !Number.isNaN(date.getTime()) ? `<script type="application/ld+json">${JSON.stringify({"@context":"https://schema.org","@type":"VideoObject",name:title,description,thumbnailUrl:[image],uploadDate:date.toISOString(),contentUrl:video,url:canonical}).replace(/</g,"\\u003c")}</script>`:"";
         const preload=image!==DEFAULT_IMAGE?`<link rel="preload" as="image" href="${escapeHtml(image)}" fetchpriority="high">`:"";
-        html=html.replace("</head>",`${preload}<script type="application/json" id="celeone-post-data">${json}</script></head>`);
+        html=html.replace("</head>",`${preload}${schema}<script type="application/json" id="celeone-post-data">${json}</script></head>`);
       }
-      return htmlResponse(baseRes,html);
+      const result=htmlResponse(baseRes,html);
+      return new Response(result.body,{status,headers:{...Object.fromEntries(result.headers),"Cache-Control":post?"public, max-age=30":"no-store","X-Robots-Tag":post?"index, follow":"noindex, nofollow"}});
     }
 
     const dynamicShare = matchDynamicShareRoute(routePath);
