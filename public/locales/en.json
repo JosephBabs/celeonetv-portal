@@ -382,6 +382,8 @@
     "translation_unavailable": "Showing the original. Translation is unavailable.",
     "auto_translated": "Automatically translated",
     "see_translation": "See translation",
-    "see_original": "See original"
+    "see_original": "See original",
+    "view_language": "View this post in",
+    "original_language": "Original"
   }
 }

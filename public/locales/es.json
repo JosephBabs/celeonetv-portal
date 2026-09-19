@@ -382,6 +382,8 @@
     "translation_unavailable": "Se muestra el original. Traducción no disponible.",
     "auto_translated": "Traducción automática",
     "see_translation": "Ver traducción",
-    "see_original": "Ver original"
+    "see_original": "Ver original",
+    "view_language": "Ver esta publicación en",
+    "original_language": "Idioma original"
   }
 }
