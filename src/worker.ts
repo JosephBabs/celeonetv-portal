@@ -1063,8 +1063,9 @@ export default {
       let status=503;
       let post: PublicPost | null=null;
       try {const response=await publicPostResponse(requestedId,env,kind);status=response.ok?200:response.status===404?404:503;if(response.ok)post=(await response.json() as {data:PublicPost}).data;} catch { status=503; }
-      const title=String(post?.shareTitle || post?.title || "Cele One");
-      const description=post?stripHtmlText(String(post.shareDescription || postText(post))).slice(0,220):"Cele One post";
+      const bodyText = post ? stripHtmlText(postText(post)) : "";
+      const title=String(post?.shareTitle || post?.title || bodyText.slice(0,140) || (post?.authorName ? `${post.authorName} shared a post` : "Cele One post"));
+      const description=post?stripHtmlText(String(post.shareDescription || bodyText || post.authorName || "Cele One post")).slice(0,220):"Cele One post";
       const poster=post?postImages(post)[0] || DEFAULT_IMAGE:DEFAULT_IMAGE;
       const video=post?postVideo(post):undefined;
       const image=video && typeof post?.videoShareImage==='string' && /^https:\/\//i.test(post.videoShareImage)?post.videoShareImage:poster;
@@ -1103,15 +1104,15 @@ export default {
         }
         if (item) {
           const resolvedTitle = pickLocalizedText(item, [
-            "shareTitle", "titleTranslations", "bibleThemeTranslations", "title", "name", "theme", "bibleTheme", "hymnTitle", "caption",
+            "shareTitle", "titleTranslations", "bibleThemeTranslations", "title", "name", "nameTranslations", "theme", "bibleTheme", "hymnTitle", "caption",
           ], locale);
           const resolvedDescription = pickLocalizedText(item, [
             "shareDescription", "descriptionTranslations", "description", "summary", "content", "hymnContent", "bibleLesson",
-            "bibleReadingText", "notes",
+            "bibleReadingText", "notes", "artist", "authorName", "creatorName", "channelName",
           ], locale);
           const resolvedImage = pickLocalizedText(item, [
-            "shareImage", "image", "imageUrl", "coverUrl", "coverImageUrl", "thumbnail", "thumbnailUrl",
-            "posterUrl", "banner", "bannerUrl",
+            "shareImage", "shareImageUrl", "image", "imageUrl", "coverUrl", "coverImageUrl", "thumbnail", "thumbnailUrl",
+            "posterUrl", "poster", "artworkUrl", "albumArt", "banner", "bannerUrl",
           ], locale);
           if (resolvedTitle) {
             title = stripHtmlText(resolvedTitle).slice(0, 180);
@@ -1135,9 +1136,11 @@ export default {
       const storeLinks = media ? `<section style="max-width:900px;margin:16px auto;padding:0 24px;font-family:Arial,sans-serif"><p><a href="https://play.google.com/store/apps/details?id=com.celeoneapp" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold;margin-right:8px">Download on Google Play</a><a href="https://apps.apple.com/search?term=Cele%20One" style="display:inline-block;background:#0f172a;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Find us on the App Store</a></p></section>` : "";
       const canonicalPath = config.mediaType === "videos" ? `/videos/${encodeURIComponent(id)}` : routePath;
       const canonicalUrl = config.mediaType ? localizedShareUrl(canonicalPath, locale) : `${SITE_URL}${routePath}`;
-      const videoUrl = config.mediaType === "videos" && item ? pickText(item, ["videoUrl", "link", "url"]) : undefined;
-      const audioUrl = config.mediaType === "songs" && item ? pickText(item, ["audioUrl", "link", "url"]) : undefined;
-      const meta = buildMeta({ title, description, image, pageUrl: canonicalUrl, canonicalUrl, type: videoUrl ? "video.other" : "article", video: videoUrl || undefined, locale, robots: item ? undefined : "noindex,nofollow" });
+      const videoUrl = config.mediaType === "videos" && item ? pickText(item, ["videoUrl", "video_url", "mediaUrl", "media_url", "link", "url", "streamUrl"]) : undefined;
+      const audioUrl = config.mediaType === "songs" && item ? pickText(item, ["audioUrl", "audio_url", "musicUrl", "mediaUrl", "media_url", "link", "url"]) : undefined;
+      // WhatsApp/Facebook previews rely on a crawlable poster. The media URL stays
+      // in the page body and is optional Open Graph video metadata only.
+      const meta = buildMeta({ title, description, image, pageUrl: canonicalUrl, canonicalUrl, type: "article", video: config.mediaType === "videos" ? videoUrl || undefined : undefined, locale, robots: item ? undefined : "noindex,nofollow" });
       const snapshot = buildSeoSnapshot({ title, description, image, pageUrl: canonicalUrl });
       const mediaPreview = media && item ? `<section style="max-width:900px;margin:18px auto;padding:0 24px;font-family:Arial,sans-serif;color:#0f172a"><h1>${escapeHtml(title)}</h1>${image !== DEFAULT_IMAGE ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" style="width:100%;max-height:480px;object-fit:cover;border-radius:16px" />` : ""}${description ? `<p>${escapeHtml(description)}</p>` : ""}${videoUrl ? `<video id="media-preview-player" controls playsinline preload="metadata" poster="${escapeHtml(image)}" style="display:block;width:100%;max-height:70vh;background:#000;border-radius:16px"><source src="${escapeHtml(videoUrl)}"></video>` : ""}${audioUrl ? `<audio id="media-preview-player" controls preload="none" src="${escapeHtml(audioUrl)}" style="width:100%"></audio>` : ""}<p id="media-preview-status" style="font-weight:bold;color:#0f766e">Preview limited to 10 seconds.</p><p><a href="celeone://media/${config.mediaType === "songs" ? "music" : "video"}/${encodeURIComponent(id)}" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Watch full content on CeleOne app</a></p></section><script>(function(){var m=document.getElementById('media-preview-player');var s=document.getElementById('media-preview-status');if(!m)return;m.addEventListener('timeupdate',function(){if(m.currentTime>=10){m.pause();m.currentTime=10;if(s)s.textContent='Preview ended. Watch full content on CeleOne app.';}});})();</script>` : "";
       const enhanced = injectMeta(html, meta, `${mediaPreview}${snapshot}${storeLinks}`);
