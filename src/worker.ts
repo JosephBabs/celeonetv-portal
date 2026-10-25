@@ -1056,7 +1056,7 @@ export default {
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
-    const postMatch = routePath.match(/^\/(posts|social|reels)\/([^/]+)\/?$/);
+    const postMatch = routePath.match(/^\/(post|posts|social|reels)\/([^/]+)\/?$/);
     if (postMatch) {
       const requestedId=decodeURIComponent(postMatch[2]);
       const kind=postMatch[1]==="reels"?"reels":"posts";
