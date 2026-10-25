@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { db } from "../lib/firebase";
 import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
@@ -68,8 +66,10 @@ export default function Landing() {
   useEffect(() => {
     const run = async () => {
       try {
-        const snap = await getDocs(query(collection(db, "channels"), orderBy("createdAt", "desc"), limit(6)));
-        setFeaturedChannels(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        const response = await fetch("https://api.celeonetv.com/api/v1/public/channels", { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("Channel API unavailable");
+        const payload = await response.json();
+        setFeaturedChannels((Array.isArray(payload?.data) ? payload.data : []).slice(0, 6));
       } catch (error) {
         console.error(error);
       }

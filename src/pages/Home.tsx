@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
-import { db } from "../lib/firebase";
 import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import HlsVideo from "../components/HlsVideo";
@@ -19,20 +17,19 @@ export default function Home() {
     const run = async () => {
       setLoading(true);
       try {
-        const chSnap = await getDocs(query(collection(db, "channels"), orderBy("createdAt", "desc"), limit(30)));
-        const chList = chSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const [channelResponse, postResponse] = await Promise.all([
+          fetch("https://api.celeonetv.com/api/v1/public/channels", { headers: { Accept: "application/json" } }),
+          fetch("https://api.celeonetv.com/api/v1/public/posts", { headers: { Accept: "application/json" } }),
+        ]);
+        if (!channelResponse.ok || !postResponse.ok) throw new Error("Content API unavailable");
+        const [channelPayload, postPayload] = await Promise.all([channelResponse.json(), postResponse.json()]);
+        const chList = Array.isArray(channelPayload?.data) ? channelPayload.data.slice(0, 30) : [];
         setChannels(chList);
 
-        const featuredSnap = await getDocs(query(collection(db, "channels"), where("featured", "==", true), limit(1)));
-        if (!featuredSnap.empty) setLiveChannel({ id: featuredSnap.docs[0].id, ...featuredSnap.docs[0].data() });
+        const featured = chList.find((channel: any) => channel.featured === true);
+        if (featured) setLiveChannel(featured);
         else if (chList.length > 0) setLiveChannel(chList[0]);
-        else {
-          const reqSnap = await getDocs(query(collection(db, "channel_requests"), where("status", "==", "approved"), orderBy("createdAt", "desc"), limit(1)));
-          if (!reqSnap.empty) setLiveChannel({ id: reqSnap.docs[0].id, ...reqSnap.docs[0].data() });
-        }
-
-        const pSnap = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(6)));
-        setPosts(pSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setPosts(Array.isArray(postPayload?.data) ? postPayload.data.slice(0, 6) : []);
       } catch (e) {
         console.error(e);
       } finally {

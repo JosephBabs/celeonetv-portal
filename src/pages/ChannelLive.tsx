@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import HlsVideo from "../components/HlsVideo";
 import { APP } from "../lib/config";
-import { db } from "../lib/firebase";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
@@ -40,20 +38,13 @@ export default function ChannelLive() {
       setLoadError(null);
       try {
         const routeKey = normalize(channelName);
-        const channelsSnap = await getDocs(query(collection(db, "channels"), limit(100)));
-        const channels = channelsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const response = await fetch("https://api.celeonetv.com/api/v1/public/channels", { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("Channel API unavailable");
+        const payload = await response.json();
+        const channels = Array.isArray(payload?.data) ? payload.data : [];
 
         const directMatch = channels.find((c: any) => [normalize(c.channelName), normalize(c.name), normalize(c.displayName), normalize(c.slug), normalize(c.id)].filter(Boolean).includes(routeKey));
         if (directMatch && hasStream(directMatch)) return setChannel(directMatch);
-
-        if (channelName) {
-          const q2 = query(collection(db, "channel_requests"), where("channelName", "==", channelName), where("status", "==", "approved"), limit(1));
-          const s2 = await getDocs(q2);
-          if (!s2.empty) {
-            const req = { id: s2.docs[0].id, ...s2.docs[0].data() };
-            if (hasStream(req)) return setChannel(req);
-          }
-        }
 
         const celeOne = channels.find((c: any) => {
           const label = `${c.displayName || ""} ${c.name || ""} ${c.channelName || ""}`.toLowerCase();

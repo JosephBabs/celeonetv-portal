@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { openShareInApp, type ShareContentType } from "../lib/deepLinks";
 import { db } from "../lib/firebase";
@@ -8,14 +8,19 @@ import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 import { getLocalizedText } from "../lib/spiritualProgram";
 
-const TYPE_CONFIG: Record<string, { type: ShareContentType; collection: string; label: string; routeTitle: string }> = {
+const API_BASE = (import.meta.env.VITE_LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.celeoneapp";
+const APP_STORE_URL = "https://apps.apple.com/search?term=Cele%20One";
+
+const TYPE_CONFIG: Record<string, { type: ShareContentType; collection: string; label: string; routeTitle: string; apiType?: string }> = {
   social: { type: "social", collection: "posts", label: "Social post", routeTitle: "CeleOne Social" },
   hymns: { type: "hymn", collection: "cantiques", label: "Hymn", routeTitle: "CeleOne Hymns" },
   themes: { type: "theme", collection: "weekly_themes", label: "Theme of the week", routeTitle: "CeleOne Theme of the Week" },
   "weekly-themes": { type: "weekly-theme", collection: "weekly_themes", label: "Theme of the week", routeTitle: "CeleOne Theme of the Week" },
   "weekly-programs": { type: "weekly-program", collection: "weeklyPrograms", label: "Weekly program", routeTitle: "CeleOne Weekly Program" },
-  videos: { type: "video", collection: "videos", label: "Video", routeTitle: "CeleOne Video" },
-  songs: { type: "song", collection: "songs", label: "Song", routeTitle: "CeleOne Song" },
+  videos: { type: "video", collection: "videos", apiType: "videos", label: "Video", routeTitle: "CeleOne Video" },
+  movies: { type: "video", collection: "videos", apiType: "videos", label: "Video", routeTitle: "CeleOne Video" },
+  songs: { type: "song", collection: "songs", apiType: "songs", label: "Song", routeTitle: "CeleOne Song" },
 };
 
 export default function ShareLanding() {
@@ -27,6 +32,7 @@ export default function ShareLanding() {
   const cfg = TYPE_CONFIG[shareType];
   const [loading, setLoading] = useState(true);
   const [item, setItem] = useState<any>(null);
+  const mediaPreviewRef = useRef<HTMLMediaElement | null>(null);
   const [themeDetails, setThemeDetails] = useState<{ eventDays: any[]; hymns: any[] }>({ eventDays: [], hymns: [] });
 
   const appParams = useMemo(
@@ -45,7 +51,10 @@ export default function ShareLanding() {
       }
       setLoading(true);
       try {
-        const snap = await getThemeAwareDoc(cfg.collection, contentId, cfg.type === "theme" || cfg.type === "weekly-theme");
+        const data = cfg.apiType
+          ? await fetchMedia(cfg.apiType, contentId)
+          : await getThemeAwareDoc(cfg.collection, contentId, cfg.type === "theme" || cfg.type === "weekly-theme");
+        const snap = cfg.apiType ? (data ? { id: contentId, data } : null) : data;
         const nextItem = snap ? { id: snap.id, ...snap.data } : null;
         setItem(nextItem);
         if (nextItem && (cfg.type === "theme" || cfg.type === "weekly-theme")) {
@@ -74,6 +83,19 @@ export default function ShareLanding() {
     });
   }, [cfg, item, lang, location.pathname, t]);
 
+  useEffect(() => {
+    const media = mediaPreviewRef.current;
+    if (!media || !cfg?.apiType) return;
+    const enforcePreviewLimit = () => {
+      if (media.currentTime >= 10) {
+        media.pause();
+        media.currentTime = 10;
+      }
+    };
+    media.addEventListener("timeupdate", enforcePreviewLimit);
+    return () => media.removeEventListener("timeupdate", enforcePreviewLimit);
+  }, [cfg, item]);
+
   if (!cfg) {
     return (
       <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-6">
@@ -88,6 +110,7 @@ export default function ShareLanding() {
   const title = shareTitle(item, lang) || cfg.routeTitle;
   const description = shareDescription(item, lang);
   const image = shareImage(item);
+  const mediaUrl = textValue(item?.videoUrl || item?.audioUrl || item?.link);
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -103,6 +126,12 @@ export default function ShareLanding() {
         >
           {t("share.open_app", "Open in app")}
         </button>
+        {cfg.apiType ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer" className="rounded-lg bg-slate-900 px-4 py-3 font-extrabold text-white">{t("share.google_play", "Download on Google Play")}</a>
+            <a href={APP_STORE_URL} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300 bg-white px-4 py-3 font-extrabold text-slate-900">{t("share.app_store", "Find us on the App Store")}</a>
+          </div>
+        ) : null}
       </div>
 
       <article className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
@@ -120,6 +149,9 @@ export default function ShareLanding() {
           <>
             <h2 className="text-2xl font-black text-slate-950">{title}</h2>
             {description ? <p className="mt-3 whitespace-pre-wrap text-slate-700">{description}</p> : null}
+            {cfg.apiType === "videos" && mediaUrl ? <video ref={mediaPreviewRef as React.RefObject<HTMLVideoElement>} className="mt-5 w-full rounded-2xl bg-black" controls playsInline poster={image || undefined} src={mediaUrl} /> : null}
+            {cfg.apiType === "songs" && mediaUrl ? <audio ref={mediaPreviewRef as React.RefObject<HTMLAudioElement>} className="mt-5 w-full" controls preload="none" src={mediaUrl} /> : null}
+            {cfg.apiType && item ? <button onClick={() => openShareInApp(cfg.type, contentId, appParams)} className="mt-4 rounded-lg bg-teal-700 px-4 py-3 font-extrabold text-white">{t("share.watch_full", "Watch full content on CeleOne app")}</button> : null}
             <PreviewDetails item={item} t={t} />
           </>
         )}
@@ -134,6 +166,13 @@ async function getThemeAwareDoc(collectionName: string, id: string, isTheme: boo
   if (!isTheme || collectionName === "weeklyThemes") return null;
   const legacySnap = await getDoc(doc(db, "weeklyThemes", id));
   return legacySnap.exists() ? { id: legacySnap.id, data: legacySnap.data() } : null;
+}
+
+async function fetchMedia(type: string, id: string) {
+  const response = await fetch(`${API_BASE}/public/media/${type}/${encodeURIComponent(id)}`, { headers: { Accept: "application/json" } });
+  if (!response.ok) return null;
+  const payload = await response.json();
+  return payload?.data && typeof payload.data === "object" ? payload.data : null;
 }
 
 async function loadThemeDetails(weekId: string) {

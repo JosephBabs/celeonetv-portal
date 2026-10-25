@@ -43,6 +43,7 @@ const publicRoutes = [
   { path: "/weekly-themes/:contentId", element: <ShareLanding /> },
   { path: "/weekly-programs/:contentId", element: <ShareLanding /> },
   { path: "/videos/:contentId", element: <ShareLanding /> },
+  { path: "/movies/:contentId", element: <ShareLanding /> },
   { path: "/songs/:contentId", element: <ShareLanding /> },
   { path: "/:channelName/live", element: <ChannelLive /> },
   { path: "/creator/request", element: <CreatorRequest /> },

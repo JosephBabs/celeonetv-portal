@@ -1,5 +1,6 @@
 const APP_PACKAGE = "com.celeoneapp";
 const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${APP_PACKAGE}`;
+const APP_STORE_URL = "https://apps.apple.com/search?term=Cele%20One";
 
 export type ShareContentType =
   | "post"
@@ -86,6 +87,6 @@ export function openShareInApp(type: ShareContentType, id = "", params: Record<s
   const startedAt = Date.now();
   window.location.href = appSchemeUrl;
   window.setTimeout(() => {
-    if (Date.now() - startedAt < 1800) window.location.href = PLAY_STORE_URL;
+    if (Date.now() - startedAt < 1800) window.location.href = /iphone|ipad|ipod/i.test(navigator.userAgent) ? APP_STORE_URL : PLAY_STORE_URL;
   }, 1200);
 }

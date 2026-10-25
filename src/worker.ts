@@ -243,6 +243,7 @@ type DynamicShareRoute = {
   collection: string;
   fallbackTitle: string;
   fallbackDescription: string;
+  mediaType?: "videos" | "songs";
 };
 
 const DYNAMIC_SHARE_ROUTES: DynamicShareRoute[] = [
@@ -283,16 +284,18 @@ const DYNAMIC_SHARE_ROUTES: DynamicShareRoute[] = [
     fallbackDescription: "Preview a Cele One weekly spiritual program.",
   },
   {
-    pattern: /^\/videos\/([^/]+)\/?$/,
+    pattern: /^\/(?:videos|movies)\/([^/]+)\/?$/,
     collection: "videos",
     fallbackTitle: "Cele One Video | Celeone TV",
     fallbackDescription: "Preview a Cele One video and open it in the mobile app.",
+    mediaType: "videos",
   },
   {
     pattern: /^\/songs\/([^/]+)\/?$/,
     collection: "songs",
     fallbackTitle: "Cele One Song | Celeone TV",
     fallbackDescription: "Preview a Cele One song or audio resource.",
+    mediaType: "songs",
   },
 ];
 
@@ -872,6 +875,13 @@ async function publicPostResponse(id: string, env: Env, kind = "posts"): Promise
  return fetchWithTimeout(`${base}/public/${kind}/${encodeURIComponent(id)}`,5000,{headers:{Accept:"application/json"}});
 }
 
+async function publicMediaResponse(id: string, type: "videos" | "songs", env: Env): Promise<Response> {
+  const base = (env.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+  return fetchWithTimeout(`${base}/public/media/${type}/${encodeURIComponent(id)}`, 5000, {
+    headers: { accept: "application/json" },
+  });
+}
+
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const url = new URL(request.url);
@@ -899,6 +909,17 @@ export default {
         if(!upstream.ok)return Response.json({message:upstream.status===404?"Post not found":"Post temporarily unavailable"},{status:upstream.status===404?404:503});
         const payload=await upstream.json();return Response.json(payload,{headers:{"Cache-Control":"public, max-age=30"}});
       } catch {return Response.json({message:"Post temporarily unavailable"},{status:503});}
+    }
+
+    const publicMediaApi = routePath.match(/^\/api\/public\/media\/(videos|songs)\/([^/]+)\/?$/);
+    if (publicMediaApi && request.method === "GET") {
+      try {
+        const upstream = await publicMediaResponse(decodeURIComponent(publicMediaApi[2]), publicMediaApi[1] as "videos" | "songs", env);
+        if (!upstream.ok) return Response.json({ message: upstream.status === 404 ? "Media not found" : "Media temporarily unavailable" }, { status: upstream.status === 404 ? 404 : 503 });
+        return Response.json(await upstream.json(), { headers: { "Cache-Control": "public, max-age=30" } });
+      } catch {
+        return Response.json({ message: "Media temporarily unavailable" }, { status: 503 });
+      }
     }
 
     const method = request.method.toUpperCase();
@@ -1071,9 +1092,15 @@ export default {
       let image = DEFAULT_IMAGE;
       let hasItemTitle = false;
       let hasItemDescription = false;
+      let item: Record<string, any> | null = null;
 
       try {
-        const item = await fetchPublicFirestoreDoc(env, config.collection, id);
+        if (config.mediaType) {
+          const response = await publicMediaResponse(id, config.mediaType, env);
+          if (response.ok) item = ((await response.json()) as { data?: Record<string, any> }).data || null;
+        } else {
+          item = await fetchPublicFirestoreDoc(env, config.collection, id);
+        }
         if (item) {
           const resolvedTitle = pickLocalizedText(item, [
             "shareTitle", "titleTranslations", "bibleThemeTranslations", "title", "name", "theme", "bibleTheme", "hymnTitle", "caption",
@@ -1097,17 +1124,24 @@ export default {
           if (resolvedImage) image = makeCompressedShareImage(resolvedImage);
         }
       } catch {
-        // Keep route defaults if Firestore is temporarily unavailable.
+        // Keep route defaults if the content API is temporarily unavailable.
       }
 
       const localized = localizedMeta(routePath, locale, title, description);
       if (!hasItemTitle) title = localized.title;
       if (!hasItemDescription) description = localized.description;
-      const pageUrl = localizedShareUrl(routePath, locale);
       const html = await baseRes.text();
-      const meta = buildMeta({ title, description, image, pageUrl, canonicalUrl: `${SITE_URL}${routePath}`, type: "article", locale });
-      const snapshot = buildSeoSnapshot({ title, description, image, pageUrl });
-      return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
+      const media = Boolean(config.mediaType);
+      const storeLinks = media ? `<section style="max-width:900px;margin:16px auto;padding:0 24px;font-family:Arial,sans-serif"><p><a href="https://play.google.com/store/apps/details?id=com.celeoneapp" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold;margin-right:8px">Download on Google Play</a><a href="https://apps.apple.com/search?term=Cele%20One" style="display:inline-block;background:#0f172a;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Find us on the App Store</a></p></section>` : "";
+      const canonicalPath = config.mediaType === "videos" ? `/videos/${encodeURIComponent(id)}` : routePath;
+      const canonicalUrl = config.mediaType ? localizedShareUrl(canonicalPath, locale) : `${SITE_URL}${routePath}`;
+      const videoUrl = config.mediaType === "videos" && item ? pickText(item, ["videoUrl", "link", "url"]) : undefined;
+      const audioUrl = config.mediaType === "songs" && item ? pickText(item, ["audioUrl", "link", "url"]) : undefined;
+      const meta = buildMeta({ title, description, image, pageUrl: canonicalUrl, canonicalUrl, type: videoUrl ? "video.other" : "article", video: videoUrl || undefined, locale, robots: item ? undefined : "noindex,nofollow" });
+      const snapshot = buildSeoSnapshot({ title, description, image, pageUrl: canonicalUrl });
+      const mediaPreview = media && item ? `<section style="max-width:900px;margin:18px auto;padding:0 24px;font-family:Arial,sans-serif;color:#0f172a"><h1>${escapeHtml(title)}</h1>${image !== DEFAULT_IMAGE ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" style="width:100%;max-height:480px;object-fit:cover;border-radius:16px" />` : ""}${description ? `<p>${escapeHtml(description)}</p>` : ""}${videoUrl ? `<video id="media-preview-player" controls playsinline preload="metadata" poster="${escapeHtml(image)}" style="display:block;width:100%;max-height:70vh;background:#000;border-radius:16px"><source src="${escapeHtml(videoUrl)}"></video>` : ""}${audioUrl ? `<audio id="media-preview-player" controls preload="none" src="${escapeHtml(audioUrl)}" style="width:100%"></audio>` : ""}<p id="media-preview-status" style="font-weight:bold;color:#0f766e">Preview limited to 10 seconds.</p><p><a href="celeone://media/${config.mediaType === "songs" ? "music" : "video"}/${encodeURIComponent(id)}" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Watch full content on CeleOne app</a></p></section><script>(function(){var m=document.getElementById('media-preview-player');var s=document.getElementById('media-preview-status');if(!m)return;m.addEventListener('timeupdate',function(){if(m.currentTime>=10){m.pause();m.currentTime=10;if(s)s.textContent='Preview ended. Watch full content on CeleOne app.';}});})();</script>` : "";
+      const enhanced = injectMeta(html, meta, `${mediaPreview}${snapshot}${storeLinks}`);
+      return new Response(enhanced, { status: item ? 200 : 404, headers: { "content-type": "text/html; charset=UTF-8", "cache-control": item ? "public, max-age=30" : "no-store", "x-robots-tag": item ? "index, follow" : "noindex, nofollow" } });
     }
 
     const known = ROUTE_META.find(([re]) => re.test(routePath));
