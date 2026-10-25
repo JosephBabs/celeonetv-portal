@@ -1108,8 +1108,9 @@ export default {
           ], locale);
           const resolvedDescription = pickLocalizedText(item, [
             "shareDescription", "descriptionTranslations", "description", "summary", "content", "hymnContent", "bibleLesson",
-            "bibleReadingText", "notes", "artist", "authorName", "creatorName", "channelName",
+            "bibleReadingText", "notes",
           ], locale);
+          const resolvedCreator = pickLocalizedText(item, ["artist", "authorName", "creatorName", "publisherName", "channelName"], locale);
           const resolvedImage = pickLocalizedText(item, [
             "shareImage", "shareImageUrl", "image", "imageUrl", "coverUrl", "coverImageUrl", "thumbnail", "thumbnailUrl",
             "posterUrl", "poster", "artworkUrl", "albumArt", "banner", "bannerUrl",
@@ -1120,6 +1121,9 @@ export default {
           }
           if (resolvedDescription) {
             description = stripHtmlText(resolvedDescription).slice(0, 320);
+            hasItemDescription = true;
+          } else if (config.mediaType && resolvedCreator) {
+            description = `${config.mediaType === "songs" ? "Song" : "Video"} by ${stripHtmlText(resolvedCreator)}`.slice(0, 320);
             hasItemDescription = true;
           }
           if (resolvedImage) image = makeCompressedShareImage(resolvedImage);
