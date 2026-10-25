@@ -20,6 +20,7 @@ export async function onRequestGet({ request, env }: Context) {
       },
     });
   } catch (error) {
-    return new Response(errorMessage(error), { status: 500 });
+    const message = errorMessage(error);
+    return new Response(message, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : 500 });
   }
 }

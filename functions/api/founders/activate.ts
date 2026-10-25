@@ -4,7 +4,7 @@ import { approveFounderApplicationTrusted } from "../../_lib/founder-credentials
 import { createDocument, getDocument, queryEquals, updateDocument } from "../../_lib/firebase-admin";
 import { extractFounderReferenceId } from "../../_lib/founder-reference";
 import { founderLevel, paymentDocumentId } from "../../_lib/founder-payments";
-import { requireFirebaseUser } from "../../_lib/firebase-admin";
+import { requirePortalUser } from "../../_lib/firebase-admin";
 import { errorMessage, json } from "../../_lib/http";
 import type { PortalEnv } from "../../_lib/types";
 
@@ -52,7 +52,7 @@ export async function onRequestPost({ request, env }: Context) {
     const clientError = requireFounderClient(request, env);
     if (clientError) return clientError;
 
-    const user = await requireFirebaseUser(request, env);
+    const user = await requirePortalUser(request, env);
     const body = await request.json().catch(() => null) as { founderReferenceId?: string; receiptReference?: string } | null;
     const manualFounderReferenceId = String(body?.founderReferenceId || "").trim().toUpperCase();
     const receiptReference = String(body?.receiptReference || "").trim();

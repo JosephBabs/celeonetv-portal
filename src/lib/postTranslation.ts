@@ -53,9 +53,15 @@ export async function translateText(text: string, target: string, signal: AbortS
  if(signal.aborted)throw new DOMException('Aborted','AbortError');
  const key=`${target}:${text}`;
  if(translations.has(key))return translations.get(key)!;
+ const protectedBrands = new Map<string, string>();
+ const source = text.replace(/c[eè]l[eè]\s+one(?:\s+tv)?|ce[l]?eone(?:\s+tv)?/gi, (brand) => {
+  const token = `CELEONEBRANDTOKEN${protectedBrands.size}ZXQ`;
+  protectedBrands.set(token, brand);
+  return token;
+ });
  const chunks:string[]=[];
  // Preserve authored line breaks and keep encoded Google query URLs small.
- for(const line of text.split(/(\r?\n)/)) {
+ for(const line of source.split(/(\r?\n)/)) {
   let chunk='';let bytes=0;
   for(const char of line){const size=encodeURIComponent(char).length;if(bytes+size>4500){chunks.push(chunk);chunk='';bytes=0;}chunk+=char;bytes+=size;}
   if(chunk)chunks.push(chunk);
@@ -79,7 +85,8 @@ export async function translateText(text: string, target: string, signal: AbortS
   }
   output.push(translated);
  }
- const value=output.join('');
+ let value=output.join('');
+ for (const [token, brand] of protectedBrands) value=value.replace(new RegExp(token, 'gi'), brand);
  if(translations.size>=100)translations.delete(translations.keys().next().value!);
  translations.set(key,value);
  return value;

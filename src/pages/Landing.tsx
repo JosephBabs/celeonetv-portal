@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
+import BrandSafeText from "../components/BrandSafeText";
 import { setPageMeta } from "../lib/seo";
 
 const searchTopicCards = [
@@ -110,19 +111,19 @@ export default function Landing() {
           <div className="relative z-10 max-w-2xl">
             <div className="text-sm font-bold tracking-[0.18em] text-[#0f8c68]">{t("landing.badge", "CELE ONE ECC PLATFORM")}</div>
             <h1 className="mt-5 text-[42px] font-bold leading-[1.02] text-[#081828] md:text-[40px]">
-              {t("landing.title", "Cele One connects the Celestial Church of Christ community.")}
+              <BrandSafeText text={t("landing.title", "Cele One connects the Celestial Church of Christ community.")} />
             </h1>
             <p className="mt-5 max-w-xl text-base font-medium leading-8 text-slate-600">
-              {t(
+              <BrandSafeText text={t(
                 "landing.p1",
                 "Cele One, also known as Celeone TV, launches on 13 September 2026, bringing ECC news, live Christian media, parish tools, documents, hymns, and weekly spiritual programs into one community portal.",
-              )}
+              )} />
             </p>
             <p className="mt-3 max-w-xl text-base font-medium leading-8 text-slate-600">
-              {t(
+              <BrandSafeText text={t(
                 "landing.p2",
                 "The platform helps members discover Celestial Church of Christ resources, follow themes of the week, share useful content, and open the Cele One mobile app from public links.",
-              )}
+              )} />
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">

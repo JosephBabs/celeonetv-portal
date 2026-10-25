@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { Link } from "react-router-dom";
-import { auth, db } from "../lib/firebase";
+import { db } from "../lib/firebase";
+import { loginWithLaravel, registerWithLaravel, updateLaravelProfile } from "../lib/laravelAuth";
 import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
@@ -39,33 +39,6 @@ const initialForm: FormState = {
 
 const strongPassword = (value: string) => /^(?=.*[A-Z])(?=.*\d).{6,}$/.test(value);
 
-function registrationErrorMessage(code: string, fallback: string) {
-  switch (code) {
-    case "auth/email-already-in-use":
-      return "An account already exists with this email address. Try logging in instead.";
-    case "auth/invalid-credential":
-    case "auth/wrong-password":
-      return "This email is already registered. Use the correct password to log in, or reset your password.";
-    case "auth/invalid-email":
-      return "Please enter a valid email address.";
-    case "auth/weak-password":
-      return "Your password is too weak. Use at least 6 characters, one uppercase letter, and one number.";
-    case "auth/network-request-failed":
-      return "Network error while creating the account. Please check your connection and try again.";
-    case "permission-denied":
-      return "Registration is temporarily blocked by Firebase rules. Please try again now.";
-    case "unavailable":
-    case "deadline-exceeded":
-      return "Firebase is temporarily unavailable. Please try again in a moment.";
-    default:
-      return fallback;
-  }
-}
-
-function firebaseErrorCode(caught: any) {
-  return String(caught?.code || "");
-}
-
 export default function PrelaunchRegistration() {
   const { t, lang } = useI18n();
   const [intent, setIntent] = useState<Intent>("reserve");
@@ -100,77 +73,6 @@ export default function PrelaunchRegistration() {
 
   const setField = (key: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const reserveProfilePayload = (uid: string, email: string, donationAmount: number | null) => ({
-    uid,
-    email,
-    firstName: form.firstName.trim(),
-    lastName: form.lastName.trim(),
-    displayName,
-    parish: form.parish.trim(),
-    phone: form.phone.trim(),
-    country: form.country.trim(),
-    photoURL: "",
-    profileImage: "",
-    provider: "password",
-    role: "user",
-    approved: false,
-    isApproved: false,
-    restricted: false,
-    prayerRobePhotoNote: true,
-    prelaunchRegistration: true,
-    prelaunchIntent: "reserve" as const,
-    donationInterest: false,
-    donationAmount,
-    donationCurrency: form.currency.trim().toUpperCase() || "USD",
-    preferredLanguage: lang,
-    source: "celeonetv_portal_prelaunch",
-    updatedAt: serverTimestamp(),
-    createdAt: serverTimestamp(),
-  });
-
-  const persistReserveAccount = async (uid: string, email: string, donationAmount: number | null) => {
-    const baseProfile = reserveProfilePayload(uid, email, donationAmount);
-
-    await Promise.all([
-      setDoc(doc(db, "user_data", uid), baseProfile, { merge: true }),
-      setDoc(
-        doc(db, "users", uid),
-        {
-          firstName: baseProfile.firstName,
-          lastName: baseProfile.lastName,
-          parish: baseProfile.parish,
-          phone: baseProfile.phone,
-          email: baseProfile.email,
-          country: baseProfile.country,
-          isApproved: false,
-          role: "user",
-          prelaunchRegistration: true,
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp(),
-        },
-        { merge: true },
-      ),
-      setDoc(
-        doc(db, "portal_pre_registrations", uid),
-        {
-          ...baseProfile,
-          intent: "reserve",
-          message: form.message.trim(),
-          status: "reserved",
-        },
-        { merge: true },
-      ),
-    ]);
-  };
-
-  const existingAccountMessage = async (uid: string) => {
-    const [userDataSnap, userSnap] = await Promise.all([getDoc(doc(db, "user_data", uid)), getDoc(doc(db, "users", uid))]);
-    if (userDataSnap.exists() || userSnap.exists()) {
-      return "This email had already been registered earlier. We found the CeleOne account and refreshed the preregistration details.";
-    }
-    return "This email is already registered in Firebase Auth. Please log in to continue.";
   };
 
   const submit = async (event: { preventDefault: () => void }) => {
@@ -227,73 +129,40 @@ export default function PrelaunchRegistration() {
         return;
       }
 
-      const credential = await createUserWithEmailAndPassword(auth, email, form.password);
-      const uid = credential.user.uid;
-      await updateProfile(credential.user, { displayName });
-      await persistReserveAccount(uid, email, donationAmount);
-      try {
-        await sendEmailVerification(credential.user);
-      } catch (vérificationError) {
-        console.warn("Unable to send vérification email after preregistration", vérificationError);
-      }
-
+      await registerWithLaravel({ name: displayName, email, password: form.password });
+      await updateLaravelProfile({
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        displayName,
+        parish: form.parish.trim() || null,
+        phone: form.phone.trim() || null,
+      }).catch((profileError) => console.warn("Account created; optional profile fields were not saved.", profileError));
       setCreated(true);
-      setSuccessMessage("Your prelaunch account has been created. Please check your email and verify your account.");
+      setSuccessMessage("Your prelaunch account has been created through Cele One.");
       setForm(initialForm);
     } catch (caught: any) {
       console.error(caught);
-      const code = firebaseErrorCode(caught);
-
-      if (!donationMode && code === "auth/email-already-in-use") {
+      if (!donationMode && /already|unique|registered/i.test(String(caught?.message || ""))) {
         try {
-          const email = form.email.trim().toLowerCase();
-          const recoveredCredential = await signInWithEmailAndPassword(auth, email, form.password);
-          await updateProfile(recoveredCredential.user, { displayName });
-          await persistReserveAccount(recoveredCredential.user.uid, email, null);
-
-          if (!recoveredCredential.user.emailVerified) {
-            try {
-              await sendEmailVerification(recoveredCredential.user);
-            } catch (vérificationError) {
-              console.warn("Unable to resend vérification email for existing preregistration", vérificationError);
-            }
-          }
-
+          await loginWithLaravel(form.email.trim().toLowerCase(), form.password);
+          await updateLaravelProfile({
+            firstName: form.firstName.trim(),
+            lastName: form.lastName.trim(),
+            displayName,
+            parish: form.parish.trim() || null,
+            phone: form.phone.trim() || null,
+          }).catch(() => null);
           setCreated(true);
-          setSuccessMessage(
-            recoveredCredential.user.emailVerified
-              ? await existingAccountMessage(recoveredCredential.user.uid)
-              : "This account had already been registered. We found it in CeleOne and sent a verification email again.",
-          );
+          setSuccessMessage("You are signed in to the existing Cele One account.");
           setForm(initialForm);
           return;
-        } catch (recoveryError: any) {
-          console.error("Unable to recover existing preregistration", recoveryError);
-          setError(registrationErrorMessage(firebaseErrorCode(recoveryError) || code, "This email is already registered. Please log in or reset your password."));
+        } catch (recoveryError) {
+          console.error("Unable to sign in to the existing account", recoveryError);
+          setError("An account already uses this email. Please log in with that account or reset its password.");
           return;
         }
       }
-
-      if (!donationMode && auth.currentUser?.email?.toLowerCase() === form.email.trim().toLowerCase()) {
-        try {
-          await persistReserveAccount(auth.currentUser.uid, auth.currentUser.email || form.email.trim().toLowerCase(), null);
-          if (!auth.currentUser.emailVerified) {
-            try {
-              await sendEmailVerification(auth.currentUser);
-            } catch (vérificationError) {
-              console.warn("Unable to resend vérification email after partial success", vérificationError);
-            }
-          }
-          setCreated(true);
-          setSuccessMessage("Your account was already created in Firebase. We completed the preregistration details successfully.");
-          setForm(initialForm);
-          return;
-        } catch (repairError) {
-          console.error("Unable to repair preregistration after partial Firebase success", repairError);
-        }
-      }
-
-      setError(registrationErrorMessage(code, t("prelaunch.failed", "Unable to create your prelaunch account.")));
+      setError(caught instanceof Error ? caught.message : t("prelaunch.failed", "Unable to create your prelaunch account."));
     } finally {
       setSaving(false);
     }

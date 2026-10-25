@@ -2,7 +2,7 @@ import { bearerToken } from "./http";
 import type { PortalEnv } from "./types";
 
 type FirestoreValue = Record<string, unknown>;
-type FirebaseUser = { uid: string; email: string };
+type PortalIdentity = { uid: string; email: string; role?: string; isAdmin?: boolean };
 let cachedAccessToken: { value: string; expiresAt: number } | null = null;
 
 function base64Url(value: string | ArrayBuffer) {
@@ -162,24 +162,30 @@ export async function listDocuments(env: PortalEnv, collection: string, pageSize
   };
 }
 
-export async function requireFirebaseUser(request: Request, env: PortalEnv): Promise<FirebaseUser> {
-  const idToken = bearerToken(request);
-  if (!idToken || !env.FIREBASE_WEB_API_KEY) throw new Error("UNAUTHORIZED");
-  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(env.FIREBASE_WEB_API_KEY)}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ idToken }),
+export async function requirePortalUser(request: Request, env: PortalEnv): Promise<PortalIdentity> {
+  const token = bearerToken(request);
+  if (!token) throw new Error("UNAUTHORIZED");
+  const base = (env.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+  const response = await fetch(`${base}/auth/me`, {
+    headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
   });
-  const body = await response.json() as { users?: Array<{ localId?: string; email?: string }> };
-  const user = body.users?.[0];
-  if (!response.ok || !user?.localId) throw new Error("UNAUTHORIZED");
-  return { uid: user.localId, email: String(user.email || "").trim().toLowerCase() };
+  const body = await response.json().catch(() => ({})) as {
+    data?: { user?: Record<string, unknown>; user_data?: Record<string, unknown> | null };
+  };
+  const user = body.data?.user;
+  if (!response.ok || !user?.id) throw new Error("UNAUTHORIZED");
+  const profile = body.data?.user_data || {};
+  const role = String(profile.role || user.role || "");
+  return {
+    uid: String(user.firebase_uid || user.firebaseUid || user.id),
+    email: String(user.email || "").trim().toLowerCase(),
+    role,
+    isAdmin: Boolean(profile.isAdmin || user.isAdmin) || ["admin", "super_admin"].includes(role.toLowerCase()),
+  };
 }
 
 export async function requireAdmin(request: Request, env: PortalEnv) {
-  const user = await requireFirebaseUser(request, env);
-  const profile = await getDocument(env, `user_data/${user.uid}`) as { role?: string; isAdmin?: boolean } | null;
-  const role = String(profile?.role || "").toLowerCase();
-  if (!profile?.isAdmin && role !== "admin" && role !== "super_admin") throw new Error("FORBIDDEN");
+  const user = await requirePortalUser(request, env);
+  if (!user.isAdmin && !["admin", "super_admin"].includes(String(user.role || "").toLowerCase())) throw new Error("FORBIDDEN");
   return user;
 }

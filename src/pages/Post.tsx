@@ -9,6 +9,7 @@ import { bootstrapPost, postImages, postVideo, postText, safePostHtml, type Publ
 export default function Post() {
  const params=useParams();const postId=params.postId || params.contentId || params.reelId || '';const kind=params.reelId?'reels':'posts';
  const { t }=useI18n();
+ const apiBase=(import.meta.env.VITE_LARAVEL_API_URL || 'https://api.celeonetv.com/api/v1').replace(/\/$/, '');
  const [post,setPost]=useState<PublicPost|null>(()=>bootstrapPost(postId,kind));
  const [loading,setLoading]=useState(()=>!bootstrapPost(postId,kind));
  const [error,setError]=useState('');const [retry,setRetry]=useState(0);
@@ -17,12 +18,14 @@ export default function Post() {
   const embedded=bootstrapPost(postId,kind);setPost(embedded);setError('');setLoading(!embedded);
   if(embedded)return;
   const controller=new AbortController();
-  void fetch(`/api/public/${kind}/${encodeURIComponent(postId)}`,{signal:controller.signal}).then(async response=>{
+  void fetch(`${apiBase}/public/posts/${encodeURIComponent(postId)}`,{headers:{Accept:'application/json'},signal:controller.signal}).then(async response=>{
    if(!response.ok)throw new Error(response.status===404?'not_found':'unavailable');
-   const json=await response.json();setPost(json.data);
+   const json=await response.json();const result=json?.data?.post || json?.data || json?.post || null;
+   if(!result || typeof result!=='object')throw new Error('unavailable');
+   setPost({...result,id:String(result.id || postId)});
   }).catch(e=>{if(e.name!=='AbortError')setError(e.message);}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});
   return ()=>controller.abort();
- },[postId,kind,retry]);
+ },[apiBase,postId,kind,retry]);
  const [translated,setTranslated]=useState<{title:string;html:string}|null>(null);
  const [showOriginal,setShowOriginal]=useState(false);
  const [translating,setTranslating]=useState(false);

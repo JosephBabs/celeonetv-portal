@@ -1,4 +1,4 @@
-import { getDocument, queryEquals, requireFirebaseUser } from "../../_lib/firebase-admin";
+import { getDocument, queryEquals, requirePortalUser } from "../../_lib/firebase-admin";
 import { founderCredentialBundle, regenerateCredentials } from "../../_lib/founder-credentials";
 import { errorMessage, json } from "../../_lib/http";
 import type { PortalEnv } from "../../_lib/types";
@@ -12,7 +12,7 @@ async function currentFounder(env: PortalEnv, userId: string) {
 
 export async function onRequestGet({ request, env }: Context) {
   try {
-    const user = await requireFirebaseUser(request, env);
+    const user = await requirePortalUser(request, env);
     const founder = await currentFounder(env, user.uid);
     const applications = await queryEquals(env, "founderApplications", "userId", user.uid, 1);
     if (!founder) return json({ ok: true, founder: null, application: applications[0] || null, history: [] });
@@ -26,7 +26,7 @@ export async function onRequestGet({ request, env }: Context) {
 
 export async function onRequestPost({ request, env }: Context) {
   try {
-    const user = await requireFirebaseUser(request, env);
+    const user = await requirePortalUser(request, env);
     const founder = await currentFounder(env, user.uid);
     if (!founder) return json({ ok: false, error: "FOUNDER_NOT_FOUND" }, { status: 404 });
     const body = await request.json().catch(() => ({})) as { action?: string };
@@ -36,6 +36,7 @@ export async function onRequestPost({ request, env }: Context) {
     const updated = await getDocument(env, `founders/${founder.id}`);
     return json({ ok: true, founder: updated });
   } catch (error) {
-    return json({ ok: false, error: errorMessage(error) }, { status: 500 });
+    const message = errorMessage(error);
+    return json({ ok: false, error: message }, { status: message === "UNAUTHORIZED" ? 401 : 500 });
   }
 }

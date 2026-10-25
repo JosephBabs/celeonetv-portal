@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../lib/firebase";
+import { registerWithLaravel } from "../lib/laravelAuth";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
@@ -10,6 +9,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,11 +23,11 @@ export default function Register() {
     e.preventDefault();
     setSaving(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await registerWithLaravel({ name: email.trim().split("@")[0], email, password });
       navigate("/");
     } catch (error) {
       console.error(error);
-      alert(t("register.failed", "Unable to create account."));
+      setErrorMessage(error instanceof Error ? error.message : t("register.failed", "Unable to create account."));
     } finally {
       setSaving(false);
     }
@@ -56,9 +56,10 @@ export default function Register() {
           <p className="mt-2 text-sm font-medium text-slate-500">Prepare your account for launch, streaming, founders and community access.</p>
         </div>
         <div className="mt-6 space-y-4">
-          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" placeholder={t("register.email", "Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" type="password" placeholder={t("register.password", "Password")} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" type="email" autoComplete="email" required placeholder={t("register.email", "Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" type="password" autoComplete="new-password" minLength={6} required placeholder={t("register.password", "Password")} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
+        {errorMessage ? <p role="alert" className="mt-4 text-sm font-semibold text-rose-700">{errorMessage}</p> : null}
         <button disabled={saving} className="mt-6 inline-flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(46,208,110,0.22)] disabled:opacity-60">
           {saving ? t("register.loading", "Creating...") : t("register.signup", "Sign Up")}
         </button>

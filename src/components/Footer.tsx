@@ -1,6 +1,7 @@
 ﻿import { Link } from "react-router-dom";
 import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
+import BrandSafeText from "./BrandSafeText";
 
 export default function Footer() {
   const { t } = useI18n();
@@ -15,12 +16,12 @@ export default function Footer() {
                 <img src={APP.brand.logoWordmark} alt={APP.brand.name} className="h-10 w-auto object-contain" />
               </div>
               <div>
-                <div className="text-lg font-black">{APP.brand.name}</div>
+                <div className="text-lg font-black" translate="no">{APP.brand.name}</div>
                 <div className="text-sm font-semibold text-white/62">{t("footer.tagline", "Live streaming platform")}</div>
               </div>
             </div>
             <p className="mt-5 max-w-md text-sm font-semibold leading-7 text-white/72">
-              Portail officiel Cele One pour la diffusion, les programmes spirituels, la preinscription, la documentation et l&apos;experience Founder&apos;s Pass.
+              <BrandSafeText text="Portail officiel Cele One pour la diffusion, les programmes spirituels, la preinscription, la documentation et l'experience Founder's Pass." />
             </p>
           </div>
 

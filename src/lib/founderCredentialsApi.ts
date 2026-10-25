@@ -1,5 +1,5 @@
 import { founderApi } from "./founderApi";
-import { auth } from "./firebase";
+import { getPortalToken } from "./laravelAuth";
 
 export type FounderCredentialResponse = {
   ok: boolean;
@@ -9,11 +9,11 @@ export type FounderCredentialResponse = {
 };
 
 async function authorizedBlob(url: string) {
-  const token = await auth.currentUser?.getIdToken();
+  const token = getPortalToken();
   if (!token) throw new Error("AUTH_REQUIRED");
   const response = await fetch(url, {
     headers: {
-      authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
   if (!response.ok) throw new Error("ASSET_FETCH_FAILED");

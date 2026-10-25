@@ -16,7 +16,8 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { uploadToCeleoneCdn } from "../lib/cdnUpload";
-import { auth, db } from "../lib/firebase";
+import { db } from "../lib/firebase";
+import { useAuthUser } from "../lib/useAuthUser";
 import { setPageMeta } from "../lib/seo";
 
 type SectionKey = "functions" | "cantiques" | "posts" | "documents" | "channel-requests" | "chatrooms" | "parish-registrations";
@@ -98,6 +99,7 @@ function isValidSection(v: string | undefined): v is SectionKey {
 export default function AdminManagePage() {
   const { section } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuthUser();
   const cfg = isValidSection(section) ? SECTION_CONFIG[section] : null;
 
   const [items, setItems] = useState<any[]>([]);
@@ -294,7 +296,7 @@ export default function AdminManagePage() {
         createdAt: existingParish.exists() ? existingParish.data().createdAt || draft.createdAt || serverTimestamp() : draft.createdAt || serverTimestamp(),
         updatedAt: serverTimestamp(),
         approvedAt: serverTimestamp(),
-        approvedBy: auth.currentUser?.uid || "",
+        approvedBy: user?.uid || "",
         creationDate: "",
         startDate: "",
         endDate: "",
@@ -306,7 +308,7 @@ export default function AdminManagePage() {
       status: "approved",
       approvedParishId: parishId,
       approvedAt: serverTimestamp(),
-      approvedBy: auth.currentUser?.uid || "",
+      approvedBy: user?.uid || "",
       updatedAt: serverTimestamp(),
     });
 
@@ -362,7 +364,7 @@ export default function AdminManagePage() {
     await updateDoc(doc(db, "parish_registration_requests", selected.id), {
       status: "rejected",
       rejectedAt: serverTimestamp(),
-      rejectedBy: auth.currentUser?.uid || "",
+      rejectedBy: user?.uid || "",
       updatedAt: serverTimestamp(),
     });
     await load();

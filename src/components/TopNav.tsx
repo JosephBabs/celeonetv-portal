@@ -1,7 +1,6 @@
-import { signOut } from "firebase/auth";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { auth } from "../lib/firebase";
+import { logoutFromLaravel } from "../lib/laravelAuth";
 import { APP } from "../lib/config";
 import { useI18n } from "../lib/i18n";
 import { useAuthUser } from "../lib/useAuthUser";
@@ -22,7 +21,8 @@ export default function TopNav() {
           <Link to="/" className="flex shrink-0 items-center gap-3" onClick={closeMobile}>
             <img
               src={APP.brand.logoWordmark}
-              alt="Celeone"
+              alt="Cele One"
+              translate="no"
               className="h-11 w-auto max-w-[170px] object-contain"
             />
           </Link>
@@ -117,7 +117,7 @@ function DesktopActions({ user, isAdmin, t }: { user: unknown; isAdmin: boolean;
           {t("nav.admin", "Admin")}
         </Link>
       ) : null}
-      <button onClick={() => signOut(auth)} className={navActionClass("outline")}>
+      <button onClick={() => void logoutFromLaravel()} className={navActionClass("outline")}>
         {t("nav.logout", "Logout")}
       </button>
     </>
@@ -184,7 +184,7 @@ function MobileLinks({
           <button
             onClick={() => {
               onClose();
-              signOut(auth);
+              void logoutFromLaravel();
             }}
             className={`${navActionClass("outline")} text-left`}
           >

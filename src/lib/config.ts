@@ -1,7 +1,7 @@
 export const APP = {
   founderPassProductUrl: "https://dzrkqyqp.mychariow.shop/prd_htdw78o8",
   brand: {
-    name: "Celeone",
+    name: "Cele One",
     primary: "#14B8A6", // teal
     logoWordmark: "/logo.png",
     logoIcon: "/favicon.png",

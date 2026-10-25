@@ -28,8 +28,8 @@ const compressShareImage = (url: string) => {
 
 export async function onRequestGet(context: any) {
   const postId = String(context.params.id || "");
-  const FIREBASE_PROJECT_ID = "celeone-e5843";
-  const firebaseURL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/posts/${postId}`;
+  const apiBase = String(context.env?.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+  const apiURL = `${apiBase}/public/posts/${encodeURIComponent(postId)}`;
 
   let title = "Celeone TV";
   let description = "Decouvrez les contenus sur Celeone TV.";
@@ -37,24 +37,19 @@ export async function onRequestGet(context: any) {
   const url = `${SITE_URL}/posts/${postId}`;
 
   try {
-    const fr = await fetch(firebaseURL);
-    if (fr.ok) {
-      const data = await fr.json();
-      const fields = data?.fields || {};
-
-      const shareTitle = fields.shareTitle?.stringValue;
-      const shareDescription = fields.shareDescription?.stringValue;
-      const shareImage = fields.shareImage?.stringValue;
-      const fallbackTitle = fields.title?.stringValue;
-      const fallbackDescription = fields.content?.stringValue;
-      const fallbackImage = fields.image?.stringValue;
-
-      const titleRaw = shareTitle || fallbackTitle || title;
-      const contentRaw = shareDescription || fallbackDescription || description;
-      const imageRaw = shareImage || fallbackImage || image;
+    const response = await fetch(apiURL, { headers: { Accept: "application/json" } });
+    if (response.ok) {
+      const envelope = await response.json();
+      const data = envelope?.data?.post || envelope?.data || envelope?.post || {};
+      const imageList = Array.isArray(data.images) ? data.images : [];
+      const mediaList = Array.isArray(data.media) ? data.media : [];
+      const firstMediaImage = mediaList.find((item: any) => String(item?.type || item?.mime || "").toLowerCase().startsWith("image"));
+      const imageRaw = data.shareImage || data.shareImageUrl || imageList[0] || firstMediaImage?.previewUrl || firstMediaImage?.smallUrl || firstMediaImage?.url || data.imageUrl || data.image || data.thumbnailUrl || image;
+      const titleRaw = data.shareTitle || data.title || title;
+      const contentRaw = data.shareDescription || data.description || data.content || data.body || data.text || description;
 
       title = String(titleRaw);
-      description = String(contentRaw).trim().replace(/\s+/g, " ").slice(0, 220) || description;
+      description = String(contentRaw).replace(/<[^>]*>/g, " ").trim().replace(/\s+/g, " ").slice(0, 220) || description;
       image = compressShareImage(String(imageRaw));
     }
   } catch {

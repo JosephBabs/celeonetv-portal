@@ -21,7 +21,7 @@ export async function onRequestGet({ request, env }: Context) {
     return json({ ok: true, founder: bundle.founder, history: bundle.history });
   } catch (error) {
     const message = errorMessage(error);
-    return json({ ok: false, error: message }, { status: message === "FORBIDDEN" ? 403 : 500 });
+    return json({ ok: false, error: message }, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : 500 });
   }
 }
 
@@ -57,6 +57,6 @@ export async function onRequestPost({ request, env }: Context) {
     return json({ ok: false, error: "INVALID_ACTION" }, { status: 422 });
   } catch (error) {
     const message = errorMessage(error);
-    return json({ ok: false, error: message }, { status: message === "FORBIDDEN" ? 403 : 500 });
+    return json({ ok: false, error: message }, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : 500 });
   }
 }

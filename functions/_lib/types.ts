@@ -1,4 +1,5 @@
 export type PortalEnv = {
+  LARAVEL_API_URL?: string;
   CHARIOW_API_BASE_URL?: string;
   CHARIOW_API_KEY?: string;
   CHARIOW_API_KEY_DEV?: string;

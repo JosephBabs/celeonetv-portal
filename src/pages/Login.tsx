@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { auth } from "../lib/firebase";
+import { loginWithLaravel } from "../lib/laravelAuth";
 import { useI18n } from "../lib/i18n";
 import { setPageMeta } from "../lib/seo";
 
@@ -10,6 +9,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -24,11 +24,11 @@ export default function Login() {
     e.preventDefault();
     setSaving(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await loginWithLaravel(email, password);
       navigate(searchParams.get("returnTo") || "/");
     } catch (error) {
       console.error(error);
-      alert(t("login.invalid", "Invalid email or password."));
+      setErrorMessage(error instanceof Error ? error.message : t("login.invalid", "Invalid email or password."));
     } finally {
       setSaving(false);
     }
@@ -57,9 +57,10 @@ export default function Login() {
           <p className="mt-2 text-sm font-medium text-slate-500">Access streaming, founders, documentation and community tools.</p>
         </div>
         <div className="mt-6 space-y-4">
-          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" placeholder={t("login.email", "Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" type="password" placeholder={t("login.password", "Password")} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" type="email" autoComplete="email" required placeholder={t("login.email", "Email")} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="!rounded-full !bg-[#f8fbfd] !px-6 !py-4" type="password" autoComplete="current-password" required placeholder={t("login.password", "Password")} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
+        {errorMessage ? <p role="alert" className="mt-4 text-sm font-semibold text-rose-700">{errorMessage}</p> : null}
         <button disabled={saving} className="mt-6 inline-flex min-h-[56px] w-full items-center justify-center rounded-full bg-[#2ed06e] px-6 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(46,208,110,0.22)] disabled:opacity-60">
           {saving ? t("login.loading", "Logging in...") : t("login.title", "Login")}
         </button>

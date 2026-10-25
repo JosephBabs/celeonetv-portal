@@ -20,7 +20,7 @@ export default function LivePlayerCard() {
       </div>
 
       <div className="mt-3">
-        <div className="text-lg font-black">Celeone TV</div>
+        <div className="text-lg font-black" translate="no">Cele One TV</div>
         <div className="text-sm text-slate-600">
           Une chaîne en direct sera affichée ici automatiquement.
         </div>
