@@ -240,10 +240,11 @@ function localizedMeta(pathname: string, locale: RouteLocale, title: string, des
 
 type DynamicShareRoute = {
   pattern: RegExp;
-  collection: string;
+  collection?: string;
   fallbackTitle: string;
   fallbackDescription: string;
   mediaType?: "videos" | "songs";
+  marketplaceType?: "item" | "shop" | "job" | "profile";
 };
 
 const DYNAMIC_SHARE_ROUTES: DynamicShareRoute[] = [
@@ -290,6 +291,10 @@ const DYNAMIC_SHARE_ROUTES: DynamicShareRoute[] = [
     fallbackDescription: "Preview a Cele One video and open it in the mobile app.",
     mediaType: "videos",
   },
+  { pattern: /^\/market\/items\/([^/]+)\/?$/, fallbackTitle: "Cele One Marketplace Listing", fallbackDescription: "Explore this approved product or service in the Cele One marketplace.", marketplaceType: "item" },
+  { pattern: /^\/market\/(?:jobs|offers)\/([^/]+)\/?$/, fallbackTitle: "Cele One Job Offer", fallbackDescription: "Review this job opportunity and apply online through Cele One.", marketplaceType: "job" },
+  { pattern: /^\/market\/shops\/([^/]+)\/?$/, fallbackTitle: "Cele One Boutique", fallbackDescription: "Browse this verified boutique and its marketplace listings.", marketplaceType: "shop" },
+  { pattern: /^\/market\/cv\/([^/]+)\/?$/, fallbackTitle: "Cele One Professional Profile", fallbackDescription: "View this professional profile shared from the Cele One marketplace.", marketplaceType: "profile" },
   {
     pattern: /^\/songs\/([^/]+)\/?$/,
     collection: "songs",
@@ -882,6 +887,18 @@ async function publicMediaResponse(id: string, type: "videos" | "songs", env: En
   });
 }
 
+async function publicMarketplaceResponse(id: string, type: NonNullable<DynamicShareRoute["marketplaceType"]>, env: Env): Promise<Response> {
+  const base = (env.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+  const path = type === "item"
+    ? `marketplace/listings/${encodeURIComponent(id)}`
+    : type === "shop"
+      ? `marketplace/shops/${encodeURIComponent(id)}`
+      : type === "job"
+        ? `marketplace/jobs/${encodeURIComponent(id)}`
+        : `marketplace/public/professional-profiles/${encodeURIComponent(id)}`;
+  return fetchWithTimeout(`${base}/${path}`, 5000, { headers: { accept: "application/json" } });
+}
+
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const url = new URL(request.url);
@@ -1099,22 +1116,25 @@ export default {
         if (config.mediaType) {
           const response = await publicMediaResponse(id, config.mediaType, env);
           if (response.ok) item = ((await response.json()) as { data?: Record<string, any> }).data || null;
+        } else if (config.marketplaceType) {
+          const response = await publicMarketplaceResponse(id, config.marketplaceType, env);
+          if (response.ok) item = ((await response.json()) as { data?: Record<string, any> }).data || null;
         } else {
-          item = await fetchPublicFirestoreDoc(env, config.collection, id);
+          item = await fetchPublicFirestoreDoc(env, config.collection || "", id);
         }
         if (item) {
           const resolvedTitle = pickLocalizedText(item, [
-            "shareTitle", "titleTranslations", "bibleThemeTranslations", "title", "name", "nameTranslations", "theme", "bibleTheme", "hymnTitle", "caption",
+            "shareTitle", "titleTranslations", "bibleThemeTranslations", "title", "name", "nameTranslations", "headline", "theme", "bibleTheme", "hymnTitle", "caption",
           ], locale);
           const resolvedDescription = pickLocalizedText(item, [
-            "shareDescription", "descriptionTranslations", "description", "summary", "content", "hymnContent", "bibleLesson",
+            "shareDescription", "descriptionTranslations", "description", "summary", "content", "headline", "hymnContent", "bibleLesson",
             "bibleReadingText", "notes",
           ], locale);
-          const resolvedCreator = pickLocalizedText(item, ["artist", "authorName", "creatorName", "publisherName", "channelName"], locale);
+          const resolvedCreator = pickLocalizedText(item, ["artist", "authorName", "creatorName", "publisherName", "channelName", "companyName", "shopTitle"], locale);
           const resolvedImage = pickLocalizedText(item, [
-            "shareImage", "shareImageUrl", "image", "imageUrl", "coverUrl", "coverImageUrl", "thumbnail", "thumbnailUrl",
+            "shareImage", "shareImageUrl", "image", "imageUrl", "coverUrl", "coverImageUrl", "thumbnail", "thumbnailUrl", "logoUrl", "photoUrl",
             "posterUrl", "poster", "artworkUrl", "albumArt", "banner", "bannerUrl",
-          ], locale);
+          ], locale) || (Array.isArray(item.images) ? item.images.find((value: unknown) => typeof value === "string" && /^https?:\/\//i.test(value)) : undefined);
           if (resolvedTitle) {
             title = stripHtmlText(resolvedTitle).slice(0, 180);
             hasItemTitle = true;
@@ -1147,7 +1167,16 @@ export default {
       const meta = buildMeta({ title, description, image, pageUrl: canonicalUrl, canonicalUrl, type: "article", video: config.mediaType === "videos" ? videoUrl || undefined : undefined, locale, robots: item ? undefined : "noindex,nofollow" });
       const snapshot = buildSeoSnapshot({ title, description, image, pageUrl: canonicalUrl });
       const mediaPreview = media && item ? `<section style="max-width:900px;margin:18px auto;padding:0 24px;font-family:Arial,sans-serif;color:#0f172a"><h1>${escapeHtml(title)}</h1>${image !== DEFAULT_IMAGE ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" style="width:100%;max-height:480px;object-fit:cover;border-radius:16px" />` : ""}${description ? `<p>${escapeHtml(description)}</p>` : ""}${videoUrl ? `<video id="media-preview-player" controls playsinline preload="metadata" poster="${escapeHtml(image)}" style="display:block;width:100%;max-height:70vh;background:#000;border-radius:16px"><source src="${escapeHtml(videoUrl)}"></video>` : ""}${audioUrl ? `<audio id="media-preview-player" controls preload="none" src="${escapeHtml(audioUrl)}" style="width:100%"></audio>` : ""}<p id="media-preview-status" style="font-weight:bold;color:#0f766e">Preview limited to 10 seconds.</p><p><a href="celeone://media/${config.mediaType === "songs" ? "music" : "video"}/${encodeURIComponent(id)}" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Watch full content on CeleOne app</a></p></section><script>(function(){var m=document.getElementById('media-preview-player');var s=document.getElementById('media-preview-status');if(!m)return;m.addEventListener('timeupdate',function(){if(m.currentTime>=10){m.pause();m.currentTime=10;if(s)s.textContent='Preview ended. Watch full content on CeleOne app.';}});})();</script>` : "";
-      const enhanced = injectMeta(html, meta, `${mediaPreview}${snapshot}${storeLinks}`);
+      const marketplacePath = config.marketplaceType === "shop" ? `shops/${encodeURIComponent(id)}`
+        : config.marketplaceType === "job" ? `jobs/${encodeURIComponent(id)}`
+          : config.marketplaceType === "profile" ? `cv/${encodeURIComponent(id)}`
+            : `items/${encodeURIComponent(id)}`;
+      const marketplacePreview = config.marketplaceType && item
+        ? '<section style="max-width:900px;margin:18px auto;padding:24px;font-family:Arial,sans-serif;color:#0f172a;border:1px solid #e2e8f0;border-radius:20px;background:#fff">'
+          + (image !== DEFAULT_IMAGE ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(title) + '" style="display:block;width:100%;max-height:430px;object-fit:cover;border-radius:15px;margin-bottom:18px" />' : '')
+          + '<p style="color:#0f766e;font-weight:bold;margin:0 0 8px">Cele One Marketplace</p><h1 style="font-size:30px;margin:0 0 12px">' + escapeHtml(title) + '</h1><p style="font-size:16px;line-height:1.6">' + escapeHtml(description) + '</p><p><a href="celeone://market/' + marketplacePath + '" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Open in Cele One app</a></p><p><a href="https://play.google.com/store/apps/details?id=com.celeoneapp">Get the Cele One app</a></p></section>'
+        : '';
+      const enhanced = injectMeta(html, meta, `${marketplacePreview}${mediaPreview}${snapshot}${storeLinks}`);
       return new Response(enhanced, { status: item ? 200 : 404, headers: { "content-type": "text/html; charset=UTF-8", "cache-control": item ? "public, max-age=30" : "no-store", "x-robots-tag": item ? "index, follow" : "noindex, nofollow" } });
     }
 

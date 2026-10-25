@@ -7,6 +7,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Post from "./pages/Post";
+import MarketplaceShare from "./pages/MarketplaceShare";
+import MarketplaceHome from "./pages/MarketplaceHome";
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
           <Route path="/creator/request" element={<CreatorRequest />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/posts/:postId" element={<Post />} />
+          <Route path="/market/:kind/:entityId" element={<MarketplaceShare />} />
+          <Route path="/market" element={<MarketplaceHome />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           <Route path="/:channelName/live" element={<ChannelLive />} />
