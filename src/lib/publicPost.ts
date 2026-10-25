@@ -2,9 +2,23 @@ export type PublicPost = Record<string, unknown> & { id: string; media?: Array<R
 export function postText(post: PublicPost): string {return String(post.content || post.body || post.text || post.description || '');}
 export function postImages(post: PublicPost): string[] {
  const media = Array.isArray(post.media) ? post.media : [];
- const urls = media.filter(m => !String(m.type || m.mime || '').startsWith('video')).map(m => m.previewUrl || m.smallUrl || m.thumbnailUrl || m.url || m.uri);
- const images = Array.isArray(post.images) ? post.images.map(i => typeof i === 'string' ? i : (i as Record<string, unknown>)?.url) : [];
- return [...new Set([...(postVideo(post)?[post.thumbnailUrl || post.posterUrl]:[]), ...urls, ...images, ...media.map(m=>m.thumbnailUrl || m.posterUrl || m.poster), post.previewUrl || post.smallUrl || post.thumbnailUrl || post.posterUrl || post.imageUrl || post.image || post.shareImage].filter((x): x is string => typeof x === 'string' && /^https?:\/\//i.test(x)))];
+ const isImage = (value: unknown) => typeof value === 'string' && /^https?:\/\//i.test(value);
+ const mediaImages = media.filter(m => {
+  const type = String(m.type || m.mime || '').toLowerCase();
+  const url = String(m.url || m.uri || m.path || '');
+  return type.startsWith('image') || /\.(jpe?g|png|webp|gif)(?:[?#]|$)/i.test(url);
+ });
+ const imageUrl = (item: unknown): unknown => typeof item === 'string' ? item : item && typeof item === 'object' ? ((item as Record<string, unknown>).url || (item as Record<string, unknown>).uri || (item as Record<string, unknown>).src || (item as Record<string, unknown>).path) : undefined;
+ const arrays = ['images', 'imageUrls', 'photos', 'attachments'].flatMap(key => Array.isArray(post[key]) ? (post[key] as unknown[]).map(imageUrl) : []);
+ const candidates = [
+  ...arrays,
+  ...mediaImages.map(m => m.previewUrl || m.smallUrl || m.thumbnailUrl || m.url || m.uri || m.path),
+  ...media.map(m => m.thumbnailUrl || m.posterUrl || m.poster),
+  ...(postVideo(post) ? [post.thumbnailUrl, post.posterUrl, post.videoShareImage] : []),
+  post.shareImage, post.shareImageUrl, post.previewUrl, post.smallUrl, post.thumbnailUrl,
+  post.posterUrl, post.imageUrl, post.image, post.coverUrl, post.coverImageUrl,
+ ];
+ return [...new Set(candidates.filter(isImage) as string[])];
 }
 export function bootstrapPost(id: string, kind = 'posts'): PublicPost | null {
  try {const p=JSON.parse(document.getElementById('celeone-post-data')?.textContent || 'null');return p?.requestedId===id && (p.kind || 'posts')===kind ? p.post : null;} catch {return null;}
