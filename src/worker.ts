@@ -1073,6 +1073,36 @@ export default {
       return htmlResponse(baseRes, injectMeta(html, meta, snapshot));
     }
 
+    const liveShareMatch = routePath.match(/^\/live\/([^/]+)\/?$/);
+    if (liveShareMatch) {
+      const requestedId = decodeURIComponent(liveShareMatch[1]);
+      let live: Record<string, any> | null = null;
+      try {
+        const response = await fetchWithTimeout(`https://live.celeonetv.com/api/social/live/active?_=${Date.now()}`, 5000, {
+          headers: { accept: "application/json", "cache-control": "no-cache" },
+        });
+        if (response.ok) {
+          const payload: any = await response.json();
+          const items = Array.isArray(payload?.items) ? payload.items : Array.isArray(payload?.data?.items) ? payload.data.items : Array.isArray(payload?.data) ? payload.data : [];
+          live = items.find((item: any) => String(item?.sessionId || item?.id || item?.public_id || "") === requestedId) || null;
+        }
+      } catch {
+        // Keep a usable install/open landing page if the stream service is offline.
+      }
+      const title = live ? `${stripHtmlText(String(live.title || live.hostName || "Cele One LIVE"))} | Cele One` : "Cele One LIVE | Watch in the app";
+      const description = live
+        ? `Watch ${stripHtmlText(String(live.hostName || live.title || "this host"))} live on Cele One.`
+        : "Open this live broadcast in the Cele One app. Download the app if you do not have it yet.";
+      const imageCandidate = String(live?.thumbnailUrl || live?.hostAvatar || DEFAULT_IMAGE);
+      const image = /^https:\/\//i.test(imageCandidate) ? imageCandidate : DEFAULT_IMAGE;
+      const canonical = `${SITE_URL}/live/${encodeURIComponent(requestedId)}`;
+      const playback = String(live?.playbackUrl || live?.hlsUrl || "");
+      const meta = buildMeta({ title, description, image, pageUrl: canonical, canonicalUrl: canonical, type: "website", locale, robots: live ? undefined : "noindex,follow" });
+      const snapshot = `<section data-celeone-seo-snapshot="true" style="max-width:960px;margin:24px auto;padding:24px;font-family:Arial,sans-serif;color:#0f172a"><h1>${escapeHtml(title)}</h1>${image !== DEFAULT_IMAGE ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" style="max-width:100%;max-height:420px;object-fit:cover;border-radius:16px" />` : ""}<p>${escapeHtml(description)}</p>${playback ? `<video controls playsinline preload="none" poster="${escapeHtml(image)}" style="width:100%;max-height:65vh;background:#000"><source src="${escapeHtml(playback)}" type="application/vnd.apple.mpegurl"></video>` : ""}<p><a href="celeone://live/${encodeURIComponent(requestedId)}">Open in Cele One</a></p><p><a href="https://play.google.com/store/apps/details?id=com.celeoneapp">Download the Cele One app</a></p></section>`;
+      const result = htmlResponse(baseRes, injectMeta(await baseRes.text(), meta, snapshot));
+      return new Response(result.body, { status: 200, headers: { ...Object.fromEntries(result.headers), "Cache-Control": "no-store", "X-Robots-Tag": live ? "index, follow" : "noindex, follow" } });
+    }
+
     const postMatch = routePath.match(/^\/(post|posts|social|reels)\/([^/]+)\/?$/);
     if (postMatch) {
       const requestedId=decodeURIComponent(postMatch[2]);

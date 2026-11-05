@@ -3,8 +3,11 @@ import AppShell from "./AppShell";
 
 import Landing from "../pages/Landing";
 import ChannelLive from "../pages/ChannelLive";
+import LiveShare from "../pages/LiveShare";
 import Post from "../pages/Post";
 import ShareLanding from "../pages/ShareLanding";
+import MarketplaceHome from "../pages/MarketplaceHome";
+import MarketplaceShare from "../pages/MarketplaceShare";
 
 import CreatorRequest from "../pages/CreatorRequest";
 import AdminDashboard from "../pages/AdminDashboard";
@@ -35,17 +38,21 @@ import ParishMap from "../pages/ParishMap";
 
 const publicRoutes = [
   { path: "/", element: <Landing /> },
-  { path: "/post/:postId", element: <Post /> },
   { path: "/posts/:postId", element: <Post /> },
-  { path: "/reels/:reelId", element: <Post /> },
+  { path: "/post/:postId", element: <Post /> },
   { path: "/social/:contentId", element: <Post /> },
+  { path: "/reels/:reelId", element: <Post /> },
   { path: "/hymns/:contentId", element: <ShareLanding /> },
   { path: "/themes/:contentId", element: <ShareLanding /> },
   { path: "/weekly-themes/:contentId", element: <ShareLanding /> },
   { path: "/weekly-programs/:contentId", element: <ShareLanding /> },
   { path: "/videos/:contentId", element: <ShareLanding /> },
   { path: "/movies/:contentId", element: <ShareLanding /> },
+  { path: "/video/:contentId", element: <ShareLanding /> },
   { path: "/songs/:contentId", element: <ShareLanding /> },
+  { path: "/live/:liveId", element: <LiveShare /> },
+  { path: "/market", element: <MarketplaceHome /> },
+  { path: "/market/:kind/:entityId", element: <MarketplaceShare /> },
   { path: "/:channelName/live", element: <ChannelLive /> },
   { path: "/creator/request", element: <CreatorRequest /> },
   { path: "/documentation", element: <Documentation /> },

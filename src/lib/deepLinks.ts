@@ -10,7 +10,8 @@ export type ShareContentType =
   | "weekly-theme"
   | "weekly-program"
   | "video"
-  | "song";
+  | "song"
+  | "live";
 
 export function appPathForShare(type: ShareContentType, id = "", params: Record<string, string | undefined> = {}) {
   const cleanId = encodeURIComponent(String(id || "").trim());
@@ -35,6 +36,8 @@ export function appPathForShare(type: ShareContentType, id = "", params: Record<
       return `media/video/${cleanId}${suffix}`;
     case "song":
       return `media/music/${cleanId}${suffix}`;
+    case "live":
+      return `live/${cleanId}${suffix}`;
     default:
       return "";
   }
@@ -64,6 +67,8 @@ export function webPathForShare(type: ShareContentType, id = "", params: Record<
       return `/videos/${cleanId}${suffix}`;
     case "song":
       return `/songs/${cleanId}${suffix}`;
+    case "live":
+      return `/live/${cleanId}${suffix}`;
     default:
       return "/";
   }

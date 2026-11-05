@@ -14,21 +14,25 @@ const APP_STORE_URL = "https://apps.apple.com/search?term=Cele%20One";
 
 const TYPE_CONFIG: Record<string, { type: ShareContentType; collection: string; label: string; routeTitle: string; apiType?: string }> = {
   social: { type: "social", collection: "posts", label: "Social post", routeTitle: "CeleOne Social" },
+  post: { type: "social", collection: "posts", label: "Social post", routeTitle: "CeleOne Social" },
   hymns: { type: "hymn", collection: "cantiques", label: "Hymn", routeTitle: "CeleOne Hymns" },
   themes: { type: "theme", collection: "weekly_themes", label: "Theme of the week", routeTitle: "CeleOne Theme of the Week" },
   "weekly-themes": { type: "weekly-theme", collection: "weekly_themes", label: "Theme of the week", routeTitle: "CeleOne Theme of the Week" },
   "weekly-programs": { type: "weekly-program", collection: "weeklyPrograms", label: "Weekly program", routeTitle: "CeleOne Weekly Program" },
   videos: { type: "video", collection: "videos", apiType: "videos", label: "Video", routeTitle: "CeleOne Video" },
+  video: { type: "video", collection: "videos", apiType: "videos", label: "Video", routeTitle: "CeleOne Video" },
   movies: { type: "video", collection: "videos", apiType: "videos", label: "Video", routeTitle: "CeleOne Video" },
   songs: { type: "song", collection: "songs", apiType: "songs", label: "Song", routeTitle: "CeleOne Song" },
 };
 
 export default function ShareLanding() {
   const { t, lang } = useI18n();
-  const { contentId = "" } = useParams();
+  const params = useParams();
+  const contentId = params.contentId || params.postId || params.id || "";
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const shareType = location.pathname.split("/").filter(Boolean)[0] || "";
+  const pathnameParts = location.pathname.split("/").filter(Boolean).map((part) => part.toLowerCase());
+  const shareType = pathnameParts.find((part) => part in TYPE_CONFIG) || "";
   const cfg = TYPE_CONFIG[shareType];
   const [loading, setLoading] = useState(true);
   const [item, setItem] = useState<any>(null);
@@ -111,6 +115,13 @@ export default function ShareLanding() {
   const description = shareDescription(item, lang);
   const image = shareImage(item);
   const mediaUrl = textValue(item?.videoUrl || item?.audioUrl || item?.link);
+  const isVideo = cfg.apiType === "videos";
+  const fullWatchLabel = t("share.watch_full", "Watch full content on CeleOne app");
+  const watchFullButton = item && cfg.apiType ? (
+    <button onClick={() => openShareInApp(cfg.type, contentId, appParams)} className="rounded-lg bg-teal-600 px-4 py-3 font-extrabold text-white shadow-lg hover:bg-teal-700">
+      {fullWatchLabel}
+    </button>
+  ) : null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
@@ -149,9 +160,24 @@ export default function ShareLanding() {
           <>
             <h2 className="text-2xl font-black text-slate-950">{title}</h2>
             {description ? <p className="mt-3 whitespace-pre-wrap text-slate-700">{description}</p> : null}
-            {cfg.apiType === "videos" && mediaUrl ? <video ref={mediaPreviewRef as React.RefObject<HTMLVideoElement>} className="mt-5 w-full rounded-2xl bg-black" controls playsInline poster={image || undefined} src={mediaUrl} /> : null}
+            {isVideo && mediaUrl ? (
+              <div className="relative mt-5 overflow-hidden rounded-2xl bg-black">
+                <video
+                  ref={mediaPreviewRef as React.RefObject<HTMLVideoElement>}
+                  className="aspect-video w-full bg-black object-contain"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster={image || undefined}
+                  src={mediaUrl}
+                />
+                <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center px-4">
+                  <div className="pointer-events-auto">{watchFullButton}</div>
+                </div>
+              </div>
+            ) : null}
             {cfg.apiType === "songs" && mediaUrl ? <audio ref={mediaPreviewRef as React.RefObject<HTMLAudioElement>} className="mt-5 w-full" controls preload="none" src={mediaUrl} /> : null}
-            {cfg.apiType && item ? <button onClick={() => openShareInApp(cfg.type, contentId, appParams)} className="mt-4 rounded-lg bg-teal-700 px-4 py-3 font-extrabold text-white">{t("share.watch_full", "Watch full content on CeleOne app")}</button> : null}
+            {cfg.apiType === "songs" ? <div className="mt-4">{watchFullButton}</div> : null}
             <PreviewDetails item={item} t={t} />
           </>
         )}
@@ -169,10 +195,15 @@ async function getThemeAwareDoc(collectionName: string, id: string, isTheme: boo
 }
 
 async function fetchMedia(type: string, id: string) {
-  const response = await fetch(`${API_BASE}/public/media/${type}/${encodeURIComponent(id)}`, { headers: { Accept: "application/json" } });
-  if (!response.ok) return null;
-  const payload = await response.json();
-  return payload?.data && typeof payload.data === "object" ? payload.data : null;
+  const kinds = type === "videos" ? ["videos", "movies"] : ["songs"];
+  for (const kind of kinds) {
+    const response = await fetch(`${API_BASE}/public/media/${kind}/${encodeURIComponent(id)}`, { headers: { Accept: "application/json" } });
+    if (response.status === 404) continue;
+    if (!response.ok) throw new Error(`Media request failed (${response.status})`);
+    const payload = await response.json();
+    if (payload?.data && typeof payload.data === "object") return payload.data;
+  }
+  return null;
 }
 
 async function loadThemeDetails(weekId: string) {

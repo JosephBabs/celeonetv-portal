@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { phoneLanguage, translatePost, POST_LANGUAGES } from "../lib/postTranslation";
 import { openShareInApp } from "../lib/deepLinks";
 import { setPageMeta } from "../lib/seo";
@@ -7,7 +7,7 @@ import { useI18n } from "../lib/i18n";
 import { bootstrapPost, postImages, postVideo, postText, safePostHtml, type PublicPost } from "../lib/publicPost";
 
 export default function Post() {
- const params=useParams();const postId=params.postId || params.contentId || params.reelId || '';const kind=params.reelId?'reels':'posts';
+ const params=useParams();const location=useLocation();const postId=params.postId || params.contentId || params.reelId || '';const kind=params.reelId || location.pathname.split('/').includes('reels')?'reels':'posts';
  const { t }=useI18n();
  const apiBase=(import.meta.env.VITE_LARAVEL_API_URL || 'https://api.celeonetv.com/api/v1').replace(/\/$/, '');
  const [post,setPost]=useState<PublicPost|null>(()=>bootstrapPost(postId,kind));
@@ -18,7 +18,8 @@ export default function Post() {
   const embedded=bootstrapPost(postId,kind);setPost(embedded);setError('');setLoading(!embedded);
   if(embedded)return;
   const controller=new AbortController();
-  void fetch(`${apiBase}/public/posts/${encodeURIComponent(postId)}`,{headers:{Accept:'application/json'},signal:controller.signal}).then(async response=>{
+  const endpoint=kind==='reels'?'reels':'posts';
+  void fetch(`${apiBase}/public/${endpoint}/${encodeURIComponent(postId)}`,{headers:{Accept:'application/json'},signal:controller.signal}).then(async response=>{
    if(!response.ok)throw new Error(response.status===404?'not_found':'unavailable');
    const json=await response.json();const result=json?.data?.post || json?.data || json?.post || null;
    if(!result || typeof result!=='object')throw new Error('unavailable');

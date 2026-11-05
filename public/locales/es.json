@@ -377,6 +377,9 @@
       "backups": "Copias de seguridad y registros durante un periodo limitado, hasta que se sobrescriban o ya no sean necesarios para recuperacion, seguridad o cumplimiento legal."
     }
   },
+  "share": {
+    "watch_full": "Ver el contenido completo en la aplicación CeleOne"
+  },
   "post": {
     "translating": "Traduciendo...",
     "translation_unavailable": "Se muestra el original. Traducción no disponible.",

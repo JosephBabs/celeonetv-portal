@@ -377,6 +377,9 @@
       "backups": "Backups and logs for a limited period until they are overwritten or no longer needed for recovery, security, or legal compliance."
     }
   },
+  "share": {
+    "watch_full": "Watch full content in the CeleOne app"
+  },
   "post": {
     "translating": "Translating...",
     "translation_unavailable": "Showing the original. Translation is unavailable.",

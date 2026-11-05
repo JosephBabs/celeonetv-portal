@@ -9,9 +9,9 @@ export function postImages(post: PublicPost): string[] {
   return type.startsWith('image') || /\.(jpe?g|png|webp|gif)(?:[?#]|$)/i.test(url);
  });
  const imageUrl = (item: unknown): unknown => typeof item === 'string' ? item : item && typeof item === 'object' ? ((item as Record<string, unknown>).url || (item as Record<string, unknown>).uri || (item as Record<string, unknown>).src || (item as Record<string, unknown>).path) : undefined;
- const arrays = ['images', 'imageUrls', 'photos', 'attachments'].flatMap(key => Array.isArray(post[key]) ? (post[key] as unknown[]).map(imageUrl) : []);
+ const directImageArrays = [post.images, post.imageUrls, post.photos, post.attachments].flatMap(value => Array.isArray(value) ? value.map(imageUrl) : []);
  const candidates = [
-  ...arrays,
+  ...directImageArrays,
   ...mediaImages.map(m => m.previewUrl || m.smallUrl || m.thumbnailUrl || m.url || m.uri || m.path),
   ...media.map(m => m.thumbnailUrl || m.posterUrl || m.poster),
   ...(postVideo(post) ? [post.thumbnailUrl, post.posterUrl, post.videoShareImage] : []),

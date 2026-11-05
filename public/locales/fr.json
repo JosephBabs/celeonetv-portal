@@ -377,6 +377,9 @@
       "backups": "Les sauvegardes et journaux pendant une periode limitee, jusqu'a leur ecrasement ou lorsqu'ils ne sont plus necessaires a la recuperation, la securite ou la conformite legale."
     }
   },
+  "share": {
+    "watch_full": "Regarder le contenu complet dans l’application CeleOne"
+  },
   "post": {
     "translating": "Traduction en cours...",
     "translation_unavailable": "Texte original affiché. Traduction indisponible.",
