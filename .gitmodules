@@ -1,0 +1,4 @@
+[submodule "browser"]
+	path = browser
+	url = https://github.com/Timec06/CeleOneWeb.git
+	branch = main

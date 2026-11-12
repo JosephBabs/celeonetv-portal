@@ -379,6 +379,17 @@ function isStaticAssetPath(pathname: string) {
     || /^\/(?:favicon\.png|logo\.png|logo\.jpeg|hero-image\.png|feature-img\.png|ads\.txt|robots\.txt|sitemap\.xml|google[^/]+\.html)$/.test(pathname);
 }
 
+function isSocialCrawler(request: Request) {
+  const agent = request.headers.get("user-agent") || "";
+  return /facebookexternalhit|facebot|meta-externalagent|meta-externalfetcher|whatsapp|twitterbot|linkedinbot|telegrambot|discordbot|slackbot|googlebot|bingbot|applebot|pinterestbot/i.test(agent);
+}
+
+function usesMobileWeb(pathname: string) {
+  return pathname === "/"
+    || /^\/(?:accueil|social|notifications|discussions|documents|cantiques|bible|jeunesse|streaming|radio|carte-paroisses|agenda|evenements|profil|menu|connexion|inscription|diagnostic-api|posts|post|reels|live|videos|movies|songs|hymns|themes|weekly-themes|weekly-programs|spiritual-program|parishes)(?:\/|$)/.test(pathname)
+    || /^\/[^/]+\/live\/?$/.test(pathname);
+}
+
 async function fetchAsset(request: Request, env: WorkerEnv, url: URL) {
   const fetchFromAssets = async (req: Request) => {
     if (env.ASSETS && typeof env.ASSETS.fetch === "function") return env.ASSETS.fetch(req);
