@@ -1047,9 +1047,10 @@ export default {
       return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
     }
 
-    // Serve the mobile web app to people while keeping the existing route-specific
-    // Open Graph snapshots below for social crawlers.
-    if (method === "GET" && !isSocialCrawler(request) && usesMobileWeb(routePath)) {
+    // Serve the mobile web app for normal navigation. Keep the existing
+    // route-specific snapshots only when a crawler opens a shareable URL.
+    const sharePreviewPath = /^\/(?:post|posts|social|reels|live|videos|songs|hymns|themes|weekly-themes|weekly-programs)\/[^/]+\/?$/.test(routePath);
+    if (method === "GET" && usesMobileWeb(routePath) && !(isSocialCrawler(request) && sharePreviewPath)) {
       if (localeInfo.locale) {
         return new Response(null, { status: 302, headers: { Location: `${routePath}${url.search}` } });
       }
