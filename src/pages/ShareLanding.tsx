@@ -114,8 +114,10 @@ export default function ShareLanding() {
   const title = shareTitle(item, lang) || cfg.routeTitle;
   const description = shareDescription(item, lang);
   const image = shareImage(item);
-  const mediaUrl = textValue(item?.videoUrl || item?.audioUrl || item?.link);
   const isVideo = cfg.apiType === "videos";
+  const mediaUrl = textValue(isVideo
+    ? item?.videoUrl || item?.video_url || item?.playbackUrl || item?.playback_url || item?.hlsUrl || item?.hls_url || item?.streamUrl || item?.sourceUrl || item?.fileUrl || item?.mediaUrl || item?.media_url || item?.link || item?.url
+    : item?.audioUrl || item?.audio_url || item?.musicUrl || item?.mediaUrl || item?.media_url || item?.link || item?.url);
   const fullWatchLabel = t("share.watch_full", "Watch full content on CeleOne app");
   const watchFullButton = item && cfg.apiType ? (
     <button onClick={() => openShareInApp(cfg.type, contentId, appParams)} className="rounded-lg bg-teal-600 px-4 py-3 font-extrabold text-white shadow-lg hover:bg-teal-700">
@@ -336,7 +338,7 @@ function shareDescription(item: any, lang = "fr") {
 }
 
 function shareImage(item: any) {
-  return textValue(item?.shareImage || item?.image || item?.coverUrl || item?.thumbnail || item?.posterUrl);
+  return textValue(item?.shareImage || item?.shareImageUrl || item?.videoShareImage || item?.thumbnailUrl || item?.thumbnail || item?.posterUrl || item?.poster || item?.coverUrl || item?.coverImageUrl || item?.coverImage || item?.imageUrl || item?.image || item?.previewImageUrl || item?.previewUrl);
 }
 
 function textValue(value: any): string {

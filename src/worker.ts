@@ -1047,6 +1047,20 @@ export default {
       return jsonResponse({ ok: false, error: "METHOD_NOT_ALLOWED" }, { status: 405 });
     }
 
+    // Serve the mobile web app to people while keeping the existing route-specific
+    // Open Graph snapshots below for social crawlers.
+    if (method === "GET" && !isSocialCrawler(request) && usesMobileWeb(routePath)) {
+      if (localeInfo.locale) {
+        return new Response(null, { status: 302, headers: { Location: `${routePath}${url.search}` } });
+      }
+      const mobileUrl = new URL("/mobile/index.html", url.origin);
+      const mobileRequest = new Request(mobileUrl.toString(), request);
+      const mobileRes = await fetchAsset(mobileRequest, env, mobileUrl);
+      const headers = new Headers(mobileRes.headers);
+      headers.set("Cache-Control", "no-cache");
+      return new Response(mobileRes.body, { status: mobileRes.status, headers });
+    }
+
     if (method === "HEAD") {
       return new Response(null, {
         status: 200,
@@ -1173,8 +1187,8 @@ export default {
           ], locale);
           const resolvedCreator = pickLocalizedText(item, ["artist", "authorName", "creatorName", "publisherName", "channelName", "companyName", "shopTitle"], locale);
           const resolvedImage = pickLocalizedText(item, [
-            "shareImage", "shareImageUrl", "image", "imageUrl", "coverUrl", "coverImageUrl", "thumbnail", "thumbnailUrl", "logoUrl", "photoUrl",
-            "posterUrl", "poster", "artworkUrl", "albumArt", "banner", "bannerUrl",
+            "shareImage", "shareImageUrl", "videoShareImage", "thumbnailUrl", "thumbnail", "posterUrl", "poster", "coverUrl", "coverImageUrl", "coverImage", "imageUrl", "image", "previewImageUrl", "previewUrl", "logoUrl", "photoUrl",
+            "artworkUrl", "albumArt", "banner", "bannerUrl",
           ], locale) || (Array.isArray(item.images) ? item.images.find((value: unknown) => typeof value === "string" && /^https?:\/\//i.test(value)) : undefined);
           if (resolvedTitle) {
             title = stripHtmlText(resolvedTitle).slice(0, 180);
@@ -1201,13 +1215,13 @@ export default {
       const storeLinks = media ? `<section style="max-width:900px;margin:16px auto;padding:0 24px;font-family:Arial,sans-serif"><p><a href="https://play.google.com/store/apps/details?id=com.celeoneapp" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold;margin-right:8px">Download on Google Play</a><a href="https://apps.apple.com/search?term=Cele%20One" style="display:inline-block;background:#0f172a;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Find us on the App Store</a></p></section>` : "";
       const canonicalPath = config.mediaType === "videos" ? `/videos/${encodeURIComponent(id)}` : routePath;
       const canonicalUrl = config.mediaType ? localizedShareUrl(canonicalPath, locale) : `${SITE_URL}${routePath}`;
-      const videoUrl = config.mediaType === "videos" && item ? pickText(item, ["videoUrl", "video_url", "mediaUrl", "media_url", "link", "url", "streamUrl"]) : undefined;
+      const videoUrl = config.mediaType === "videos" && item ? pickText(item, ["videoUrl", "video_url", "playbackUrl", "playback_url", "hlsUrl", "hls_url", "streamUrl", "sourceUrl", "fileUrl", "mediaUrl", "media_url", "link", "url"]) : undefined;
       const audioUrl = config.mediaType === "songs" && item ? pickText(item, ["audioUrl", "audio_url", "musicUrl", "mediaUrl", "media_url", "link", "url"]) : undefined;
       // WhatsApp/Facebook previews rely on a crawlable poster. The media URL stays
       // in the page body and is optional Open Graph video metadata only.
-      const meta = buildMeta({ title, description, image, pageUrl: canonicalUrl, canonicalUrl, type: "article", video: config.mediaType === "videos" ? videoUrl || undefined : undefined, locale, robots: item ? undefined : "noindex,nofollow" });
+      const meta = buildMeta({ title, description, image, pageUrl: canonicalUrl, canonicalUrl, type: config.mediaType === "videos" ? "video.other" : "article", video: config.mediaType === "videos" ? videoUrl || undefined : undefined, locale, robots: item ? undefined : "noindex,nofollow" });
       const snapshot = buildSeoSnapshot({ title, description, image, pageUrl: canonicalUrl });
-      const mediaPreview = media && item ? `<section style="max-width:900px;margin:18px auto;padding:0 24px;font-family:Arial,sans-serif;color:#0f172a"><h1>${escapeHtml(title)}</h1>${image !== DEFAULT_IMAGE ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" style="width:100%;max-height:480px;object-fit:cover;border-radius:16px" />` : ""}${description ? `<p>${escapeHtml(description)}</p>` : ""}${videoUrl ? `<video id="media-preview-player" controls playsinline preload="metadata" poster="${escapeHtml(image)}" style="display:block;width:100%;max-height:70vh;background:#000;border-radius:16px"><source src="${escapeHtml(videoUrl)}"></video>` : ""}${audioUrl ? `<audio id="media-preview-player" controls preload="none" src="${escapeHtml(audioUrl)}" style="width:100%"></audio>` : ""}<p id="media-preview-status" style="font-weight:bold;color:#0f766e">Preview limited to 10 seconds.</p><p><a href="celeone://media/${config.mediaType === "songs" ? "music" : "video"}/${encodeURIComponent(id)}" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Watch full content on CeleOne app</a></p></section><script>(function(){var m=document.getElementById('media-preview-player');var s=document.getElementById('media-preview-status');if(!m)return;m.addEventListener('timeupdate',function(){if(m.currentTime>=10){m.pause();m.currentTime=10;if(s)s.textContent='Preview ended. Watch full content on CeleOne app.';}});})();</script>` : "";
+      const mediaPreview = media && item ? `<section style="max-width:900px;margin:18px auto;padding:0 24px;font-family:Arial,sans-serif;color:#0f172a"><h1>${escapeHtml(title)}</h1>${image !== DEFAULT_IMAGE ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" style="width:100%;max-height:480px;object-fit:cover;border-radius:16px" />` : ""}${description ? `<p>${escapeHtml(description)}</p>` : ""}${videoUrl ? `<video id="media-preview-player" controls playsinline preload="metadata" poster="${escapeHtml(image)}" style="display:block;width:100%;max-height:70vh;background:#000;border-radius:16px"><source src="${escapeHtml(videoUrl)}"></video>` : ""}${audioUrl ? `<audio id="media-preview-player" controls preload="none" src="${escapeHtml(audioUrl)}" style="width:100%"></audio>` : ""}<p id="media-preview-status" style="font-weight:bold;color:#0f766e">Preview limited to 10 seconds.</p><p><a href="celeone://media/${config.mediaType === "songs" ? "music" : "video"}/${encodeURIComponent(id)}" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Watch full content in the Cele One app</a> <a href="https://play.google.com/store/apps/details?id=com.celeoneapp" style="display:inline-block;background:#0f172a;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Get the app</a></p></section><script>(function(){var m=document.getElementById('media-preview-player');var s=document.getElementById('media-preview-status');if(!m)return;m.addEventListener('timeupdate',function(){if(m.currentTime>=10){m.pause();m.currentTime=10;if(s)s.textContent='Preview ended. Watch full content in the Cele One app.';}});})();</script>` : "";
       const marketplacePath = config.marketplaceType === "shop" ? `shops/${encodeURIComponent(id)}`
         : config.marketplaceType === "job" ? `jobs/${encodeURIComponent(id)}`
           : config.marketplaceType === "profile" ? `cv/${encodeURIComponent(id)}`
@@ -1217,7 +1231,25 @@ export default {
           + (image !== DEFAULT_IMAGE ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(title) + '" style="display:block;width:100%;max-height:430px;object-fit:cover;border-radius:15px;margin-bottom:18px" />' : '')
           + '<p style="color:#0f766e;font-weight:bold;margin:0 0 8px">Cele One Marketplace</p><h1 style="font-size:30px;margin:0 0 12px">' + escapeHtml(title) + '</h1><p style="font-size:16px;line-height:1.6">' + escapeHtml(description) + '</p><p><a href="celeone://market/' + marketplacePath + '" style="display:inline-block;background:#0f766e;color:white;padding:13px 18px;border-radius:10px;text-decoration:none;font-weight:bold">Open in Cele One app</a></p><p><a href="https://play.google.com/store/apps/details?id=com.celeoneapp">Get the Cele One app</a></p></section>'
         : '';
-      const enhanced = injectMeta(html, meta, `${marketplacePreview}${mediaPreview}${snapshot}${storeLinks}`);
+      const mediaVideoSchema = config.mediaType === "videos" && item
+        ? `<script type="application/ld+json">${JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "VideoObject",
+            name: title,
+            description,
+            thumbnailUrl: image,
+            contentUrl: videoUrl || undefined,
+            embedUrl: canonicalUrl,
+            uploadDate: (() => {
+              const raw = item?.publishedAt || item?.uploadedAt || item?.createdAt || item?.releaseDate;
+              const date = raw && typeof raw === "object" && typeof raw.toDate === "function" ? raw.toDate() : raw ? new Date(raw) : null;
+              return date && !Number.isNaN(date.getTime()) ? date.toISOString() : undefined;
+            })(),
+            publisher: { "@type": "Organization", name: pickText(item, ["channelName", "publisherName", "creatorName"]) || "Cele One" },
+          }).replace(/</g, "\\u003c")}</script>`
+        : "";
+      const enhanced = injectMeta(html, meta, `${marketplacePreview}${mediaPreview}${snapshot}${storeLinks}`)
+        .replace("</head>", `${mediaVideoSchema}</head>`);
       return new Response(enhanced, { status: item ? 200 : 404, headers: { "content-type": "text/html; charset=UTF-8", "cache-control": item ? "public, max-age=30" : "no-store", "x-robots-tag": item ? "index, follow" : "noindex, nofollow" } });
     }
 

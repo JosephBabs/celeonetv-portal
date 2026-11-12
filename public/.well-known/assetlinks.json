@@ -1,0 +1,17 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.celeoneapp",
+      "sha256_cert_fingerprints": [
+        "A8:16:F4:8B:03:54:C3:AF:38:76:B1:23:24:94:D4:E8:CD:A7:87:89:C5:2B:35:71:A8:91:1D:60:3A:3B:B7:F2",
+        "F6:E7:9C:C1:52:97:F3:50:10:6B:19:D9:EE:67:92:63:D6:D9:75:AE:6A:00:6A:CA:AD:C9:FF:B2:1B:41:92:EE",
+        "0C:AB:08:33:86:6A:05:C2:2D:2E:50:D7:3F:56:35:31:04:12:29:46:25:94:73:05:0F:6E:60:71:38:2A:77:6E"
+      ]
+    }
+  }
+]
