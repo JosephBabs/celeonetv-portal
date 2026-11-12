@@ -386,7 +386,7 @@ function isSocialCrawler(request: Request) {
 
 function usesMobileWeb(pathname: string) {
   return pathname === "/"
-    || /^\/(?:accueil|social|notifications|discussions|documents|cantiques|bible|jeunesse|streaming|radio|carte-paroisses|agenda|evenements|profil|menu|connexion|inscription|diagnostic-api|posts|post|reels|live|videos|movies|songs|hymns|themes|weekly-themes|weekly-programs|spiritual-program|parishes)(?:\/|$)/.test(pathname)
+    || /^\/(?:accueil|social|notifications|discussions|documents|cantiques|bible|jeunesse|streaming|radio|carte-paroisses|agenda|evenements|profil|menu|connexion|inscription|diagnostic-api|posts?|reels|live|videos|movies|songs|hymns|themes|weekly-themes|weekly-programs|spiritual-program|parishes)(?:\/|$)/.test(pathname)
     || /^\/[^/]+\/live\/?$/.test(pathname);
 }
 
@@ -1049,7 +1049,7 @@ export default {
 
     // Serve the mobile web app for normal navigation. Keep the existing
     // route-specific snapshots only when a crawler opens a shareable URL.
-    const sharePreviewPath = /^\/(?:post|posts|social|reels|live|videos|songs|hymns|themes|weekly-themes|weekly-programs)\/[^/]+\/?$/.test(routePath);
+    const sharePreviewPath = /^\/(?:post|posts|social|reels|live|videos|songs|hymns|themes|weekly-themes|weekly-programs)(?:\/[^/]+)+\/?$/.test(routePath);
     if (method === "GET" && usesMobileWeb(routePath) && !(isSocialCrawler(request) && sharePreviewPath)) {
       if (localeInfo.locale) {
         return new Response(null, { status: 302, headers: { Location: `${routePath}${url.search}` } });
