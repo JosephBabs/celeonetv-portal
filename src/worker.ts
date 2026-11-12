@@ -375,7 +375,7 @@ function shouldUseAppShell(pathname: string) {
 
 function isStaticAssetPath(pathname: string) {
   return /\/[^/]+\.[^/]+$/.test(pathname)
-    || /^\/(?:assets|fonts|spark|docs|locales)(?:\/|$)/.test(pathname)
+    || /^\/(?:assets|fonts|spark|docs|locales|\.well-known)(?:\/|$)/.test(pathname)
     || /^\/(?:favicon\.png|logo\.png|logo\.jpeg|hero-image\.png|feature-img\.png|ads\.txt|robots\.txt|sitemap\.xml|google[^/]+\.html)$/.test(pathname);
 }
 
@@ -952,7 +952,7 @@ export default {
 
     const method = request.method.toUpperCase();
 
-    if (localeInfo.locale && isStaticAssetPath(routePath)) {
+    if (isStaticAssetPath(routePath) && (localeInfo.locale || routePath.startsWith("/.well-known/"))) {
       const assetUrl = new URL(request.url);
       assetUrl.pathname = routePath;
       return fetchAsset(new Request(assetUrl.toString(), request), env, assetUrl);
