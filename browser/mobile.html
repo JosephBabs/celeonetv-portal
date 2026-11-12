@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo-celeone.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0E8C7E" />
+    <title>CélèOne Web</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
+    <script>
+      // Thème appliqué avant le premier rendu pour éviter un flash clair en mode sombre.
+      try {
+        var saved = JSON.parse(localStorage.getItem('celeone-web-settings') || 'null');
+        var pref = saved && saved.s && saved.s.theme ? saved.s.theme : 'clair';
+        if (pref === 'sombre' || (pref === 'systeme' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
+    <style>
+      /* Loader de démarrage (avant le chargement du JavaScript) — même animation que le loader de l'application. */
+      #boot { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+        background: radial-gradient(circle at 50% 40%, #dcf0e8 0, #f3f6f5 60%); font-family: Nunito, Inter, Arial, sans-serif; transition: opacity .45s ease; }
+      .dark #boot { background: radial-gradient(circle at 50% 40%, #1b3633 0, #0a1312 60%); }
+      #boot.done { opacity: 0; pointer-events: none; }
+      #boot .logo { position: relative; width: 132px; height: 132px; }
+      #boot .halo { position: absolute; inset: -18px; border-radius: 50%; filter: blur(18px); opacity: .35;
+        background: conic-gradient(#e53935, #f57c00, #fbc02d, #43a047, #1e88e5, #3949ab, #8e24aa, #e53935); animation: bspin 3.2s linear infinite; }
+      #boot .disc { position: absolute; inset: -5px; border-radius: 50%; background: #fff; box-shadow: 0 18px 48px -12px rgba(16,40,36,.25); }
+      .dark #boot .disc { background: #131e1d; }
+      #boot svg { position: absolute; inset: 9px; width: 114px; height: 114px; }
+      #boot .arc, #boot .c { stroke-dasharray: 100; stroke-dashoffset: 100; animation: bdraw 2.6s cubic-bezier(.65,0,.35,1) infinite; }
+      #boot .c { animation-delay: .45s; }
+      #boot .dome { transform-box: fill-box; transform-origin: 50% 100%; animation: brise 2.6s cubic-bezier(.34,1.56,.64,1) infinite; }
+      #boot .dot { transform-box: fill-box; transform-origin: center; animation: bpop 2.6s ease-out infinite; }
+      #boot .one { transform-box: fill-box; animation: bslide 2.6s cubic-bezier(.34,1.56,.64,1) infinite; }
+      #boot .name { font-size: 24px; font-weight: 900; color: #063c36; letter-spacing: -.02em; }
+      #boot .name span { color: #0e8c7e; }
+      .dark #boot .name { color: #9ee8d6; }
+      #boot .bar { position: relative; width: 176px; height: 6px; border-radius: 99px; background: #e3eae8; overflow: hidden; }
+      .dark #boot .bar { background: #283533; }
+      #boot .bar i { position: absolute; top: 0; bottom: 0; width: 50%; border-radius: 99px; animation: bbar 1.3s cubic-bezier(.65,0,.35,1) infinite;
+        background: linear-gradient(90deg, #e53935, #f57c00, #fbc02d, #43a047, #1e88e5, #3949ab, #8e24aa); }
+      @keyframes bdraw { 0% { stroke-dashoffset: 100; } 38%, 78% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -100; } }
+      @keyframes brise { 0%, 12% { transform: scaleY(.2); opacity: 0; } 34%, 82% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(.9); opacity: 0; } }
+      @keyframes bpop { 0%, 30% { transform: scale(0); opacity: 0; } 45% { transform: scale(1.25); opacity: 1; } 55%, 82% { transform: scale(1); opacity: 1; } 100% { transform: scale(.6); opacity: 0; } }
+      @keyframes bslide { 0%, 34% { transform: translateY(40px); opacity: 0; } 52%, 82% { transform: none; opacity: 1; } 100% { transform: translateY(-10px); opacity: 0; } }
+      @keyframes bspin { to { transform: rotate(360deg); } }
+      @keyframes bbar { from { left: -50%; } to { left: 100%; } }
+      @media (prefers-reduced-motion: reduce) {
+        #boot * { animation: none !important; }
+        #boot .arc, #boot .c { stroke-dashoffset: 0; }
+        #boot .bar i { left: 25%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="boot" role="status" aria-label="Chargement de CélèOne">
+      <div class="logo">
+        <div class="halo"></div>
+        <div class="disc"></div>
+        <svg viewBox="0 0 512 512" aria-hidden="true">
+          <g fill="none" stroke-width="11.6">
+            <path class="arc" pathLength="100" d="M13.5 256a242.5 242.5 0 0 1 485 0" stroke="#E53935" style="animation-delay:0s" />
+            <path class="arc" pathLength="100" d="M24.5 256a231.5 231.5 0 0 1 463 0" stroke="#F57C00" style="animation-delay:.09s" />
+            <path class="arc" pathLength="100" d="M35.5 256a220.5 220.5 0 0 1 441 0" stroke="#FBC02D" style="animation-delay:.18s" />
+            <path class="arc" pathLength="100" d="M46.5 256a209.5 209.5 0 0 1 419 0" stroke="#43A047" style="animation-delay:.27s" />
+            <path class="arc" pathLength="100" d="M57.5 256a198.5 198.5 0 0 1 397 0" stroke="#1E88E5" style="animation-delay:.36s" />
+            <path class="arc" pathLength="100" d="M68.5 256a187.5 187.5 0 0 1 375 0" stroke="#3949AB" style="animation-delay:.45s" />
+            <path class="arc" pathLength="100" d="M79.5 256a176.5 176.5 0 0 1 353 0" stroke="#8E24AA" style="animation-delay:.54s" />
+          </g>
+          <path class="dome" d="M96 264a160 160 0 0 1 320 0h88a248 248 0 0 1-496 0z" fill="#0BA393" />
+          <path class="c" pathLength="100" d="M280.1 256.3a68 68 0 1 0 0 87.4" fill="none" stroke="#fff" stroke-width="40" />
+          <circle class="dot" cx="228" cy="300" r="20" fill="#fff" />
+          <path class="one" d="M306 250l58-12v154h-36V280l-22 4z" fill="#fff" />
+        </svg>
+      </div>
+      <div class="name">Cèlè<span>One</span></div>
+      <div class="bar"><i></i></div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

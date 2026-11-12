@@ -1054,7 +1054,7 @@ export default {
       if (localeInfo.locale) {
         return new Response(null, { status: 302, headers: { Location: `${routePath}${url.search}` } });
       }
-      const mobileUrl = new URL("/mobile/index.html", url.origin);
+      const mobileUrl = new URL("/mobile.html", url.origin);
       const mobileRequest = new Request(mobileUrl.toString(), request);
       const mobileRes = await fetchAsset(mobileRequest, env, mobileUrl);
       const headers = new Headers(mobileRes.headers);

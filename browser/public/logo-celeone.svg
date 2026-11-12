@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="CélèOne">
+  <g fill="none" stroke-width="11.6">
+    <path d="M13.5 256a242.5 242.5 0 0 1 485 0" stroke="#E53935"/>
+    <path d="M24.5 256a231.5 231.5 0 0 1 463 0" stroke="#F57C00"/>
+    <path d="M35.5 256a220.5 220.5 0 0 1 441 0" stroke="#FBC02D"/>
+    <path d="M46.5 256a209.5 209.5 0 0 1 419 0" stroke="#43A047"/>
+    <path d="M57.5 256a198.5 198.5 0 0 1 397 0" stroke="#1E88E5"/>
+    <path d="M68.5 256a187.5 187.5 0 0 1 375 0" stroke="#3949AB"/>
+    <path d="M79.5 256a176.5 176.5 0 0 1 353 0" stroke="#8E24AA"/>
+  </g>
+  <path d="M96 264a160 160 0 0 1 320 0h88a248 248 0 0 1-496 0z" fill="#0BA393"/>
+  <path d="M280.1 256.3a68 68 0 1 0 0 87.4" fill="none" stroke="#fff" stroke-width="40"/>
+  <circle cx="228" cy="300" r="20" fill="#fff"/>
+  <path d="M306 250l58-12v154h-36V280l-22 4z" fill="#fff"/>
+</svg>

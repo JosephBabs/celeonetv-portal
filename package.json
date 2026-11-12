@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && npm --prefix browser ci --prefer-offline && npm --prefix browser run build",
+    "build": "tsc -b && vite build && npm --prefix browser ci --prefer-offline && npm --prefix browser run build && node scripts/merge-mobile-build.mjs",
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview",
