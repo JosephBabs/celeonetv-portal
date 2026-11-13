@@ -33,7 +33,7 @@ export function ThemeSemainePage() {
   if (!theme) return <MenuShell><div className="card rounded-3xl"><EmptyState icon={BookOpen} title="Aucun thème publié pour le moment" text="Le thème de la semaine apparaîtra ici dès sa publication." /></div></MenuShell>;
   return (
     <MenuShell description={[theme.week && `Semaine ${theme.week}`, theme.period].filter(Boolean).join(' · ') || undefined} actions={<IconButton icon={Share2} label="Partager" onClick={() => openShare({ title: `Thème de la semaine : ${theme.title}`, url: '/menu/calendrier/theme-semaine' })} />}>
-      <div className="mb-4 rounded-3xl bg-[linear-gradient(120deg,#0a6b60,#14a394)] p-6 text-white shadow-md">
+      <div className="mb-4 rounded-3xl bg-[linear-gradient(120deg,#0B565A,#2FA5A9)] p-6 text-white shadow-md">
         <p className="text-sm text-white/75">Thème de la semaine</p>
         <h2 className="font-display text-[34px] font-black leading-tight">{theme.title}</h2>
         {theme.readings.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{theme.readings.map((r) => <Link key={r.ref} to={r.to ?? '/bible'} className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold hover:bg-white/25"><BookOpen size={14} /> {r.ref}</Link>)}</div>}

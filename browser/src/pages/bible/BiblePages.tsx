@@ -60,7 +60,7 @@ export function BibleHomePage() {
     <div className="pb-16">
       <SectionHeader title="Bible Center" subtitle={`Bible complète · ${bibleLanguages.find((l) => l.id === lang)?.label}`} />
       {recentBook && (
-        <Link to={`/bible/${recentRef![0]}/${recentRef![1]}`} className="mb-4 flex items-center gap-4 rounded-3xl bg-[linear-gradient(120deg,#0a6b60,#14a394)] p-5 text-white shadow-md transition hover:shadow-lg">
+        <Link to={`/bible/${recentRef![0]}/${recentRef![1]}`} className="mb-4 flex items-center gap-4 rounded-3xl bg-[linear-gradient(120deg,#0B565A,#2FA5A9)] p-5 text-white shadow-md transition hover:shadow-lg">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15"><BookOpen size={22} /></span>
           <span className="flex-1">
             <span className="block text-xs text-white/75">Reprendre la lecture</span>
@@ -114,7 +114,7 @@ export function BibleBookPage() {
   return (
     <div className="pb-16">
       <Breadcrumb items={[{ label: 'Bible Center', to: '/bible' }, { label: book.name }]} />
-      <div className="mb-5 rounded-3xl bg-[linear-gradient(120deg,#0a6b60,#14a394)] p-6 text-white shadow-md">
+      <div className="mb-5 rounded-3xl bg-[linear-gradient(120deg,#0B565A,#2FA5A9)] p-6 text-white shadow-md">
         <p className="text-sm text-white/75">{book.testament === 'ancien' ? 'Ancien' : 'Nouveau'} Testament</p>
         <h1 className="font-display text-[34px] font-black leading-tight">{book.name}</h1>
         <p className="text-sm text-white/80">{book.chapters} chapitre{book.chapters > 1 ? 's' : ''}</p>

@@ -61,7 +61,7 @@ function PasswordInput({ value, onChange, error, placeholder = '•••••�
 
 function PromoPanel() {
   return (
-    <section className="relative hidden overflow-hidden bg-[linear-gradient(150deg,#063c36,#0a6b60_45%,#0e8c7e)] lg:flex lg:w-[54%] lg:flex-col lg:justify-between lg:p-12 xl:p-16">
+    <section className="relative hidden overflow-hidden bg-[linear-gradient(150deg,#063c36,#0B565A_45%,#1D8A8F)] lg:flex lg:w-[54%] lg:flex-col lg:justify-between lg:p-12 xl:p-16">
       <div className="pointer-events-none absolute -left-24 top-1/3 h-[420px] w-[420px] rounded-full bg-brand-400/20 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 -top-24 h-[360px] w-[360px] rounded-full border-[40px] border-white/[0.05]" />
       <Logo light to="/connexion" />
@@ -83,7 +83,7 @@ function PromoPanel() {
         </div>
         {/* Carte Live TV */}
         <div className="absolute right-0 top-0 w-[250px] animate-float overflow-hidden rounded-3xl bg-night shadow-lg">
-          <div className="relative flex aspect-video items-center justify-center bg-[linear-gradient(135deg,#0e8c7e,#063c36)]">
+          <div className="relative flex aspect-video items-center justify-center bg-[linear-gradient(135deg,#1D8A8F,#063c36)]">
             <LogoMark className="h-14 w-14 opacity-90" />
             <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-danger px-2 py-0.5 text-[10px] font-black text-white">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> EN DIRECT

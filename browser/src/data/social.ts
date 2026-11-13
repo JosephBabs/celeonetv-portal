@@ -3,11 +3,11 @@ import type { LiveSession, Post, Status, TextBackground, Vibe } from './types';
 
 export const textBackgrounds: TextBackground[] = [
   { id: 'menthe', label: 'Menthe', css: 'linear-gradient(135deg,#5fa89c,#7cc79a)' },
-  { id: 'teal', label: 'Teal', css: 'linear-gradient(135deg,#0a6b60,#14a394)' },
+  { id: 'teal', label: 'Teal', css: 'linear-gradient(135deg,#0B565A,#2FA5A9)' },
   { id: 'aube', label: 'Aube', css: 'linear-gradient(135deg,#f6a35b,#e0567a)' },
-  { id: 'nuit', label: 'Nuit', css: 'linear-gradient(135deg,#0f1b2d,#3949ab)' },
+  { id: 'nuit', label: 'Nuit', css: 'linear-gradient(135deg,#0f1b2d,#4C6FFF)' },
   { id: 'ciel', label: 'Ciel', css: 'linear-gradient(135deg,#4facde,#7f7fd5)' },
-  { id: 'arc', label: 'Arc-en-ciel', css: 'linear-gradient(120deg,#e53935,#fbc02d,#43a047,#1e88e5,#8e24aa)' },
+  { id: 'arc', label: 'Arc-en-ciel', css: 'linear-gradient(120deg,#FF3B5C,#FFD60A,#2ED47A,#2FA5A9,#9B5CFF)' },
   { id: 'or', label: 'Or', css: 'linear-gradient(135deg,#c9921c,#f7d774)' },
 ];
 

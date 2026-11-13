@@ -53,7 +53,7 @@ function CurrentWeekCard({ week, onProgram }: { week: ThemeWeek; onProgram: () =
   }, [week.days.length]);
 
   return (
-    <section className="relative overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#0a6b60,#0e8c7e_60%,#14a394)] p-6 text-white shadow-lg">
+    <section className="relative overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#0B565A,#1D8A8F_60%,#2FA5A9)] p-6 text-white shadow-lg">
       <span className="pointer-events-none absolute -bottom-16 -right-10 h-56 w-56 rounded-full border-[22px] border-white/[0.06]" />
       <div className="flex items-start gap-4">
         <div className="min-w-0 flex-1">

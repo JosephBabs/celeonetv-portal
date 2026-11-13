@@ -6,7 +6,7 @@ const media = () => window.matchMedia('(prefers-color-scheme: dark)');
 export function applyTheme(pref: ThemePref) {
   const dark = pref === 'sombre' || (pref === 'systeme' && media().matches);
   document.documentElement.classList.toggle('dark', dark);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0a1312' : '#0E8C7E');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#061D20' : '#0B565A');
   return dark;
 }
 

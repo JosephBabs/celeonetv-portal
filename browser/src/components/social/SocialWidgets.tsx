@@ -450,7 +450,7 @@ export function LiveSection({ onGoLive }: { onGoLive: () => void }) {
         <Button variant="danger" size="sm" icon={Video} onClick={onGoLive}>Faire un Live</Button>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
-        <button onClick={onGoLive} className="flex h-[150px] w-[130px] shrink-0 flex-col justify-between rounded-2xl bg-[linear-gradient(160deg,#0a6b60,#14a394)] p-3.5 text-left text-white shadow-sm transition hover:shadow-md">
+        <button onClick={onGoLive} className="flex h-[150px] w-[130px] shrink-0 flex-col justify-between rounded-2xl bg-[linear-gradient(160deg,#0B565A,#2FA5A9)] p-3.5 text-left text-white shadow-sm transition hover:shadow-md">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20"><Video size={19} /></span>
           <span className="font-display text-lg font-black">Go Live</span>
         </button>
@@ -494,7 +494,7 @@ export function VibesStrip({ onCreate }: { onCreate: () => void }) {
         <p className="rounded-2xl bg-surface p-6 text-center text-sm text-ink-muted">Aucun Cele Vibe pour le moment — soyez le premier à publier</p>
       ) : (
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
-          <button onClick={onCreate} className="flex h-[200px] w-[130px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl bg-[linear-gradient(160deg,#0a6b60,#14a394)] p-3 text-center text-white shadow-sm transition hover:shadow-md">
+          <button onClick={onCreate} className="flex h-[200px] w-[130px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl bg-[linear-gradient(160deg,#0B565A,#2FA5A9)] p-3 text-center text-white shadow-sm transition hover:shadow-md">
             <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/40 bg-white/15"><Plus size={24} /></span>
             <span className="font-display text-[17px] font-black leading-tight">Publier un Cele Vibe</span>
           </button>

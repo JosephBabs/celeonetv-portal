@@ -101,7 +101,7 @@ export function BarChart({ title, data, unit = '', height = 180 }: { title: stri
               return (
                 <g key={d.label} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
                   <rect x={pad.l + i * bw} y={pad.t} width={bw} height={H - pad.t - pad.b} fill="transparent" />
-                  <path d={`M${x},${H - pad.b} V${top + r} Q${x},${top} ${x + r},${top} H${x + w - r} Q${x + w},${top} ${x + w},${top + r} V${H - pad.b} Z`} fill="#0E8C7E" opacity={hover === null || hover === i ? 1 : 0.55} />
+                  <path d={`M${x},${H - pad.b} V${top + r} Q${x},${top} ${x + r},${top} H${x + w - r} Q${x + w},${top} ${x + w},${top + r} V${H - pad.b} Z`} fill="#1D8A8F" opacity={hover === null || hover === i ? 1 : 0.55} />
                   <text x={pad.l + i * bw + bw / 2} y={H - 8} textAnchor="middle" fontSize="10" fill="rgb(var(--ink-muted))">{d.label}</text>
                 </g>
               );

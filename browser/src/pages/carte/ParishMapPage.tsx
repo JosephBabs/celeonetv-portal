@@ -24,9 +24,9 @@ const pin = (active: boolean) =>
     iconSize: [34, 44],
     iconAnchor: [17, 42],
     html: `<div style="width:34px;height:44px;display:flex;align-items:flex-start;justify-content:center;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))">
-      <svg width="34" height="44" viewBox="0 0 34 44"><path d="M17 0C7.6 0 0 7.4 0 16.6 0 29 17 44 17 44s17-15 17-27.4C34 7.4 26.4 0 17 0z" fill="${active ? '#0f1b2d' : '#0e8c7e'}"/><circle cx="17" cy="16" r="7" fill="white"/></svg></div>`,
+      <svg width="34" height="44" viewBox="0 0 34 44"><path d="M17 0C7.6 0 0 7.4 0 16.6 0 29 17 44 17 44s17-15 17-27.4C34 7.4 26.4 0 17 0z" fill="${active ? '#0f1b2d' : '#1D8A8F'}"/><circle cx="17" cy="16" r="7" fill="white"/></svg></div>`,
   });
-const meIcon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11], html: '<div style="width:22px;height:22px;border-radius:50%;background:#1e88e5;border:4px solid white;box-shadow:0 0 0 6px rgba(30,136,229,.25)"></div>' });
+const meIcon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11], html: '<div style="width:22px;height:22px;border-radius:50%;background:#2FA5A9;border:4px solid white;box-shadow:0 0 0 6px rgba(30,136,229,.25)"></div>' });
 
 function FlyTo({ target, zoom = 13 }: { target: LatLng | null; zoom?: number }) {
   const map = useMap();
@@ -192,7 +192,7 @@ export function ParishMapPage() {
           <Marker key={p.id} position={[p.lat, p.lng]} icon={pin(selected?.id === p.id || target?.id === p.id)} eventHandlers={{ click: () => select(p) }} title={p.name} />
         ))}
         {me && <Marker position={[me.lat, me.lng]} icon={meIcon} title="Ma position" />}
-        {route && start && target && <Polyline positions={[[start.pos.lat, start.pos.lng], [target.lat, target.lng]]} pathOptions={{ color: '#0e8c7e', weight: 6, dashArray: '2 10', lineCap: 'round' }} />}
+        {route && start && target && <Polyline positions={[[start.pos.lat, start.pos.lng], [target.lat, target.lng]]} pathOptions={{ color: '#1D8A8F', weight: 6, dashArray: '2 10', lineCap: 'round' }} />}
         <FlyTo target={flyTarget} />
         {data.remote && <FitAll points={located} skip={!!wanted} />}
         {route && <FitRoute a={start?.pos ?? null} b={target} />}

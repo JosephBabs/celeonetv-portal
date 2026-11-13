@@ -4,7 +4,7 @@ import type { SceneVariant } from '@/data/types';
 import { cn } from '@/lib/utils';
 
 const scenes: Record<SceneVariant, { bg: string; icon: typeof Sun; label: string }> = {
-  choir: { bg: 'linear-gradient(160deg,#1e3a8a,#0e8c7e 70%,#facc15)', icon: Music2, label: 'Chorale' },
+  choir: { bg: 'linear-gradient(160deg,#1e3a8a,#1D8A8F 70%,#facc15)', icon: Music2, label: 'Chorale' },
   sunrise: { bg: 'linear-gradient(180deg,#ffb26b 0%,#f2706b 45%,#4b3f72 100%)', icon: Sun, label: 'Lever du jour' },
   drums: { bg: 'linear-gradient(150deg,#1d4ed8,#facc15 65%,#1d4ed8)', icon: Drum, label: 'Tambours' },
   prayer: { bg: 'linear-gradient(170deg,#c7d2fe,#e0f2fe 40%,#94a3b8)', icon: Mic2, label: 'Louange' },

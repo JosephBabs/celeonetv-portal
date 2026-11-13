@@ -36,6 +36,7 @@ const JeunesseHomePage = page(() => import('@/pages/jeunesse/JeunessePages'), 'J
 const JeunesseResultsPage = page(() => import('@/pages/jeunesse/JeunessePages'), 'JeunesseResultsPage');
 const JeunesseQuizPage = page(() => import('@/pages/jeunesse/JeunessePages'), 'JeunesseQuizPage');
 const JeunesseRegistrationPage = page(() => import('@/pages/jeunesse/JeunessePages'), 'JeunesseRegistrationPage');
+const LiveRoute = page(() => import('@/pages/social/LiveViewerPage'), 'LiveRoute');
 const StreamingPage = page(() => import('@/pages/streaming/StreamingPage'), 'StreamingPage');
 const RadioPage = page(() => import('@/pages/radio/RadioPage'), 'RadioPage');
 const ParishMapPage = page(() => import('@/pages/carte/ParishMapPage'), 'ParishMapPage');
@@ -72,7 +73,7 @@ export default function App() {
           <Route path="/post/:postId" element={<SharedPostPage />} />
           <Route path="/social/:contentId" element={<SharedPostPage />} />
           <Route path="/reels/:reelId" element={<SharedPostPage />} />
-          <Route path="/live/:liveId" element={<StreamingPage />} />
+          <Route path="/live/:liveId" element={<LiveRoute />} />
           <Route path="/videos/:videoId" element={<StreamingPage />} />
           <Route path="/movies/:videoId" element={<StreamingPage />} />
           <Route path="/:channelName/live" element={<StreamingPage />} />

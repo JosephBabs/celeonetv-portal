@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────── Design tokens CélèOne (valeurs RGB pour l'opacité Tailwind) ───────────── */
+:root {
+  --brand-50: 238 248 248;
+  --brand-100: 221 241 241;
+  --brand-200: 184 226 227;
+  --brand-300: 133 205 207;
+  --brand-400: 84 184 187;
+  --brand-500: 47 165 169;
+  --brand-600: 29 138 143;
+  --brand-700: 17 106 110;
+  --brand-800: 11 86 90;
+  --brand-900: 6 56 60;
+
+  --mint-50: 244 251 251;
+  --mint-100: 234 246 246;
+  --mint-200: 224 240 240;
+  --mint-300: 197 228 228;
+
+  --night: 7 28 31;
+  --night-700: 11 59 61;
+  --night-600: 20 80 84;
+
+  --gold-50: 255 248 225;
+  --gold-100: 255 238 186;
+  --gold-500: 242 182 50;
+  --gold-700: 150 104 10;
+
+  --ink: 16 24 40;
+  --ink-soft: 52 64 84;
+  --ink-muted: 102 112 133;
+  --ink-faint: 152 162 179;
+
+  --line: 234 236 240;
+  --line-strong: 208 213 221;
+  --canvas: 242 246 246;
+  --surface: 255 255 255;
+  --surface-sunken: 238 242 244;
+
+  --danger-50: 253 236 236;
+  --danger: 217 45 32;
+  --danger-700: 180 35 24;
+  --warning-50: 254 245 226;
+  --warning: 232 169 58;
+  --lavender-50: 236 238 252;
+  --lavender: 76 111 255;
+  --violet-50: 243 236 254;
+  --violet: 155 92 255;
+  --orange-50: 255 242 228;
+  --orange: 196 106 18;
+
+  --rainbow: linear-gradient(90deg, #FF3B5C, #FF9F1C, #FFD60A, #2ED47A, #2FA5A9, #4C6FFF, #9B5CFF);
+  --header-h: 64px;
+  color-scheme: light;
+}
+
+/* ───────────── Mode sombre : mêmes rôles, valeurs propres au thème (pas une inversion automatique) ───────────── */
+:root.dark {
+  --brand-50: 8 36 39;
+  --brand-100: 12 52 56;
+  --brand-200: 20 78 84;
+  --brand-300: 40 116 122;
+  --mint-50: 10 30 33;
+  --mint-100: 14 40 44;
+  --mint-200: 20 54 58;
+  --mint-300: 28 74 80;
+  --night: 47 64 94;
+  --night-700: 60 80 114;
+  --night-600: 78 98 134;
+  --gold-50: 50 40 16;
+  --gold-100: 80 62 20;
+  --gold-700: 244 198 104;
+  --ink: 236 242 244;
+  --ink-soft: 208 216 220;
+  --ink-muted: 152 166 172;
+  --ink-faint: 112 128 134;
+  --line: 26 58 62;
+  --line-strong: 40 76 82;
+  --canvas: 6 29 32;
+  --surface: 11 36 39;
+  --surface-sunken: 16 48 52;
+  --danger-50: 62 24 26;
+  --danger-700: 255 142 142;
+  --warning-50: 58 44 16;
+  --lavender-50: 32 36 70;
+  --lavender: 172 180 255;
+  --violet-50: 44 30 70;
+  --violet: 198 172 255;
+  --orange-50: 62 40 16;
+  --orange: 255 172 92;
+  color-scheme: dark;
+}
+:root.dark .text-brand-900, :root.dark .text-brand-800 { color: rgb(158 232 214); }
+:root.dark .text-brand-700 { color: rgb(116 216 194); }
+:root.dark .text-brand-600 { color: rgb(64 196 176); }
+:root.dark .text-night { color: rgb(15 27 45); }
+:root.dark .leaflet-tile-pane { filter: brightness(0.82) invert(1) contrast(0.92) hue-rotate(180deg) saturate(0.6); }
+:root.dark .shadow-sm, :root.dark .shadow-md, :root.dark .shadow-lg { --tw-shadow-color: rgb(0 0 0 / 0.5); }
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    @apply bg-canvas font-sans text-body text-ink antialiased;
+    min-width: 320px;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 { @apply font-display; letter-spacing: -0.01em; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid rgb(var(--brand-600)); outline-offset: 2px; border-radius: 8px; }
+  ::selection { background: rgb(var(--brand-200)); }
+  /* Edge/IE ajoutent leur propre bouton « afficher le mot de passe » : l'application fournit déjà le sien. */
+  input::-ms-reveal, input::-ms-clear { display: none; }
+  * { scrollbar-width: thin; scrollbar-color: rgb(var(--line-strong)) transparent; }
+}
+
+@layer components {
+  .card { @apply rounded-[20px] border border-line/70 bg-surface shadow-sm; }
+  .card-hover { @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-md; }
+  .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.08em] text-brand-600; }
+  .icon-tile { @apply inline-flex shrink-0 items-center justify-center rounded-md bg-mint-100 text-brand-700; }
+  .rainbow-bar { background: var(--rainbow); }
+  .rainbow-text { background: var(--rainbow); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .rainbow-ring { background: conic-gradient(from 200deg, #FF3B5C, #FF9F1C, #FFD60A, #2ED47A, #2FA5A9, #4C6FFF, #9B5CFF, #FF3B5C); }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .skeleton { @apply relative overflow-hidden rounded-md bg-surface-sunken; }
+  .skeleton::after { content: ''; @apply absolute inset-0 -translate-x-full animate-shimmer; background: linear-gradient(90deg, transparent, rgb(var(--surface) / 0.7), transparent); }
+  .field {
+    @apply h-11 w-full rounded-md border border-line bg-surface px-3.5 text-body text-ink outline-none transition placeholder:text-ink-faint;
+    @apply hover:border-line-strong focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15;
+  }
+  .field-error { @apply border-danger focus:border-danger focus:ring-danger/15; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* ───────────── Loader CélèOne ───────────── */
+@keyframes co-draw { 0% { stroke-dashoffset: 100; } 38%, 78% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -100; } }
+@keyframes co-rise { 0%, 12% { transform: scaleY(0.2); opacity: 0; } 34%, 82% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(0.9); opacity: 0; } }
+@keyframes co-pop { 0%, 30% { transform: scale(0); opacity: 0; } 45% { transform: scale(1.25); opacity: 1; } 55%, 82% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.6); opacity: 0; } }
+@keyframes co-slide { 0%, 34% { transform: translateY(40px); opacity: 0; } 52%, 82% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-10px); opacity: 0; } }
+@keyframes co-spin { to { transform: rotate(360deg); } }
+@keyframes co-bar { 0% { left: -50%; } 100% { left: 100%; } }
+.co-loader .co-arc { stroke-dasharray: 100; stroke-dashoffset: 100; animation: co-draw 2.6s cubic-bezier(.65,0,.35,1) infinite; }
+.co-loader .co-dome { transform-box: fill-box; transform-origin: 50% 100%; animation: co-rise 2.6s cubic-bezier(.34,1.56,.64,1) infinite; }
+.co-loader .co-c { stroke-dasharray: 100; stroke-dashoffset: 100; animation: co-draw 2.6s cubic-bezier(.65,0,.35,1) .45s infinite; }
+.co-loader .co-dot { transform-box: fill-box; transform-origin: center; animation: co-pop 2.6s ease-out infinite; }
+.co-loader .co-one { transform-box: fill-box; animation: co-slide 2.6s cubic-bezier(.34,1.56,.64,1) infinite; }
+.co-halo { background: conic-gradient(from 0deg, #FF3B5C, #FF9F1C, #FFD60A, #2ED47A, #2FA5A9, #4C6FFF, #9B5CFF, #FF3B5C); filter: blur(18px); opacity: .35; animation: co-spin 3.2s linear infinite; }
+.co-bar { background: var(--rainbow); animation: co-bar 1.3s cubic-bezier(.65,0,.35,1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .co-loader .co-arc, .co-loader .co-c { animation: none !important; stroke-dashoffset: 0; }
+  .co-loader .co-dome, .co-loader .co-dot, .co-loader .co-one { animation: none !important; opacity: 1; transform: none; }
+  .co-halo, .co-bar { animation: none !important; }
+  .co-bar { left: 25%; }
+}

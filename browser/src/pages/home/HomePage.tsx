@@ -11,6 +11,7 @@ import { useApp } from '@/store/app';
 import { ui } from '@/store/ui';
 import { PostCard, PostDetailModal } from '@/components/feed/PostCard';
 import { RemoteFeed } from '@/components/feed/RemoteFeed';
+import { LiveRail } from '@/components/live/LiveRail';
 import { QuickAccessGrid } from '@/layout/RightRail';
 import { EmptyState, PostSkeleton } from '@/components/ui/Feedback';
 import { IconButton } from '@/components/ui/Button';
@@ -100,7 +101,7 @@ function WeeklyThemeCard() {
   if (!weeklyTheme) return null;
   return (
     <>
-      <button onClick={() => navigate('/menu/calendrier/theme-semaine')} className="group relative mb-4 flex w-full items-center gap-3 overflow-hidden rounded-3xl sm:gap-4 bg-[linear-gradient(120deg,#0a6b60,#0e8c7e_55%,#14a394)] p-5 text-left text-white shadow-md transition hover:shadow-lg">
+      <button onClick={() => navigate('/menu/calendrier/theme-semaine')} className="group relative mb-4 flex w-full items-center gap-3 overflow-hidden rounded-3xl sm:gap-4 bg-[linear-gradient(120deg,#0B565A,#1D8A8F_55%,#2FA5A9)] p-5 text-left text-white shadow-md transition hover:shadow-lg">
         <span className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full border-[18px] border-white/[0.06]" />
         <span className="pointer-events-none absolute -bottom-20 right-24 h-40 w-40 rounded-full bg-white/[0.05]" />
         <ProgressRing value={dayOfWeek / 7} />
@@ -241,6 +242,7 @@ export function HomePage() {
     <div>
       <HomeTabs value={tab} onChange={setTab} />
       <div className="mt-2">
+        <LiveRail />
         <WeeklyThemeCard />
         <div className="mb-5 xl:hidden">
           <QuickAccessGrid columns={4} />

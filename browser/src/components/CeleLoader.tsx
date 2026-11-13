@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const arcs = ['#E53935', '#F57C00', '#FBC02D', '#43A047', '#1E88E5', '#3949AB', '#8E24AA'];
+const arcs = ['#FF3B5C', '#FF9F1C', '#FFD60A', '#2ED47A', '#2FA5A9', '#4C6FFF', '#9B5CFF'];
 
 /** Logo CélèOne animé : l'arc-en-ciel se dessine bande par bande, puis le dôme et le « C1 » apparaissent. */
 export function CeleLogoAnimated({ size = 120, className }: { size?: number; className?: string }) {

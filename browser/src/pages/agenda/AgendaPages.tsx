@@ -195,7 +195,7 @@ export function AgendaPage() {
   return (
     <div className="pb-16">
       <PageHeading eyebrow="Rappels & voyages" title="Agenda Cèlè One" right={<IconButton icon={Map} label="Carte des paroisses" variant="soft" shape="square" to="/carte-paroisses" />} />
-      <div className="mb-4 flex flex-col gap-4 rounded-3xl bg-[linear-gradient(120deg,#0a6b60,#14a394)] p-5 text-white sm:flex-row sm:items-center">
+      <div className="mb-4 flex flex-col gap-4 rounded-3xl bg-[linear-gradient(120deg,#0B565A,#2FA5A9)] p-5 text-white sm:flex-row sm:items-center">
         <div className="flex-1">
           <p className="font-display text-xl font-black">Créer une alerte</p>
           <p className="text-sm text-white/80">Services d’Église, circuits, visites de fête ou rappels personnels : ne manquez plus rien.</p>

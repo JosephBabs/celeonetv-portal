@@ -4,84 +4,84 @@
 
 /* ───────────── Design tokens CélèOne (valeurs RGB pour l'opacité Tailwind) ───────────── */
 :root {
-  --brand-50: 240 250 247;
-  --brand-100: 222 244 237;
-  --brand-200: 189 232 219;
-  --brand-300: 136 210 192;
-  --brand-400: 52 178 160;
-  --brand-500: 17 160 145;
-  --brand-600: 14 140 126;
-  --brand-700: 10 107 96;
-  --brand-800: 7 84 75;
-  --brand-900: 6 60 54;
+  --brand-50: 238 248 248;
+  --brand-100: 221 241 241;
+  --brand-200: 184 226 227;
+  --brand-300: 133 205 207;
+  --brand-400: 84 184 187;
+  --brand-500: 47 165 169;
+  --brand-600: 29 138 143;
+  --brand-700: 17 106 110;
+  --brand-800: 11 86 90;
+  --brand-900: 6 56 60;
 
-  --mint-50: 244 251 248;
-  --mint-100: 234 247 241;
-  --mint-200: 220 240 232;
-  --mint-300: 190 230 205;
+  --mint-50: 244 251 251;
+  --mint-100: 234 246 246;
+  --mint-200: 224 240 240;
+  --mint-300: 197 228 228;
 
-  --night: 15 27 45;
-  --night-700: 27 41 64;
-  --night-600: 44 61 89;
+  --night: 7 28 31;
+  --night-700: 11 59 61;
+  --night-600: 20 80 84;
 
   --gold-50: 255 248 225;
   --gold-100: 255 238 186;
   --gold-500: 242 182 50;
   --gold-700: 150 104 10;
 
-  --ink: 20 35 31;
-  --ink-soft: 47 64 60;
-  --ink-muted: 91 107 103;
-  --ink-faint: 145 158 155;
+  --ink: 16 24 40;
+  --ink-soft: 52 64 84;
+  --ink-muted: 102 112 133;
+  --ink-faint: 152 162 179;
 
-  --line: 227 234 232;
-  --line-strong: 208 218 215;
-  --canvas: 243 246 245;
+  --line: 234 236 240;
+  --line-strong: 208 213 221;
+  --canvas: 242 246 246;
   --surface: 255 255 255;
-  --surface-sunken: 240 243 242;
+  --surface-sunken: 238 242 244;
 
   --danger-50: 253 236 236;
-  --danger: 226 76 76;
-  --danger-700: 176 45 45;
+  --danger: 217 45 32;
+  --danger-700: 180 35 24;
   --warning-50: 254 245 226;
   --warning: 232 169 58;
   --lavender-50: 236 238 252;
-  --lavender: 72 82 178;
+  --lavender: 76 111 255;
   --violet-50: 243 236 254;
-  --violet: 124 77 219;
+  --violet: 155 92 255;
   --orange-50: 255 242 228;
   --orange: 196 106 18;
 
-  --rainbow: linear-gradient(90deg, #e53935, #f57c00, #fbc02d, #43a047, #1e88e5, #3949ab, #8e24aa);
+  --rainbow: linear-gradient(90deg, #FF3B5C, #FF9F1C, #FFD60A, #2ED47A, #2FA5A9, #4C6FFF, #9B5CFF);
   --header-h: 64px;
   color-scheme: light;
 }
 
 /* ───────────── Mode sombre : mêmes rôles, valeurs propres au thème (pas une inversion automatique) ───────────── */
 :root.dark {
-  --brand-50: 12 38 35;
-  --brand-100: 16 52 47;
-  --brand-200: 26 78 70;
-  --brand-300: 46 116 104;
-  --mint-50: 15 29 28;
-  --mint-100: 20 40 38;
-  --mint-200: 27 54 51;
-  --mint-300: 34 74 67;
+  --brand-50: 8 36 39;
+  --brand-100: 12 52 56;
+  --brand-200: 20 78 84;
+  --brand-300: 40 116 122;
+  --mint-50: 10 30 33;
+  --mint-100: 14 40 44;
+  --mint-200: 20 54 58;
+  --mint-300: 28 74 80;
   --night: 47 64 94;
   --night-700: 60 80 114;
   --night-600: 78 98 134;
   --gold-50: 50 40 16;
   --gold-100: 80 62 20;
   --gold-700: 244 198 104;
-  --ink: 232 240 238;
-  --ink-soft: 203 214 211;
-  --ink-muted: 152 168 164;
-  --ink-faint: 112 128 124;
-  --line: 40 53 51;
-  --line-strong: 58 73 70;
-  --canvas: 10 19 18;
-  --surface: 19 30 29;
-  --surface-sunken: 27 40 39;
+  --ink: 236 242 244;
+  --ink-soft: 208 216 220;
+  --ink-muted: 152 166 172;
+  --ink-faint: 112 128 134;
+  --line: 26 58 62;
+  --line-strong: 40 76 82;
+  --canvas: 6 29 32;
+  --surface: 11 36 39;
+  --surface-sunken: 16 48 52;
   --danger-50: 62 24 26;
   --danger-700: 255 142 142;
   --warning-50: 58 44 16;
@@ -119,13 +119,13 @@
 }
 
 @layer components {
-  .card { @apply rounded-xl border border-line/70 bg-surface shadow-sm; }
+  .card { @apply rounded-[20px] border border-line/70 bg-surface shadow-sm; }
   .card-hover { @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-md; }
   .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.08em] text-brand-600; }
   .icon-tile { @apply inline-flex shrink-0 items-center justify-center rounded-md bg-mint-100 text-brand-700; }
   .rainbow-bar { background: var(--rainbow); }
   .rainbow-text { background: var(--rainbow); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .rainbow-ring { background: conic-gradient(from 200deg, #e53935, #f57c00, #fbc02d, #43a047, #1e88e5, #3949ab, #8e24aa, #e53935); }
+  .rainbow-ring { background: conic-gradient(from 200deg, #FF3B5C, #FF9F1C, #FFD60A, #2ED47A, #2FA5A9, #4C6FFF, #9B5CFF, #FF3B5C); }
   .scrollbar-none { scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
   .skeleton { @apply relative overflow-hidden rounded-md bg-surface-sunken; }
@@ -153,7 +153,7 @@
 .co-loader .co-c { stroke-dasharray: 100; stroke-dashoffset: 100; animation: co-draw 2.6s cubic-bezier(.65,0,.35,1) .45s infinite; }
 .co-loader .co-dot { transform-box: fill-box; transform-origin: center; animation: co-pop 2.6s ease-out infinite; }
 .co-loader .co-one { transform-box: fill-box; animation: co-slide 2.6s cubic-bezier(.34,1.56,.64,1) infinite; }
-.co-halo { background: conic-gradient(from 0deg, #e53935, #f57c00, #fbc02d, #43a047, #1e88e5, #3949ab, #8e24aa, #e53935); filter: blur(18px); opacity: .35; animation: co-spin 3.2s linear infinite; }
+.co-halo { background: conic-gradient(from 0deg, #FF3B5C, #FF9F1C, #FFD60A, #2ED47A, #2FA5A9, #4C6FFF, #9B5CFF, #FF3B5C); filter: blur(18px); opacity: .35; animation: co-spin 3.2s linear infinite; }
 .co-bar { background: var(--rainbow); animation: co-bar 1.3s cubic-bezier(.65,0,.35,1) infinite; }
 @media (prefers-reduced-motion: reduce) {
   .co-loader .co-arc, .co-loader .co-c { animation: none !important; stroke-dashoffset: 0; }

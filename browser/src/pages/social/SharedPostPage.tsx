@@ -66,24 +66,13 @@ export function SharedPostPage() {
 
   return (
     <div className="mx-auto max-w-[680px] space-y-4">
+      {!account && <div className="rounded-2xl border border-brand-200 bg-mint-50 p-4 text-sm text-brand-900"><span className="font-bold">Lecture publique</span><span className="ml-1">— connectez-vous pour aimer ou commenter.</span></div>}
       <article className="card space-y-4 rounded-2xl p-4 sm:p-5">
         <PostHeader post={post} />
         <PostBody post={post} />
         <PostActions post={post} onComment={() => setShowComments((value) => !value)} />
         {showComments && <div className="border-t border-line/70 pt-3"><CommentsSection post={post} /></div>}
       </article>
-      {!account && (
-        <aside className="card space-y-3 rounded-2xl border border-brand-200 p-4 text-center sm:p-5">
-          <div>
-            <h2 className="font-display text-base font-extrabold text-ink">Lecture publique</h2>
-            <p className="mt-1 text-sm text-ink-muted">Connectez-vous pour aimer ou commenter, ou créez un compte pour rejoindre la communauté.</p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            <Link to="/connexion" state={{ from: location.pathname + location.search }} className="rounded-full bg-brand-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-800">Se connecter</Link>
-            <Link to="/inscription" state={{ from: location.pathname + location.search }} className="rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink hover:bg-surface-sunken">Créer un compte</Link>
-          </div>
-        </aside>
-      )}
     </div>
   );
 }

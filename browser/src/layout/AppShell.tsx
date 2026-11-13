@@ -122,12 +122,8 @@ export function AppShell() {
     ui.setRailOpen(false);
   }, [pathname]);
 
-  const publicSocialPost = /^\/social\/[^/]+$/.test(pathname) && !/^\/social\/(?:amis|cele-vibes|profil)$/.test(pathname);
-  const publicMemberPage = /^\/social\/(?:membre|page|profil)\/[^/]+\/?$/.test(pathname);
-  const guestContent = pathname === '/'
-    || publicSocialPost
-    || publicMemberPage
-    || /^\/(?:accueil|posts?\/[^/]+|reels\/[^/]+|live\/[^/]+|[^/]+\/live|videos\/[^/]+|movies\/[^/]+|songs\/[^/]+|hymns\/[^/]+|themes\/[^/]+|weekly-themes\/[^/]+|weekly-programs\/[^/]+|spiritual-program|streaming(?:\/.*)?|carte-paroisses|parishes(?:\/[^/]+)?|cantiques(?:\/.*)?|bible(?:\/.*)?|jeunesse(?:\/.*)?|radio|agenda|evenements)\/?$/.test(pathname);
+  const publicSharePost = /^\/social\/[^/]+$/.test(pathname) && !/^\/social\/(?:amis|cele-vibes|profil)$/.test(pathname);
+  const guestContent = pathname === '/' || publicSharePost || /^\/(?:accueil|posts\/[^/]+|post\/[^/]+|reels\/[^/]+|live\/[^/]+|videos\/[^/]+|movies\/[^/]+|themes\/[^/]+|weekly-themes\/[^/]+|weekly-programs\/[^/]+|spiritual-program|streaming(?:\/.*)?|carte-paroisses|cantiques(?:\/.*)?|bible(?:\/.*)?|jeunesse(?:\/.*)?|radio|agenda|evenements)\/?$/.test(pathname);
   if (!account && !guestContent) return <Navigate to="/connexion" replace state={{ from: pathname + search }} />;
 
   const bottomNav = meta.bottomNav ?? (section === 'social' ? 'social' : 'default');

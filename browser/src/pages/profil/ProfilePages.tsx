@@ -133,7 +133,7 @@ function UpdateProfileSection() {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-3xl bg-[linear-gradient(120deg,#0a6b60,#14a394)] p-4 shadow-md">
+      <div className="overflow-hidden rounded-3xl bg-[linear-gradient(120deg,#0B565A,#2FA5A9)] p-4 shadow-md">
         <div className="mb-4 flex items-center gap-3 text-white">
           <h2 className="flex-1 font-display text-[22px] font-black">Mettre à jour le profil</h2>
           <LogoMark className="h-11 w-11 rounded-full bg-white p-0.5" />
@@ -424,7 +424,7 @@ function SectionContent({ id }: { id: string }) {
             {([
               { id: 'clair', label: 'Clair', bg: '#f3f6f5', card: '#ffffff', ink: '#14231f' },
               { id: 'sombre', label: 'Sombre', bg: '#0a1312', card: '#131e1d', ink: '#e8f0ee' },
-              { id: 'systeme', label: 'Système', bg: 'linear-gradient(90deg,#f3f6f5 50%,#0a1312 50%)', card: 'linear-gradient(90deg,#ffffff 50%,#131e1d 50%)', ink: '#0e8c7e' },
+              { id: 'systeme', label: 'Système', bg: 'linear-gradient(90deg,#f3f6f5 50%,#0a1312 50%)', card: 'linear-gradient(90deg,#ffffff 50%,#131e1d 50%)', ink: '#1D8A8F' },
             ] as const).map((t) => (
               <button key={t.id} onClick={() => { settings.set({ theme: t.id }); toast(`Thème ${t.label.toLowerCase()} appliqué`); }} aria-pressed={s.theme === t.id} className={cn('overflow-hidden rounded-2xl border-2 text-left transition', s.theme === t.id ? 'border-brand-500 ring-4 ring-brand-500/15' : 'border-line hover:border-line-strong')}>
                 <div className="h-24 p-3" style={{ background: t.bg }}>

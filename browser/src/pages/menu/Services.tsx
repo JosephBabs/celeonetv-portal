@@ -392,7 +392,7 @@ function QrPattern({ seed }: { seed: string }) {
   return <svg viewBox="0 0 21 21" className="h-full w-full" shapeRendering="crispEdges">{cells.map((on, i) => on && <rect key={i} x={i % 21} y={Math.floor(i / 21)} width="1" height="1" fill="#0f1b2d" />)}</svg>;
 }
 
-const cardColors: Record<string, string> = { teal: 'linear-gradient(135deg,#0a6b60,#14a394)', nuit: 'linear-gradient(135deg,#0f1b2d,#3949ab)', or: 'linear-gradient(135deg,#8a5f0c,#d6a634)' };
+const cardColors: Record<string, string> = { teal: 'linear-gradient(135deg,#0B565A,#2FA5A9)', nuit: 'linear-gradient(135deg,#0f1b2d,#4C6FFF)', or: 'linear-gradient(135deg,#8a5f0c,#d6a634)' };
 
 export function CarteMembrePage() {
   const account = useApp((s) => s.account);
@@ -401,7 +401,7 @@ export function CarteMembrePage() {
   if (!account) return null;
   const memberId = `CO-${account.hue.toString().padStart(4, '0')}-${account.firstName.slice(0, 2).toUpperCase()}${account.lastName.slice(0, 2).toUpperCase()}`;
   const download = () => {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400"><rect width="640" height="400" rx="28" fill="#0e8c7e"/><text x="40" y="70" font-family="Arial" font-size="28" font-weight="bold" fill="white">Cèlè One — Carte de membre</text><text x="40" y="200" font-family="Arial" font-size="40" font-weight="bold" fill="white">${accountName(account)}</text><text x="40" y="250" font-family="Arial" font-size="22" fill="white">${account.parish || 'Paroisse non renseignée'}</text><text x="40" y="340" font-family="monospace" font-size="26" fill="white">${memberId}</text></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400"><rect width="640" height="400" rx="28" fill="#1D8A8F"/><text x="40" y="70" font-family="Arial" font-size="28" font-weight="bold" fill="white">Cèlè One — Carte de membre</text><text x="40" y="200" font-family="Arial" font-size="40" font-weight="bold" fill="white">${accountName(account)}</text><text x="40" y="250" font-family="Arial" font-size="22" fill="white">${account.parish || 'Paroisse non renseignée'}</text><text x="40" y="340" font-family="monospace" font-size="26" fill="white">${memberId}</text></svg>`;
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
     a.download = `carte-membre-${memberId}.svg`;
