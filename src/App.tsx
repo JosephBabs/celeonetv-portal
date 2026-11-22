@@ -48,7 +48,7 @@ const SettingsPage = page(() => import('@/pages/profil/ProfilePages'), 'Settings
 const MenuRouter = lazy(() => import('@/pages/menu/MenuRouter'));
 
 function ThemeSync() {
-  const theme = useSettings((s) => s.theme);
+  const theme = useSettings((s: { theme: 'clair' | 'sombre' | 'systeme' }) => s.theme);
   useEffect(() => {
     applyTheme(theme);
     return watchSystemTheme(theme);
