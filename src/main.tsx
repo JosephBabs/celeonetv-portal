@@ -1,14 +1,23 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { RouterProvider } from "react-router-dom";
-import { router } from "./app/routes";
-import { I18nProvider } from "./lib/i18n";
-import "./index.css";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './index.css';
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <I18nProvider>
-      <RouterProvider router={router} />
-    </I18nProvider>
-  </React.StrictMode>
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
 );
+
+// Retire le loader de démarrage une fois l'application affichée (durée minimale pour laisser l'animation se lire).
+const boot = document.getElementById('boot');
+if (boot) {
+  const started = performance.now();
+  requestAnimationFrame(() => {
+    const wait = Math.max(0, 900 - (performance.now() - started));
+    window.setTimeout(() => {
+      boot.classList.add('done');
+      window.setTimeout(() => boot.remove(), 500);
+    }, wait);
+  });
+}
