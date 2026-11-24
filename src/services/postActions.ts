@@ -4,6 +4,7 @@ import { accountName, appStore } from '@/store/app';
 import { toast } from '@/store/ui';
 import type { Comment, Post } from '@/data/types';
 import { remoteFeedStore } from './feed';
+import { apiContentId } from '@/lib/utils';
 
 /**
  * Actions réelles sur les publications de l'API (écrivent sur le serveur, visibles dans l'app mobile).
@@ -18,7 +19,7 @@ const str = (...vals: unknown[]) => {
 };
 
 /** Identifiant de la publication côté API (on préfixe « api- » côté web). */
-const apiId = (post: Post) => encodeURIComponent(post.id.replace(/^api-/, ''));
+const apiId = (post: Post) => encodeURIComponent(apiContentId(post.id));
 
 function patch(id: string, fn: (p: Post) => Partial<Post>) {
   remoteFeedStore.set((s) => (s.posts[id] ? { posts: { ...s.posts, [id]: { ...s.posts[id], ...fn(s.posts[id]) } } } : {}));

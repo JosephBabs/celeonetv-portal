@@ -3,6 +3,7 @@ import { api } from '@/lib/api';
 import { createStore } from '@/lib/createStore';
 import type { Post, PostKind } from '@/data/types';
 import { appStore } from '@/store/app';
+import { apiContentId } from '@/lib/utils';
 
 /**
  * Lecture du fil depuis l'API CélèOne (étape 1 : lecture seule).
@@ -77,8 +78,9 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
   if (!isObj(input)) return null;
   const legacy = isObj(input.legacy_data) ? input.legacy_data : {};
   const x: Raw = { ...legacy, ...input };
-  const id = str(x.id, x.firebase_id, x.uid, x.postId) || (typeof x.id === 'number' ? String(x.id) : '');
-  if (!id) return null;
+  const sourceId = str(x.id, x.firebase_id, x.uid, x.postId) || (typeof x.id === 'number' ? String(x.id) : '');
+  if (!sourceId) return null;
+  const id = apiContentId(sourceId);
 
   const a = isObj(x.author) ? x.author : {};
   const u = isObj(x.user) ? x.user : {};
@@ -151,7 +153,7 @@ function pickItems(payload: unknown): unknown[] {
 function syncMyReactions(posts: Post[]) {
   for (const p of posts) {
     api
-      .get<Raw>(`/v1/posts/${encodeURIComponent(p.id.replace(/^api-/, ''))}/reaction`)
+      .get<Raw>(`/v1/posts/${encodeURIComponent(apiContentId(p.id))}/reaction`)
       .then((r) => {
         if (typeof r?.reacted !== 'boolean') return;
         const reacted = r.reacted;
@@ -260,7 +262,7 @@ export function useRemoteFeed(source: FeedSource, enabled: boolean) {
 
 /** Charge une publication précise (ouverte depuis une notification ou un lien partagé). */
 export async function fetchRemotePost(id: string, kind: PostKind) {
-  const raw = await api.get<unknown>(`/v1/posts/${encodeURIComponent(id.replace(/^api-/, ''))}`);
+  const raw = await api.get<unknown>(`/v1/posts/${encodeURIComponent(apiContentId(id))}`);
   const post = toPost(isObj(raw) && isObj(raw.post) ? raw.post : raw, kind);
   if (!post) return null;
   remoteFeedStore.set((s) => ({ posts: { ...s.posts, [post.id]: post } }));

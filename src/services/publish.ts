@@ -2,6 +2,7 @@ import { api, ApiError } from '@/lib/api';
 import type { Post } from '@/data/types';
 import { appStore, accountName } from '@/store/app';
 import { feedEditsStore, remoteFeedStore, toPost } from './feed';
+import { apiContentId } from '@/lib/utils';
 
 /**
  * Publier sur le vrai fil Social :
@@ -81,7 +82,7 @@ export async function publishPost({ text, audience, images = [], video, onProgre
   return post;
 }
 
-const apiId = (post: Post) => encodeURIComponent(post.id.replace(/^api-/, ''));
+const apiId = (post: Post) => encodeURIComponent(apiContentId(post.id));
 
 export async function editRemotePost(post: Post, text: string, audience?: RemoteAudience) {
   const before = post;

@@ -1,5 +1,5 @@
 import { lazy, useEffect, type ComponentType } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AppShell } from '@/layout/AppShell';
 import { GlobalOverlays } from '@/components/GlobalOverlays';
 import { AuthPage } from '@/pages/auth/AuthPage';
@@ -11,6 +11,7 @@ import { SharedPostPage } from '@/pages/social/SharedPostPage';
 import { AppDownloadBanner } from '@/components/AppDownloadBanner';
 import { useSettings } from '@/store/settings';
 import { applyTheme, watchSystemTheme } from '@/lib/theme';
+import { apiContentId } from '@/lib/utils';
 
 /** Charge une page nommée à la demande (le loader CélèOne s'affiche pendant le chargement, cf. AppShell). */
 function page<M extends Record<string, unknown>>(loader: () => Promise<M>, name: keyof M) {
@@ -55,6 +56,11 @@ function ThemeSync() {
   return null;
 }
 
+function SongRedirect() {
+  const { contentId = '' } = useParams();
+  return <Navigate to={`/streaming?onglet=musique&song=${encodeURIComponent(apiContentId(contentId))}`} replace />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -84,7 +90,7 @@ export default function App() {
           <Route path="/parishes" element={<Navigate to="/carte-paroisses" replace />} />
           <Route path="/parishes/register" element={<Navigate to="/carte-paroisses" replace />} />
           <Route path="/hymns/:contentId" element={<Navigate to="/cantiques" replace />} />
-          <Route path="/songs/:contentId" element={<Navigate to="/streaming?onglet=musique" replace />} />
+          <Route path="/songs/:contentId" element={<SongRedirect />} />
           <Route path="/fr/*" element={<Navigate to="/accueil" replace />} />
           <Route path="/en/*" element={<Navigate to="/accueil" replace />} />
           <Route path="/es/*" element={<Navigate to="/accueil" replace />} />

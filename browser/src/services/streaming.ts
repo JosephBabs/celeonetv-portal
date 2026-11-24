@@ -5,6 +5,7 @@ import { albums as demoAlbums, channels as demoChannels, videos as demoVideos, t
 import type { SceneVariant } from '@/data/types';
 import { useApp } from '@/store/app';
 import { dateOf, expandRow, isObj, str, stripHtml, type Raw } from './weeklyTheme';
+import { apiContentId } from '@/lib/utils';
 
 /**
  * Streaming réel : chaînes (/v1/channels), vidéos (/v1/videos), directs (/v1/live/sessions), musique (/v1/songs).
@@ -174,7 +175,7 @@ export function toVideo(input: unknown, opts: { live?: boolean } = {}): RemoteVi
   const live = opts.live ? isLive(x) || !str(x.status) : isLive(x);
   const published = dateOf(x.publishedAt ?? x.published_at ?? x.startedAt ?? x.started_at ?? x.createdAt ?? x.created_at);
   return {
-    id: `api-${opts.live ? 'live-' : ''}${id}`,
+    id: `api-${opts.live ? 'live-' : ''}${apiContentId(id)}`,
     channelId: channelKey ? `api-${channelKey}` : 'api-celeone',
     channelName: str(x.channelName, x.channel_name, ch.name, ch.title, x.hostName, x.authorName, typeof x.author === 'string' ? x.author : '') || undefined,
     title,
@@ -215,7 +216,7 @@ function toAlbums(rows: Raw[]): RemoteAlbum[] {
       album = { id: `api-album-${key}`, title: albumName, artist: str(x.artist, x.artistName, x.artist_name, x.authorName) || 'Cèlè One', scene: sceneOf(key), tracks: [], cover: urlOf(x.coverUrl, x.cover, x.artwork, x.artworkUrl, x.imageUrl, x.image), srcs: {} };
       map.set(key, album);
     }
-    const trackId = `api-song-${id}`;
+    const trackId = `api-song-${apiContentId(id)}`;
     album.tracks.push({ id: trackId, title, durationSec: durationOf(x) || 180 });
     album.srcs[trackId] = src;
   }
@@ -279,6 +280,46 @@ async function loadStreaming() {
 export function ensureStreaming() {
   if (!loading) loading = loadStreaming();
   return loading;
+}
+
+async function fetchPublicMedia(type: 'videos' | 'songs', id: string, signal?: AbortSignal): Promise<unknown> {
+  const contentId = apiContentId(id);
+  try {
+    const response = await fetch(`/api/public/media/${type}/${encodeURIComponent(contentId)}`, { headers: { Accept: 'application/json' }, signal });
+    if (response.ok) {
+      const payload = await response.json();
+      let data = isObj(payload) ? payload.data : undefined;
+      if (isObj(data) && isObj(data.data)) data = data.data;
+      return isObj(data) ? data[type === 'videos' ? 'video' : 'song'] ?? data : payload;
+    }
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') throw error;
+  }
+  return api.get<unknown>(`/v1/${type}/${encodeURIComponent(contentId)}`, undefined, signal);
+}
+
+/** Fetches a directly linked video or film when it is absent from the loaded catalog. */
+export async function ensureVideoById(id: string, signal?: AbortSignal) {
+  const contentId = apiContentId(id);
+  const cached = streamStore.get().videos.find((video) => apiContentId(video.id) === contentId);
+  if (cached) return cached;
+  const raw = await fetchPublicMedia('videos', contentId, signal);
+  const item = isObj(raw) && isObj(raw.video) ? raw.video : raw;
+  const video = toVideo(item);
+  if (video) streamStore.set((state) => ({ videos: [...state.videos.filter((entry) => entry.id !== video.id), video] }));
+  return video;
+}
+
+/** Fetches a directly linked song that is not present in the current album catalog. */
+export async function ensureSongById(id: string, signal?: AbortSignal) {
+  const contentId = apiContentId(id);
+  const existing = streamStore.get().albums.find((album) => album.tracks.some((track) => apiContentId(track.id) === contentId));
+  if (existing) return existing;
+  const raw = await fetchPublicMedia('songs', contentId, signal);
+  const item = isObj(raw) && isObj(raw.song) ? raw.song : raw;
+  const album = isObj(item) ? toAlbums([item])[0] : undefined;
+  if (album) streamStore.set((state) => ({ albums: [...state.albums.filter((entry) => entry.id !== album.id), album] }));
+  return album;
 }
 
 /** Contenus à afficher (réels ou démo). */

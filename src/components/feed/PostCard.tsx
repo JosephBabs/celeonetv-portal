@@ -22,13 +22,14 @@ import { toggleFollow, useFollowBusy, useFollowing } from '@/services/follows';
 import { deleteRemotePost, editRemotePost, isMyRemotePost } from '@/services/publish';
 import { useFriends } from '@/services/friends';
 import { VideoFrame } from './Scene';
+import { apiContentId } from '@/lib/utils';
 
 const hueOf = (name: string) => [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
 
 const tagTone: Record<Post['kind'], 'gray' | 'gold' | 'lavender' | 'mint'> = { actualite: 'gray', annonce: 'gold', reforme: 'lavender', agenda: 'mint', communaute: 'gray' };
 
 export const postUrl = (p: Post) => p.remote
-  ? `/posts/${encodeURIComponent(p.id.replace(/^api-/, ''))}`
+  ? `/posts/${encodeURIComponent(apiContentId(p.id))}`
   : p.kind === 'communaute' ? `/social?publication=${p.id}` : `/accueil?publication=${p.id}`;
 export const bgCss = (id?: string) => textBackgrounds.find((b) => b.id === id)?.css;
 

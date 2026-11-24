@@ -5,7 +5,7 @@ import {
   Monitor, Music, Pause, Play, RotateCcw, RotateCw, Send, Settings, Share2, Sparkles, Star, ThumbsUp, TriangleAlert, UserRound, Volume2, VolumeX, X, ArrowRight,
 } from 'lucide-react';
 import { fmtDuration, streamCategories, type Channel, type Video } from '@/data/streaming';
-import { albumSrc, ensureStreaming, isRemoteChannel, isRemoteVideo, officialChannel, useStreaming } from '@/services/streaming';
+import { albumSrc, ensureSongById, ensureStreaming, ensureVideoById, isRemoteChannel, isRemoteVideo, officialChannel, useStreaming } from '@/services/streaming';
 import { MediaPlayer, VideoCover, isFile } from '@/components/MediaPlayer';
 import { getMember } from '@/data/members';
 import { media, useMedia } from '@/store/media';
@@ -20,7 +20,7 @@ import { MemberAvatar } from '@/components/ui/Avatar';
 import { LogoMark } from '@/components/ui/Logo';
 import { Popover } from '@/components/ui/Popover';
 import { Toggle } from '@/components/ui/Toggle';
-import { cn, compactNumber, sleep, timeAgo } from '@/lib/utils';
+import { apiContentId, cn, compactNumber, sleep, timeAgo } from '@/lib/utils';
 
 type Tab = 'accueil' | 'explorer' | 'musique' | 'ma-liste' | 'moi';
 
@@ -167,7 +167,7 @@ function WatchView({ video }: { video: Video }) {
   const actions = [
     { icon: ThumbsUp, label: 'J’aime', on: liked, run: () => toast(media.toggle('liked', video.id) ? 'Vous aimez cette vidéo' : 'Mention retirée') },
     { icon: Star, label: 'Favoris', on: fav, run: () => toast(media.toggle('favorites', video.id) ? 'Ajoutée aux favoris' : 'Retirée des favoris') },
-    { icon: Share2, label: 'Partager', on: false, run: () => openShare({ title: video.title, url: video.live ? `/live/${video.id.replace(/^api-live-/, '').replace(/^api-/, '')}` : `/videos/${video.id.replace(/^api-/, '')}` }) },
+    { icon: Share2, label: 'Partager', on: false, run: () => openShare({ title: video.title, url: video.live ? `/live/${apiContentId(video.id)}` : `/videos/${apiContentId(video.id)}` }) },
     { icon: Download, label: 'Télécharger', on: downloaded, run: () => {
       // Vidéo réelle : seul un fichier (pas un direct ni une vidéo YouTube) peut être téléchargé.
       if (real) return !video.live && video.sources.some(isFile) ? void window.open(video.sources.find(isFile), '_blank', 'noopener') : toast('Le téléchargement n’est pas disponible pour cette vidéo');
@@ -412,9 +412,21 @@ function ExploreView() {
 function MusicView() {
   const track = usePlayer((s) => s.track);
   const playing = usePlayer((s) => s.playing);
-  const { albums } = useStreaming();
+  const [params] = useSearchParams();
+  const songId = apiContentId(params.get('song') ?? '');
+  const { albums, remote, status } = useStreaming();
   const [albumId, setAlbumId] = useState('');
-  const album = albums.find((a) => a.id === albumId) ?? albums[0];
+  const requestedAlbum = albums.find((item) => item.tracks.some((itemTrack) => apiContentId(itemTrack.id) === songId));
+  const album = albums.find((item) => item.id === albumId) ?? requestedAlbum ?? albums[0];
+  useEffect(() => {
+    if (requestedAlbum) setAlbumId(requestedAlbum.id);
+  }, [requestedAlbum]);
+  useEffect(() => {
+    if (!songId || !remote || status === 'idle' || status === 'loading' || requestedAlbum) return;
+    const controller = new AbortController();
+    void ensureSongById(songId, controller.signal).catch(() => undefined);
+    return () => controller.abort();
+  }, [songId, remote, status, requestedAlbum]);
   if (!album) {
     return (
       <div className="mx-auto max-w-[1100px] px-4 py-4">
@@ -444,8 +456,9 @@ function MusicView() {
         </div>
         {album.tracks.map((t, i) => {
           const current = track?.id === t.id;
+          const linked = !!songId && apiContentId(t.id) === songId;
           return (
-            <button key={t.id} onClick={() => (current ? player.toggle() : playTrack(t))} className={cn('flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-surface-sunken', current && 'bg-mint-50')}>
+            <button key={t.id} onClick={() => (current ? player.toggle() : playTrack(t))} className={cn('flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-surface-sunken', (current || linked) && 'bg-mint-50')}>
               <span className="w-6 text-center text-sm text-ink-muted">{current && playing ? <Pause size={15} className="mx-auto fill-brand-600 text-brand-600" /> : i + 1}</span>
               <span className={cn('flex-1 font-semibold', current && 'text-brand-700')}>{t.title}</span>
               <span className="text-sm text-ink-muted">{fmtDuration(t.durationSec)}</span>
@@ -544,9 +557,16 @@ export function StreamingPage() {
   // Vidéo demandée, sinon le direct en cours, sinon la plus récente.
   const video = useMemo(() => {
     if (!requestedVideoId) return videos.find((v) => v.live) ?? videos[0];
-    const id = requestedVideoId.replace(/^api-live-/, '').replace(/^api-/, '');
-    return getVideo(requestedVideoId) ?? videos.find((v) => v.id.replace(/^api-live-/, '').replace(/^api-/, '') === id);
+    const id = apiContentId(requestedVideoId);
+    return getVideo(requestedVideoId) ?? videos.find((v) => apiContentId(v.id) === id);
   }, [requestedVideoId, videos, getVideo]);
+
+  useEffect(() => {
+    if (!requestedVideoId || !remote || status === 'idle' || status === 'loading' || video) return;
+    const controller = new AbortController();
+    void ensureVideoById(requestedVideoId, controller.signal).catch(() => undefined);
+    return () => controller.abort();
+  }, [requestedVideoId, remote, status, video]);
 
   let content;
   if (resolvedChannelId === 'direct') content = <LiveView />;

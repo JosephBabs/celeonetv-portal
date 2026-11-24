@@ -5,23 +5,41 @@ import { CeleLoader } from '@/components/CeleLoader';
 import { toPost } from '@/services/feed';
 import type { Post } from '@/data/types';
 import { useApp } from '@/store/app';
+import { api } from '@/lib/api';
+import { apiContentId } from '@/lib/utils';
 
 function getEmbeddedPost(id: string, kind: 'posts' | 'reels') {
   let raw: unknown = null;
   try {
     const payload = JSON.parse(document.getElementById('celeone-post-data')?.textContent || 'null');
-    if (payload?.requestedId === id && (payload.kind || 'posts') === kind) raw = payload.post;
+    if (apiContentId(String(payload?.requestedId ?? '')) === apiContentId(id) && (payload.kind || 'posts') === kind) raw = payload.post;
   } catch {
     raw = null;
   }
   return raw ? toPost(raw, 'communaute') : null;
 }
 
+function unwrapPost(payload: unknown): unknown {
+  if (!payload || typeof payload !== 'object') return payload;
+  const envelope = payload as Record<string, unknown>;
+  const data = envelope.data;
+  if (data && typeof data === 'object') {
+    const dataEnvelope = data as Record<string, unknown>;
+    const nested = dataEnvelope.data;
+    if (nested && typeof nested === 'object') {
+      const nestedEnvelope = nested as Record<string, unknown>;
+      return nestedEnvelope.post ?? nested;
+    }
+    return dataEnvelope.post ?? data;
+  }
+  return envelope.post ?? payload;
+}
+
 export function SharedPostPage() {
   const { postId, contentId, reelId } = useParams();
   const location = useLocation();
   const account = useApp((s) => s.account);
-  const requestedId = postId ?? contentId ?? reelId ?? '';
+  const requestedId = apiContentId(postId ?? contentId ?? reelId ?? '');
   const kind = reelId || location.pathname.startsWith('/reels/') ? 'reels' : 'posts';
   const embedded = useMemo(() => getEmbeddedPost(requestedId, kind), [requestedId, kind]);
   const [post, setPost] = useState<Post | null>(embedded);
@@ -36,20 +54,34 @@ export function SharedPostPage() {
     if (embedded || !requestedId) return;
 
     const controller = new AbortController();
-    void fetch(`/api/public/${kind}/${encodeURIComponent(requestedId)}`, {
-      headers: { Accept: 'application/json' },
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error('Post unavailable');
-        return response.json();
-      })
-      .then((payload) => {
-        const raw = payload?.data?.post ?? payload?.data ?? payload?.post ?? null;
-        const mapped = raw && typeof raw === 'object' ? toPost({ ...raw, id: raw.id ?? requestedId }, 'communaute') : null;
-        setPost(mapped);
-        setError(!mapped);
-      })
+    void (async () => {
+      let raw: unknown = null;
+      try {
+        const response = await fetch(`/api/public/${kind}/${encodeURIComponent(requestedId)}`, {
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+        if (response.ok) raw = unwrapPost(await response.json());
+      } catch (reason) {
+        if ((reason as Error).name === 'AbortError') throw reason;
+      }
+      if (!raw || typeof raw !== 'object') {
+        const paths = kind === 'reels'
+          ? [`/v1/reels/${encodeURIComponent(requestedId)}`, `/v1/posts/${encodeURIComponent(requestedId)}`]
+          : [`/v1/posts/${encodeURIComponent(requestedId)}`];
+        for (const path of paths) {
+          try {
+            raw = unwrapPost(await api.get<unknown>(path, undefined, controller.signal));
+            if (raw && typeof raw === 'object') break;
+          } catch (reason) {
+            if ((reason as Error).name === 'AbortError') throw reason;
+          }
+        }
+      }
+      const mapped = raw && typeof raw === 'object' ? toPost({ ...raw, id: (raw as Record<string, unknown>).id ?? requestedId }, 'communaute') : null;
+      setPost(mapped);
+      setError(!mapped);
+    })()
       .catch((reason: unknown) => {
         if ((reason as Error).name !== 'AbortError') setError(true);
       })

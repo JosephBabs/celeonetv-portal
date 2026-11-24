@@ -39,6 +39,11 @@ export function normalize(s: string) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
+/** Removes web-only prefixes from remote content IDs before building API or share URLs. */
+export function apiContentId(id: string) {
+  return id.replace(/^(?:api-(?:live-|song-)?)+/, '');
+}
+
 export function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
