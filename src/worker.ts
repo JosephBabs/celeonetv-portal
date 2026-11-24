@@ -981,7 +981,7 @@ export default {
     // fallback cannot send /posts/:id (or equivalent links) to /mobile.
     const mobileContentPath = /^\/(?:post|posts|social|reels|videos|songs|hymns|themes|weekly-themes|weekly-programs)\/[^/]+\/?$/.test(routePath);
     if (method === "GET" && mobileContentPath && !localeInfo.locale && !isSocialCrawler(request)) {
-      const mobileUrl = new URL("/mobile.html", url.origin);
+      const mobileUrl = new URL("/mobile-portal.html", url.origin);
       const mobileRequest = new Request(mobileUrl.toString(), request);
       const mobileRes = await fetchAsset(mobileRequest, env, mobileUrl);
       const headers = new Headers(mobileRes.headers);
@@ -1092,7 +1092,7 @@ export default {
       if (localeInfo.locale) {
         return new Response(null, { status: 302, headers: { Location: `${routePath}${url.search}` } });
       }
-      const mobileUrl = new URL("/mobile.html", url.origin);
+      const mobileUrl = new URL("/mobile-portal.html", url.origin);
       const mobileRequest = new Request(mobileUrl.toString(), request);
       const mobileRes = await fetchAsset(mobileRequest, env, mobileUrl);
       const headers = new Headers(mobileRes.headers);

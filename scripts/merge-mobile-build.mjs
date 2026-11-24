@@ -11,6 +11,9 @@ const entries = await readdir(mobileBuild, { withFileTypes: true });
 
 for (const entry of entries) {
   const source = path.join(mobileBuild, entry.name);
-  const destination = path.join(portalBuild, entry.name === 'mobile.html' ? 'mobile.html' : entry.name);
+  const destination = path.join(portalBuild, entry.name);
   await cp(source, destination, { recursive: true, force: true });
+  if (entry.name === 'mobile.html') {
+    await cp(source, path.join(portalBuild, 'mobile-portal.html'), { force: true });
+  }
 }
