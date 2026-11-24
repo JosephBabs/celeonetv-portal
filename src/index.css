@@ -1,6 +1,62 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme inline {
+  --color-brand-50: rgb(var(--brand-50));
+  --color-brand-100: rgb(var(--brand-100));
+  --color-brand-200: rgb(var(--brand-200));
+  --color-brand-300: rgb(var(--brand-300));
+  --color-brand-400: rgb(var(--brand-400));
+  --color-brand-500: rgb(var(--brand-500));
+  --color-brand-600: rgb(var(--brand-600));
+  --color-brand-700: rgb(var(--brand-700));
+  --color-brand-800: rgb(var(--brand-800));
+  --color-brand-900: rgb(var(--brand-900));
+  --color-mint-50: rgb(var(--mint-50));
+  --color-mint-100: rgb(var(--mint-100));
+  --color-mint-200: rgb(var(--mint-200));
+  --color-mint-300: rgb(var(--mint-300));
+  --color-night: rgb(var(--night));
+  --color-night-600: rgb(var(--night-600));
+  --color-night-700: rgb(var(--night-700));
+  --color-gold-50: rgb(var(--gold-50));
+  --color-gold-100: rgb(var(--gold-100));
+  --color-gold-500: rgb(var(--gold-500));
+  --color-gold-700: rgb(var(--gold-700));
+  --color-ink: rgb(var(--ink));
+  --color-ink-soft: rgb(var(--ink-soft));
+  --color-ink-muted: rgb(var(--ink-muted));
+  --color-ink-faint: rgb(var(--ink-faint));
+  --color-line: rgb(var(--line));
+  --color-line-strong: rgb(var(--line-strong));
+  --color-canvas: rgb(var(--canvas));
+  --color-surface: rgb(var(--surface));
+  --color-surface-sunken: rgb(var(--surface-sunken));
+  --color-danger: rgb(var(--danger));
+  --color-danger-50: rgb(var(--danger-50));
+  --color-danger-700: rgb(var(--danger-700));
+  --color-warning: rgb(var(--warning));
+  --color-warning-50: rgb(var(--warning-50));
+  --color-lavender: rgb(var(--lavender));
+  --color-lavender-50: rgb(var(--lavender-50));
+  --color-violet: rgb(var(--violet));
+  --color-violet-50: rgb(var(--violet-50));
+  --color-orange: rgb(var(--orange));
+  --color-orange-50: rgb(var(--orange-50));
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: Inter, ui-sans-serif, system-ui, sans-serif;
+  --text-body: 14px;
+  --text-body--line-height: 1.5;
+  --animate-fade-in: fade-in 180ms ease-out both;
+  --animate-pop-in: pop-in 180ms ease-out both;
+  --animate-slide-up: slide-up 220ms ease-out both;
+  --animate-shimmer: shimmer 1.5s ease-in-out infinite;
+  --shadow-glow: 0 0 0 4px rgb(var(--brand-500) / 0.15);
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shimmer { to { transform: translateX(100%); } }
 
 /* ───────────── Design tokens CélèOne (valeurs RGB pour l'opacité Tailwind) ───────────── */
 :root {
