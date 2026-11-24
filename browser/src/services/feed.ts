@@ -219,7 +219,7 @@ export function useRemoteFeed(source: FeedSource, enabled: boolean) {
     const head = source === 'social' ? created.filter((id) => !ids.includes(id)) : [];
     const list = [...head, ...ids].filter((id) => !removed.includes(id)).map((id) => store[id]).filter((p): p is Post => !!p);
     if (source !== 'accueil') return list;
-    return list.sort((a, b) => (b.priorityScore ?? 0) - (a.priorityScore ?? 0) || Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.id.localeCompare(a.id));
+    return list.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.id.localeCompare(a.id));
   }, [ids, store, created, removed, source]);
   const [loading, setLoading] = useState(enabled);
   const [loadingMore, setLoadingMore] = useState(false);
