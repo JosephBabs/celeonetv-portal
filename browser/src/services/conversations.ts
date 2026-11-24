@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { api, ApiError } from '@/lib/api';
+import { api, ApiError, getToken } from '@/lib/api';
 import { createStore } from '@/lib/createStore';
 import { appStore, useApp } from '@/store/app';
 import { toast } from '@/store/ui';
@@ -19,12 +19,89 @@ import { absolute } from './streaming';
  */
 export const REAL_DISCUSSIONS = true;
 
-/**
- * L'app mobile envoie les messages par son transport socket (POST /v1/socket/token + événements msg:*), pas par REST.
- * Écrire directement dans chatrooms/{id}/messages depuis le web n'est donc activé que sur demande (VITE_WEB_CHAT_SEND=1)
- * une fois le format d'écriture confirmé côté serveur.
- */
-export const WEB_CHAT_SEND = (import.meta.env.VITE_WEB_CHAT_SEND as string | undefined) === '1';
+const CHAT_SOCKET_URL = (import.meta.env.VITE_CHAT_SOCKET_URL as string | undefined)?.replace(/\/$/, '') ?? 'https://socket.celeonetv.com';
+let chatSocketPromise: Promise<import('socket.io-client').Socket> | null = null;
+
+async function getChatSocket() {
+  if (!getToken()) throw new ApiError(401, 'Votre session a expiré. Reconnectez-vous.');
+  if (!chatSocketPromise) {
+    chatSocketPromise = (async () => {
+      const socketModule = await import('socket.io-client');
+      const tokenResponse = await api.post<{ token?: string; access_token?: string }>('/socket/token');
+      const socketToken = tokenResponse?.token || tokenResponse?.access_token;
+      if (!socketToken) throw new Error('Jeton de messagerie indisponible.');
+      const socket = socketModule.io(CHAT_SOCKET_URL, {
+        path: '/socket.io/',
+        transports: ['websocket', 'polling'],
+        auth: { token: socketToken },
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 30000,
+        timeout: 15000,
+      });
+      const onManagerReconnect = async () => {
+        try {
+          const refreshed = await api.post<{ token?: string; access_token?: string }>('/socket/token');
+          const nextToken = refreshed?.token || refreshed?.access_token;
+          if (nextToken) socket.auth = { token: nextToken };
+        } catch { /* Existing socket session can still recover with its current token. */ }
+      };
+      socket.io.on('reconnect_attempt', onManagerReconnect);
+      await new Promise<void>((resolve, reject) => {
+        if (socket.connected) return resolve();
+        const timeout = window.setTimeout(() => finish(new Error('Connexion au service de messagerie expirée.')), 15000);
+        const onConnect = () => finish();
+        const onError = () => finish(new Error('Impossible de joindre le service de messagerie.'));
+        const finish = (error?: Error) => {
+          window.clearTimeout(timeout);
+          socket.off('connect', onConnect);
+          socket.off('connect_error', onError);
+          if (error) reject(error); else resolve();
+        };
+        socket.once('connect', onConnect);
+        socket.once('connect_error', onError);
+      });
+      return socket;
+    })().catch((error) => {
+      chatSocketPromise = null;
+      throw error;
+    });
+  }
+  const socket = await chatSocketPromise;
+  if (!socket.connected) {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(() => finish(new Error('Connexion au service de messagerie expirée.')), 15000);
+      const onConnect = () => finish();
+      const onError = () => finish(new Error('Impossible de joindre le service de messagerie.'));
+      const finish = (error?: Error) => {
+        window.clearTimeout(timeout);
+        socket.off('connect', onConnect);
+        socket.off('connect_error', onError);
+        if (error) reject(error); else resolve();
+      };
+      socket.once('connect', onConnect);
+      socket.once('connect_error', onError);
+      socket.connect();
+    });
+  }
+  return socket;
+}
+
+async function sendOverChatSocket(convId: string, clientId: string, payload: Record<string, unknown>) {
+  const socket = await getChatSocket();
+  return new Promise<unknown>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('Le serveur n’a pas confirmé l’envoi.')), 20000);
+    socket.emit('msg:send', { chatId: convId, clientId, requestId: clientId, payload }, (ack: unknown) => {
+      window.clearTimeout(timer);
+      if (isObj(ack) && (ack.ok === false || ack.status === 'failed')) {
+        reject(new Error(str(ack.error, ack.message) || 'Message refusé par le serveur.'));
+        return;
+      }
+      resolve(ack);
+    });
+  });
+}
 
 type Raw = Record<string, unknown>;
 const isObj = (v: unknown): v is Raw => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -119,12 +196,27 @@ export function toConversation(input: unknown): RemoteConversation | null {
   if (!id) return null;
   const rawMembers = [x.members, x.participants, x.users, x.profiles, x.memberProfiles, x.participantIds, x.memberIds].find((v) => Array.isArray(v) && v.length) as unknown[] | undefined;
   const members = (rawMembers ?? []).map(toMember).filter((m): m is ChatMember => !!m);
+  const roomIsGroup = x.is_group === true || x.isGroup === true || str(x.type, x.kind).toLowerCase() === 'group';
+  const memberIds = [...new Set([...(Array.isArray(x.members) ? x.members : []), ...(Array.isArray(x.participants) ? x.participants : []), ...(Array.isArray(x.memberIds) ? x.memberIds : []), ...(Array.isArray(x.participantIds) ? x.participantIds : [])].map((v) => typeof v === 'object' && v ? str((v as Raw).uid, (v as Raw).user_uid, (v as Raw).firebase_uid, (v as Raw).id, (v as Raw).user_id) : str(v)).filter(Boolean))];
+  const roomId = str(x.id, x.public_id, x.conversation_id, x.uuid, x.chatId);
+  const currentUid = me().uid || me().id;
+  const peerUid = memberIds.find((uid) => uid !== currentUid) || (() => {
+    if (!roomId.startsWith('dm_')) return '';
+    const pair = roomId.slice(3).split('_');
+    return pair.length === 2 ? pair.find((uid) => uid !== currentUid) ?? '' : '';
+  })();
+  if (peerUid && !members.some((m) => m.uid === peerUid)) {
+    const peer = toMember(peerUid);
+    if (peer) members.push(peer);
+  }
   const others = members.filter((m) => !isMe(m));
-  const isGroup = x.is_group === true || x.isGroup === true || /group/i.test(str(x.type, x.kind)) || others.length > 1;
+  const isGroup = roomIsGroup || (others.length > 1 && memberIds.length !== 2);
   const other = !isGroup ? others[0] ?? (isObj(x.other) ? toMember(x.other) ?? undefined : isObj(x.peer) ? toMember(x.peer) ?? undefined : undefined) : undefined;
   const last = [x.last_message, x.lastMessage, x.latest_message, x.latestMessage].find(isObj) ?? {};
   const lastSender = str(last.sender_uid, last.senderId, last.sender_id, last.user_id, last.authorId, isObj(last.sender) ? str(last.sender.uid, last.sender.id) : '');
-  const title = str(x.title, x.name, x.group_name, x.groupName) || other?.name || others.map((m) => m.name.split(' ')[0]).join(', ') || 'Discussion';
+  const rawTitle = str(x.title, x.name, x.group_name, x.groupName);
+  const validTitle = rawTitle && !/^(direct message|discussion|chat room|user)$/i.test(rawTitle) && !/^dm_/i.test(rawTitle);
+  const title = (validTitle ? rawTitle : '') || other?.name || others.map((m) => m.name.split(' ')[0]).join(', ') || 'Discussion';
   return {
     id,
     title,
@@ -322,17 +414,16 @@ export async function sendMessage(convId: string, text: string, retry?: RemoteMe
   put((items) => (retry ? items.map((m) => (m.id === retry.id ? temp : m)) : [...items, temp]));
   set((s) => ({ list: s.list.map((c) => (c.id === convId ? { ...c, lastText: text, lastAt: temp.createdAt, lastMine: true } : c)).sort((a, b) => b.lastAt.localeCompare(a.lastAt)) }));
   try {
-    if (convStore.get().source === 'legacy' && !WEB_CHAT_SEND) {
-      throw new ApiError(0, 'L’envoi depuis le web n’est pas encore activé : répondez depuis l’application.');
-    }
     if (convStore.get().source === 'legacy') {
       const a = appStore.get().account;
       const now = Date.now();
-      await api.post(`/v1/resources/${msgCollection}/${encodeURIComponent(convId)}/messages`, {
-        senderId: me().uid, senderName: `${a?.firstName ?? ''} ${a?.lastName ?? ''}`.trim(), senderAvatar: a?.avatar ?? '',
-        text, type: 'text', clientId, readBy: [me().uid], deliveredTo: [me().uid], createdAtMs: now, updatedAtMs: now,
+      const ack = await sendOverChatSocket(convId, clientId, {
+        text, type: 'text', createdAtMs: now,
+        from: { uid: me().uid, name: `${a?.firstName ?? ''} ${a?.lastName ?? ''}`.trim(), avatar: a?.avatar ?? '' },
       });
-      put((items) => items.map((m) => (m.id === temp.id ? { ...m, status: 'sent' } : m)));
+      const response = isObj(ack) ? ack : {};
+      const saved = toMessage(isObj(response.message) ? response.message : response);
+      put((items) => items.map((m) => (m.id === temp.id ? { ...(saved ?? m), mine: true, status: 'sent', clientId } : m)));
       return;
     }
     const res = await api.post<unknown>(`/v1/conversations/${encodeURIComponent(convId)}/messages`, { client_id: clientId, type: 'text', text });

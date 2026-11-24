@@ -21,7 +21,7 @@ import { Scene } from '@/components/feed/Scene';
 import { StatusViewer } from '@/components/social/SocialWidgets';
 import { cn, normalize, timeAgo } from '@/lib/utils';
 import { RemoteDiscussionsPage } from './RemoteDiscussions';
-import { REAL_DISCUSSIONS } from '@/services/conversations';
+import { loadConversations, REAL_DISCUSSIONS } from '@/services/conversations';
 import { ContactInfoPanel, ConvAvatar, ConversationPane, StatusTicks, wallpaperClass } from './ConversationPane';
 
 type View = 'discussions' | 'appels' | 'personnes' | 'parametres';
@@ -511,6 +511,11 @@ function SettingsView() {
 /** Compte réel : vraies conversations ; démonstration : messagerie simulée. */
 export function DiscussionsPage() {
   const remote = useApp((s) => !!s.account?.remote);
+  const remoteAccountId = useApp((s) => s.account?.remote ? `${s.account.id}:${s.account.uid ?? ''}` : '');
+  useEffect(() => {
+    if (!remote) return;
+    void loadConversations();
+  }, [remote, remoteAccountId]);
   return REAL_DISCUSSIONS && remote ? <RemoteDiscussionsPage /> : <DemoDiscussionsPage />;
 }
 
