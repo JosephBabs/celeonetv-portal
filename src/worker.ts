@@ -386,7 +386,7 @@ function isSocialCrawler(request: Request) {
 
 function usesMobileWeb(pathname: string) {
   return pathname === "/"
-    || /^\/(?:accueil|social|notifications|discussions|documents|cantiques|bible|jeunesse|streaming|radio|carte-paroisses|agenda|evenements|profil|menu|connexion|inscription|diagnostic-api|posts?|reels|live|videos|movies|songs|hymns|themes|weekly-themes|weekly-programs|spiritual-program|parishes)(?:\/|$)/.test(pathname)
+    || /^\/(?:accueil|market|social|notifications|discussions|documents|cantiques|bible|jeunesse|streaming|radio|carte-paroisses|agenda|evenements|profil|menu|connexion|inscription|diagnostic-api|posts?|reels|live|videos|movies|songs|hymns|themes|weekly-themes|weekly-programs|spiritual-program|parishes)(?:\/|$)/.test(pathname)
     || /^\/[^/]+\/live\/?$/.test(pathname);
 }
 

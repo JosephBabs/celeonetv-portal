@@ -19,6 +19,7 @@ function page<M extends Record<string, unknown>>(loader: () => Promise<M>, name:
 }
 
 const NotificationsPage = page(() => import('@/pages/notifications/NotificationsPage'), 'NotificationsPage');
+const MarketplacePage = page(() => import('@/pages/marketplace/MarketplacePage'), 'MarketplacePage');
 const SocialPage = page(() => import('@/pages/social/SocialPage'), 'SocialPage');
 const FriendsPage = page(() => import('@/pages/social/FriendsPage'), 'FriendsPage');
 const CeleVibesPage = page(() => import('@/pages/social/CeleVibesPage'), 'CeleVibesPage');
@@ -122,6 +123,7 @@ export default function App() {
           <Route path="/radio" element={<RadioPage />} />
           <Route path="/carte-paroisses" element={<ParishMapPage />} />
           <Route path="/agenda" element={<AgendaPage />} />
+          <Route path="/market/*" element={<MarketplacePage />} />
           <Route path="/evenements" element={<EventsPage />} />
           <Route path="/profil" element={<ProfilePage />} />
           <Route path="/profil/parametres" element={<SettingsPage />} />

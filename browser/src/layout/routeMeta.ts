@@ -18,6 +18,7 @@ const rules: [RegExp, RouteMeta][] = [
   [/^\/documents/, { section: 'documents', layout: 'wide' }],
   [/^\/cantiques/, { section: 'cantiques', layout: 'wide' }],
   [/^\/jeunesse/, { section: 'jeunesse', layout: 'wide' }],
+  [/^\/market/, { layout: 'wide' }],
   [/^\/discussions\/.+/, { section: 'social', layout: 'full', bottomNav: 'none' }],
   [/^\/discussions/, { section: 'social', layout: 'full', bottomNav: 'discussions' }],
   [/^\/streaming/, { layout: 'full', bottomNav: 'streaming' }],

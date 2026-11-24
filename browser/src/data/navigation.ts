@@ -4,7 +4,7 @@ import {
   Film, Gauge, Gift, Globe, GraduationCap, Hand, HandCoins, HeartPulse, History, Images, Info, Languages, Layers, Leaf,
   Library, Link2, ListMusic, LogIn, Map, MapPin, MapPinned, Megaphone, MessageCircle, MonitorSmartphone, Music, Music2,
   Navigation, Orbit, Phone, Podcast, Radio, Receipt, RefreshCw, Settings, Shield, ShieldCheck, Signpost, Smartphone, Smile,
-  SquareCheck, Star, Trophy, Tv, UserRound, UsersRound, Video, Wallet, WandSparkles, TriangleAlert, Bookmark,
+  SquareCheck, Star, Store, Trophy, Tv, UserRound, UsersRound, Video, Wallet, WandSparkles, TriangleAlert, Bookmark,
 } from 'lucide-react';
 import type { MenuGroup, NavItem, PrimarySection } from './types';
 
@@ -23,7 +23,7 @@ export const quickAccess: NavItem[] = [
   { id: 'streaming', label: 'Streaming', icon: CirclePlay, to: '/streaming' },
   { id: 'carte', label: 'Carte des paroisses', icon: Map, to: '/carte-paroisses' },
   { id: 'discussions', label: 'Discussions', icon: MessageCircle, to: '/discussions' },
-  { id: 'evenements', label: 'Événements', icon: CalendarCheck2, to: '/evenements' },
+  { id: 'market', label: 'Cèlè Market', icon: Store, to: '/market' },
   { id: 'bible', label: 'Bible complète', icon: BookOpen, to: '/bible' },
 ];
 

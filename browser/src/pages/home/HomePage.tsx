@@ -240,13 +240,14 @@ export function HomePage() {
 
   return (
     <div>
-      <HomeTabs value={tab} onChange={setTab} />
       <div className="mt-2">
         <LiveRail />
         <WeeklyThemeCard />
-        <div className="mb-5 xl:hidden">
+        <section className="mb-5 rounded-2xl border border-line/70 bg-surface-sunken/60 p-3 sm:p-4">
+          <h2 className="mb-3 px-1 text-[15px] font-extrabold text-ink">Accès rapides</h2>
           <QuickAccessGrid columns={4} />
-        </div>
+        </section>
+        <HomeTabs value={tab} onChange={setTab} />
         {tab === 'agenda' && (
           <Link to="/agenda" className="mb-4 flex items-center gap-3 rounded-2xl border border-dashed border-brand-300 bg-mint-50 p-4 text-sm font-semibold text-brand-800 hover:bg-mint-100">
             <CalendarDays size={18} /> Ouvrir mon agenda personnel et mes alertes
