@@ -939,6 +939,30 @@ export default {
       } catch {return Response.json({message:"Post temporarily unavailable"},{status:503});}
     }
 
+    // Public feed data is safe to read without a member token. Keep it behind
+    // the site origin so the web build does not depend on API CORS settings.
+    if (request.method === "GET" && /^\/api\/public\/posts\/?$/.test(routePath)) {
+      try {
+        const base = (env.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+        const upstream = await fetchWithTimeout(`${base}/public/posts${url.search}`, 10000, { headers: { Accept: "application/json" } });
+        if (!upstream.ok) return Response.json({ message: "Posts temporarily unavailable" }, { status: upstream.status === 404 ? 404 : 503 });
+        return Response.json(await upstream.json(), { headers: { "Cache-Control": "public, max-age=30" } });
+      } catch {
+        return Response.json({ message: "Posts temporarily unavailable" }, { status: 503 });
+      }
+    }
+
+    if (request.method === "GET" && /^\/api\/public\/content-index\/?$/.test(routePath)) {
+      try {
+        const base = (env.LARAVEL_API_URL || "https://api.celeonetv.com/api/v1").replace(/\/$/, "");
+        const upstream = await fetchWithTimeout(`${base}/public/content-index${url.search}`, 10000, { headers: { Accept: "application/json" } });
+        if (!upstream.ok) return Response.json({ message: "Content index temporarily unavailable" }, { status: upstream.status === 404 ? 404 : 503 });
+        return Response.json(await upstream.json(), { headers: { "Cache-Control": "public, max-age=30" } });
+      } catch {
+        return Response.json({ message: "Content index temporarily unavailable" }, { status: 503 });
+      }
+    }
+
     const publicMediaApi = routePath.match(/^\/api\/public\/media\/(videos|songs)\/([^/]+)\/?$/);
     if (publicMediaApi && request.method === "GET") {
       try {

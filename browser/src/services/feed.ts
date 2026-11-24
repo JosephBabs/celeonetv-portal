@@ -165,6 +165,16 @@ function syncMyReactions(posts: Post[]) {
 }
 
 async function fetchPage(source: FeedSource, cursor: string | null, signal?: AbortSignal): Promise<Page> {
+  if (!appStore.get().account?.remote) {
+    const response = await fetch('/api/public/posts?limit=50', {
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+    if (!response.ok) throw new Error(`Public posts unavailable (${response.status})`);
+    const items = pickItems(await response.json());
+    return { items, next: null };
+  }
+
   if (source === 'accueil') {
     // Publications officielles (administration, pages) : /v1/posts, pagination dans meta.page.
     const res = await api.getRaw<Raw>('/v1/posts', { limit: 12, cursor: cursor ?? undefined }, signal);

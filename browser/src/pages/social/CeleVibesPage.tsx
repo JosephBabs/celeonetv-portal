@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/ui/Feedback';
 import { Button, IconButton } from '@/components/ui/Button';
 import { ComposerModal } from '@/components/social/Composers';
 import { cn, compactNumber, timeAgo } from '@/lib/utils';
+import { usePublicVibes } from '@/services/publicVibes';
 
 function ActionButton({ icon: Icon, label, count, active, activeClass, onClick }: { icon: typeof Heart; label: string; count?: number | string; active?: boolean; activeClass?: string; onClick: () => void }) {
   return (
@@ -34,8 +35,17 @@ function VibeSlide({ vibe, active, muted, onToggleMute, onComments }: { vibe: Vi
   const [burst, setBurst] = useState(false);
   const mine = vibe.authorId === 'me';
   const m = getMember(vibe.authorId);
-  const name = mine && account ? accountName(account) : m.name;
+  const name = mine && account ? accountName(account) : vibe.authorName || m.name;
   const playing = active && !paused;
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = muted;
+    if (playing) void video.play().catch(() => undefined);
+    else video.pause();
+  }, [playing, muted]);
 
   useEffect(() => {
     if (active) actions.viewVibe(vibe.id);
@@ -59,7 +69,7 @@ function VibeSlide({ vibe, active, muted, onToggleMute, onComments }: { vibe: Vi
   return (
     <div className="relative mx-auto h-full w-full max-w-[460px] overflow-hidden bg-black md:rounded-3xl md:shadow-lg">
       <button className="absolute inset-0" aria-label={playing ? 'Pause' : 'Lecture'} onClick={() => setPaused((p) => !p)} onDoubleClick={like}>
-        <Scene variant={vibe.scene} playing={playing} />
+        {vibe.videoUrl ? <video ref={videoRef} src={vibe.videoUrl} poster={vibe.thumbnailUrl} playsInline loop preload="metadata" className="absolute inset-0 h-full w-full object-cover" /> : <Scene variant={vibe.scene} playing={playing} />}
       </button>
       {paused && (
         <span className="pointer-events-none absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white">
@@ -71,7 +81,7 @@ function VibeSlide({ vibe, active, muted, onToggleMute, onComments }: { vibe: Vi
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent px-4 pb-5 pt-24 text-white">
         <div className="pointer-events-auto flex items-center gap-2.5 pr-16">
           <Link to={mine ? '/social/profil' : `/social/profil/${vibe.authorId}`} className="flex min-w-0 items-center gap-2.5">
-            {mine && account ? <Avatar name={name} hue={account.hue} src={account.avatar} size="sm" /> : <MemberAvatar member={m} size="sm" />}
+            {mine && account ? <Avatar name={name} hue={account.hue} src={account.avatar} size="sm" /> : vibe.authorAvatar ? <Avatar name={name} hue={m.hue} src={vibe.authorAvatar} size="sm" /> : <MemberAvatar member={m} size="sm" />}
             <span className="min-w-0">
               <span className="block truncate text-[15px] font-bold">{name}</span>
               <span className="block text-xs text-white/75">{compactNumber(vibe.views)} vues · {timeAgo(vibe.createdAt)}</span>
@@ -139,14 +149,18 @@ function CommentsPanel({ vibe, onClose }: { vibe: Vibe; onClose: () => void }) {
 }
 
 export function CeleVibesPage() {
-  const vibes = useApp((s) => s.vibes);
+  const { items: vibes, status: vibesStatus, reload: reloadVibes } = usePublicVibes();
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const scroller = useRef<HTMLDivElement>(null);
-  const [activeId, setActiveId] = useState<string | null>(params.get('v') ?? vibes[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>(params.get('v'));
   const [muted, setMuted] = useState(true);
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    if (!activeId && vibes.length) setActiveId(vibes[0].id);
+  }, [activeId, vibes]);
 
   // Positionne le défilement sur la vidéo demandée dans l'URL.
   useEffect(() => {
@@ -203,7 +217,11 @@ export function CeleVibesPage() {
         <IconButton icon={Camera} label="Publier un Cele Vibe" variant="glass" onClick={() => setCreating(true)} />
       </div>
 
-      {vibes.length === 0 ? (
+      {vibesStatus === 'loading' && vibes.length === 0 ? (
+        <div className="flex h-full items-center justify-center text-sm text-white/80">Chargement des Cele Vibes…</div>
+      ) : vibesStatus === 'error' && vibes.length === 0 ? (
+        <div className="flex h-full items-center justify-center"><EmptyState icon={Clapperboard} title="Cele Vibes indisponibles" text="Vérifiez votre connexion puis réessayez." action={<Button onClick={() => void reloadVibes()}>Réessayer</Button>} /></div>
+      ) : vibes.length === 0 ? (
         <div className="flex h-full items-center justify-center">
           <div className="rounded-3xl bg-surface p-4">
             <EmptyState icon={Clapperboard} title="Aucun Cele Vibe pour le moment" text="Soyez le premier à publier !" action={<Button onClick={() => setCreating(true)}>Publier un Cele Vibe</Button>} />

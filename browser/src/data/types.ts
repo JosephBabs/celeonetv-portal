@@ -81,6 +81,7 @@ export interface StatusItem {
   text?: string;
   background?: string;
   image?: string;
+  video?: string;
   scene?: SceneVariant;
   music?: string;
   createdAt: string;
@@ -88,14 +89,20 @@ export interface StatusItem {
 
 export interface Status {
   authorId: string;
+  authorName?: string;
+  authorAvatar?: string;
   items: StatusItem[];
 }
 
 export interface Vibe {
   id: string;
   authorId: string;
+  authorName?: string;
+  authorAvatar?: string;
   caption: string;
   scene: SceneVariant;
+  videoUrl?: string;
+  thumbnailUrl?: string;
   views: number;
   likes: number;
   shares: number;

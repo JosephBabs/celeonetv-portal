@@ -82,6 +82,67 @@ export async function publishPost({ text, audience, images = [], video, onProgre
   return post;
 }
 
+/** Publie un statut via le même endpoint PostgreSQL que l'application mobile. */
+export async function publishStatus(input: { text: string; background?: string; images?: string[]; video?: File; music?: string; onProgress?: (label: string) => void }) {
+  const account = appStore.get().account;
+  if (!account?.remote || !account.uid) throw new Error('Connectez-vous pour publier un statut.');
+  const createdAtMs = Date.now();
+  const media: { url: string; type: 'image' | 'video' }[] = [];
+  for (let i = 0; i < (input.images ?? []).length; i++) {
+    input.onProgress?.('Envoi de la photo…');
+    media.push({ url: await uploadFile(await dataUrlToBlob(input.images![i]), `status-${createdAtMs}-${i + 1}.jpg`), type: 'image' });
+  }
+  if (input.video) {
+    input.onProgress?.('Envoi de la vidéo…');
+    media.push({ url: await uploadFile(input.video, input.video.name || `status-${createdAtMs}.mp4`), type: 'video' });
+  }
+  const statusItems = media.length ? media.map((file, index) => ({
+    id: `${account.uid}_${createdAtMs}_${index}`,
+    type: file.type,
+    text: index === 0 ? input.text : '',
+    backgroundColor: input.background || '',
+    imageUrl: file.type === 'image' ? file.url : '',
+    videoUrl: file.type === 'video' ? file.url : '',
+    createdAt: new Date(createdAtMs + index).toISOString(),
+    createdAtMs: createdAtMs + index,
+    expiresAtMs: createdAtMs + 24 * 60 * 60 * 1000,
+    durationSec: file.type === 'video' ? 15 : 8,
+    metrics: { views: 0, reactions: 0 },
+  })) : [{
+    id: `${account.uid}_${createdAtMs}`,
+    type: input.background ? 'canvas' : 'text',
+    text: input.text,
+    backgroundColor: input.background || '',
+    createdAt: new Date(createdAtMs).toISOString(),
+    createdAtMs,
+    expiresAtMs: createdAtMs + 24 * 60 * 60 * 1000,
+    durationSec: 8,
+    metrics: { views: 0, reactions: 0 },
+  }];
+  input.onProgress?.('Publication…');
+  const result = await api.post<Raw>('/status/publish', {
+    userId: account.uid,
+    userName: accountName(account),
+    userAvatar: account.avatar || '',
+    updatedAtMs: createdAtMs,
+    statusItems,
+  });
+  const group = isObj(result.data) ? result.data : result;
+  const items = Array.isArray(group.statusItems) ? group.statusItems : statusItems;
+  appStore.set((state) => ({ myStatus: [...state.myStatus, ...items.map((item) => {
+    const row = isObj(item) ? item : {};
+    return {
+      id: str(row.id) || `${account.uid}-${createdAtMs}`,
+      text: str(row.text) || undefined,
+      background: str(row.backgroundColor) || undefined,
+      image: str(row.imageUrl) || undefined,
+      video: str(row.videoUrl) || undefined,
+      music: input.music,
+      createdAt: str(row.createdAt) || new Date(createdAtMs).toISOString(),
+    };
+  })] }));
+}
+
 const apiId = (post: Post) => encodeURIComponent(apiContentId(post.id));
 
 export async function editRemotePost(post: Post, text: string, audience?: RemoteAudience) {

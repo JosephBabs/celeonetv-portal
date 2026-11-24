@@ -10,7 +10,7 @@ import { ComposerModal, type ComposerKind } from '@/components/social/Composers'
 import { ComposerCard, EventModal, GoLiveModal, LiveSection, LiveStudio, MustSee, StatusStrip, VibesStrip } from '@/components/social/SocialWidgets';
 
 export function SocialPage() {
-  const remote = useApp((s) => !!s.account?.remote);
+  const remote = true;
   const posts = useApp((s) => s.socialPosts);
   const hidden = useApp((s) => s.hiddenPosts);
   const blocked = useApp((s) => s.blocked);

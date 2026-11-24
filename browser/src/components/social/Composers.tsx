@@ -11,7 +11,7 @@ import { Button, IconButton } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { Toggle } from '@/components/ui/Toggle';
 import { Scene, sceneLabels } from '@/components/feed/Scene';
-import { publishPost } from '@/services/publish';
+import { publishPost, publishStatus } from '@/services/publish';
 import { ApiError } from '@/lib/api';
 
 export type ComposerKind = 'publication' | 'cele-vibe' | 'statut';
@@ -85,6 +85,7 @@ export function ComposerModal({ kind, onClose, initialSchedule, initialPhotos }:
   const [progress, setProgress] = useState('');
   // Compte réel (publication classique) : vraie publication sur le serveur, avec une vraie vidéo.
   const real = !!account?.remote && kind === 'publication';
+  const realStatus = !!account?.remote && kind === 'statut';
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -98,6 +99,8 @@ export function ComposerModal({ kind, onClose, initialSchedule, initialPhotos }:
 
   const canSubmit = real
     ? type === 'photos' ? images.length > 0 : type === 'video' ? !!videoFile : text.trim().length > 0
+    : realStatus
+      ? type === 'photos' ? images.length > 0 : type === 'video' ? !!videoFile : text.trim().length > 0
     : kind === 'cele-vibe' ? !!scene : type === 'photos' ? images.length > 0 : type === 'video' || type === 'cele-vibe' ? !!scene : text.trim().length > 0;
 
   const pickImages = async (files: FileList | null) => {
@@ -112,6 +115,20 @@ export function ComposerModal({ kind, onClose, initialSchedule, initialPhotos }:
   };
 
   const submit = async () => {
+    if (realStatus) {
+      setLoading(true);
+      try {
+        await publishStatus({ text: text.trim(), background: textMode && useBg ? bgCss : undefined, images: type === 'photos' ? images : [], video: type === 'video' ? videoFile ?? undefined : undefined, music: music ?? undefined, onProgress: setProgress });
+        toast('Votre statut est en ligne pour 24 h');
+        onClose();
+      } catch (e) {
+        toast(e instanceof ApiError || e instanceof Error ? e.message : 'Publication impossible pour le moment.', { tone: 'danger' });
+      } finally {
+        setLoading(false);
+        setProgress('');
+      }
+      return;
+    }
     if (real) {
       setLoading(true);
       try {
@@ -259,7 +276,7 @@ export function ComposerModal({ kind, onClose, initialSchedule, initialPhotos }:
           </div>
         )}
 
-        {real && type === 'video' && (
+        {(real || realStatus) && type === 'video' && (
           <div className="space-y-3">
             {videoPreview ? (
               <div className="relative overflow-hidden rounded-2xl bg-night">
@@ -275,7 +292,7 @@ export function ComposerModal({ kind, onClose, initialSchedule, initialPhotos }:
           </div>
         )}
 
-        {!real && (type === 'video' || type === 'cele-vibe' || kind === 'cele-vibe') && (
+        {!real && !realStatus && (type === 'video' || type === 'cele-vibe' || kind === 'cele-vibe') && (
           <div className="space-y-3">
             <button type="button" onClick={() => videoRef.current?.click()} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-semibold shadow-xs hover:bg-surface-sunken">
               <Video size={18} className="text-brand-600" /> Ajouter une vidéo depuis l'appareil
@@ -294,7 +311,7 @@ export function ComposerModal({ kind, onClose, initialSchedule, initialPhotos }:
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f && real) {
+          if (f && (real || realStatus)) {
             // Vidéo réelle : 200 Mo au plus.
             if (f.size > 200 * 1024 * 1024) toast('Vidéo trop lourde (200 Mo au maximum).', { tone: 'danger' });
             else {

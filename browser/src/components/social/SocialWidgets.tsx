@@ -19,6 +19,8 @@ import { Scene } from '@/components/feed/Scene';
 import { CommentInput } from '@/components/feed/PostCard';
 import { cn, compactNumber, timeAgo } from '@/lib/utils';
 import type { ComposerKind } from './Composers';
+import { usePublicVibes } from '@/services/publicVibes';
+import { api } from '@/lib/api';
 
 const bg = (id?: string) => textBackgrounds.find((b) => b.id === id)?.css;
 
@@ -59,19 +61,60 @@ export function CreateChooser({ open, onClose, onPick }: { open: boolean; onClos
 /* ───────────── Statuts ───────────── */
 
 function StatusVisual({ item, className }: { item: StatusItem; className?: string }) {
+  if (item.video) return <video src={item.video} muted playsInline loop autoPlay className={cn('h-full w-full object-cover', className)} />;
   if (item.image) return <img src={item.image} alt="" className={cn('h-full w-full object-cover', className)} />;
   if (item.scene) return <Scene variant={item.scene} className={className} />;
-  return <div className={cn('h-full w-full', className)} style={{ background: bg(item.background) ?? bg('teal') }} />;
+  return <div className={cn('h-full w-full', className)} style={{ background: bg(item.background) ?? item.background ?? bg('teal') }} />;
 }
 
 export function StatusStrip({ onCreate }: { onCreate: () => void }) {
   const account = useApp((s) => s.account);
-  const statuses = useApp((s) => s.statuses);
+  const friends = useApp((s) => s.friends);
   const myStatus = useApp((s) => s.myStatus);
   const seen = useApp((s) => s.seenStatuses);
   const [viewing, setViewing] = useState<number | null>(null);
+  const [remoteStatuses, setRemoteStatuses] = useState<Status[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
-  const all: Status[] = useMemo(() => (myStatus.length ? [{ authorId: 'me', items: myStatus }, ...statuses] : statuses), [myStatus, statuses]);
+  useEffect(() => {
+    if (!account?.remote) { setRemoteStatuses([]); return; }
+    let active = true;
+    const load = async () => {
+      try {
+        const result = await api.get<unknown>('/v1/resources/status', { per_page: 50, sort: 'updatedAtMs', direction: 'desc' });
+        const rows = Array.isArray(result) ? result : result && typeof result === 'object' ? Object.values(result as Record<string, unknown>).find(Array.isArray) as unknown[] | undefined ?? [] : [];
+        const now = Date.now();
+        const mapped: Status[] = rows.flatMap((entry) => {
+          if (!entry || typeof entry !== 'object') return [];
+          const doc = entry as Record<string, unknown>;
+          const data = doc.data && typeof doc.data === 'object' ? doc.data as Record<string, unknown> : doc;
+          const authorId = String(data.userId || data.uid || doc.id || '');
+          if (!authorId || !Array.isArray(data.statusItems)) return [];
+          const items = data.statusItems.flatMap((raw, index) => {
+            if (!raw || typeof raw !== 'object') return [];
+            const item = raw as Record<string, unknown>;
+            const audience = String(item.audience || item.visibility || item.privacy || data.audience || data.visibility || data.privacy || 'public').toLowerCase();
+            if (['private', 'only_me', 'only-me', 'me'].includes(audience)) return [];
+            if (['friends', 'friend', 'contacts'].includes(audience) && !friends.includes(authorId) && authorId !== account.uid) return [];
+            const rawTime = item.createdAtMs ?? item.createdAt ?? item.timestamp ?? data.updatedAtMs;
+            const createdAt = typeof rawTime === 'number' ? new Date(rawTime < 1e12 ? rawTime * 1000 : rawTime).toISOString() : typeof rawTime === 'string' ? rawTime : typeof rawTime === 'object' && rawTime && 'iso' in rawTime ? String((rawTime as { iso: string }).iso) : '';
+            const createdMs = Date.parse(createdAt);
+            if (!createdAt || !Number.isFinite(createdMs) || createdMs < now - 24 * 60 * 60 * 1000) return [];
+            if (!['text', 'canvas', 'image', 'video', 'shared'].includes(String(item.type || 'text'))) return [];
+            return [{ id: String(item.id || `${authorId}-${index}`), text: String(item.text || item.caption || ''), background: String(item.background || item.backgroundColor || ''), image: String(item.image || item.imageUrl || item.image_url || '') || undefined, video: String(item.video || item.videoUrl || item.video_url || '') || undefined, music: String(item.music || ''), createdAt }];
+          });
+          return items.length ? [{ authorId, authorName: String(data.userName || data.authorName || ''), authorAvatar: String(data.userAvatar || data.authorAvatar || '') || undefined, items }] : [];
+        }).sort((a, b) => Date.parse(b.items[b.items.length - 1]?.createdAt || '') - Date.parse(a.items[a.items.length - 1]?.createdAt || ''));
+        if (active) setRemoteStatuses(mapped);
+      } catch { if (active) setRemoteStatuses([]); }
+    };
+    void load();
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 30_000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [account?.id, account?.remote, account?.uid, friends]);
+  const all: Status[] = useMemo(() => {
+    const mine = myStatus.length ? [{ authorId: 'me', items: myStatus }] : [];
+    return [...mine, ...remoteStatuses.map((status) => status.authorId === account?.uid ? { ...status, authorId: 'me' } : status)];
+  }, [account?.uid, myStatus, remoteStatuses]);
   const ordered = useMemo(() => [...all].sort((a, b) => Number(seen.includes(a.authorId)) - Number(seen.includes(b.authorId))), [all, seen]);
   if (!account) return null;
   const scroll = (dir: number) => scroller.current?.scrollBy({ left: dir * 260, behavior: 'smooth' });
@@ -99,9 +142,9 @@ export function StatusStrip({ onCreate }: { onCreate: () => void }) {
               {last.text && !last.image && !last.scene && <p className="absolute inset-x-2 top-1/2 line-clamp-4 -translate-y-1/2 text-center text-[11px] font-bold text-white">{last.text}</p>}
               <span className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60" />
               <span className={cn('absolute left-2 top-2 rounded-full p-[2px]', unseen ? 'rainbow-ring' : 'bg-white/70')}>
-                {mine ? <Avatar name={accountName(account)} hue={account.hue} src={account.avatar} size="xs" className="rounded-full ring-2 ring-white" /> : <MemberAvatar member={m} size="xs" className="rounded-full ring-2 ring-white" />}
+                {mine ? <Avatar name={accountName(account)} hue={account.hue} src={account.avatar} size="xs" className="rounded-full ring-2 ring-white" /> : st.authorAvatar ? <Avatar name={st.authorName || m.name} src={st.authorAvatar} size="xs" className="rounded-full ring-2 ring-white" /> : <MemberAvatar member={m} size="xs" className="rounded-full ring-2 ring-white" />}
               </span>
-              <span className="absolute inset-x-2 bottom-2 line-clamp-2 text-[12px] font-bold leading-tight text-white">{mine ? 'Votre statut' : m.name}</span>
+              <span className="absolute inset-x-2 bottom-2 line-clamp-2 text-[12px] font-bold leading-tight text-white">{mine ? 'Votre statut' : st.authorName || m.name}</span>
             </button>
           );
         })}
@@ -172,7 +215,7 @@ export function StatusViewer({ statuses, start, onClose }: { statuses: Status[];
 
   if (!current || !item || !account) return null;
   const m = getMember(current.authorId);
-  const name = mine ? accountName(account) : m.name;
+  const name = mine ? accountName(account) : current.authorName || m.name;
 
   return createPortal(
     <div className="fixed inset-0 z-[80] flex animate-fade-in items-center justify-center bg-night/95">
@@ -197,7 +240,7 @@ export function StatusViewer({ statuses, start, onClose }: { statuses: Status[];
             ))}
           </div>
           <div className="mt-3 flex items-center gap-2.5 text-white">
-            {mine ? <Avatar name={name} hue={account.hue} src={account.avatar} size="sm" /> : <MemberAvatar member={m} size="sm" />}
+            {mine ? <Avatar name={name} hue={account.hue} src={account.avatar} size="sm" /> : current.authorAvatar ? <Avatar name={current.authorName || m.name} src={current.authorAvatar} size="sm" /> : <MemberAvatar member={m} size="sm" />}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold">{name}</p>
               <p className="text-[11px] text-white/70">{timeAgo(item.createdAt)}{item.music && ` · ♪ ${item.music}`}</p>
@@ -480,7 +523,7 @@ export function LiveSection({ onGoLive }: { onGoLive: () => void }) {
 /* ───────────── Cele Vibes ───────────── */
 
 export function VibesStrip({ onCreate }: { onCreate: () => void }) {
-  const vibes = useApp((s) => s.vibes);
+  const { items: vibes } = usePublicVibes();
   return (
     <section>
       <div className="mb-3 flex items-end justify-between">
@@ -502,11 +545,11 @@ export function VibesStrip({ onCreate }: { onCreate: () => void }) {
             const m = getMember(v.authorId);
             return (
               <Link key={v.id} to={`/social/cele-vibes?v=${v.id}`} className="group relative h-[200px] w-[130px] shrink-0 overflow-hidden rounded-2xl shadow-sm">
-                <Scene variant={v.scene} playing={false} className="transition duration-300 group-hover:scale-105" />
+                {v.videoUrl ? <video src={v.videoUrl} poster={v.thumbnailUrl} muted playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <Scene variant={v.scene} playing={false} className="transition duration-300 group-hover:scale-105" />}
                 <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
                 <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-white"><Play size={13} className="ml-0.5 fill-white" /></span>
                 <span className="absolute inset-x-2.5 bottom-2.5 text-white">
-                  <span className="block truncate text-[13px] font-bold">{v.authorId === 'me' ? 'Vous' : m.name}</span>
+                  <span className="block truncate text-[13px] font-bold">{v.authorId === 'me' ? 'Vous' : v.authorName || m.name}</span>
                   <span className="block text-[11px] text-white/75">{compactNumber(v.views)} vues · {v.likes} réactions</span>
                 </span>
               </Link>

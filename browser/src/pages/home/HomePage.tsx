@@ -196,7 +196,7 @@ function FloatingButtons() {
 }
 
 export function HomePage() {
-  const remote = useApp((s) => !!s.account?.remote);
+  const remote = true;
   const posts = useApp((s) => s.officialPosts);
   const hidden = useApp((s) => s.hiddenPosts);
   const liked = useApp((s) => s.liked);
