@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { createStore } from '@/lib/createStore';
@@ -27,18 +28,18 @@ const num = (...vals: unknown[]) => {
 };
 
 /** Accepte ISO, timestamp (s ou ms), { iso } et horodatage Firestore { _seconds }. */
-function toIso(...vals: unknown[]) {
-  for (const v of vals) {
-    if (typeof v === 'string' && v && !Number.isNaN(Date.parse(v))) return new Date(v).toISOString();
-    if (typeof v === 'number' && v > 0) return new Date(v < 1e12 ? v * 1000 : v).toISOString();
-    if (isObj(v)) {
-      if (typeof v.iso === 'string' && !Number.isNaN(Date.parse(v.iso))) return new Date(v.iso).toISOString();
-      const s = num(v._seconds, v.seconds);
-      if (s) return new Date(s * 1000).toISOString();
-    }
-  }
-  return new Date().toISOString();
-}
+// function toIso(...vals: unknown[]) {
+//   for (const v of vals) {
+//     if (typeof v === 'string' && v && !Number.isNaN(Date.parse(v))) return new Date(v).toISOString();
+//     if (typeof v === 'number' && v > 0) return new Date(v < 1e12 ? v * 1000 : v).toISOString();
+//     if (isObj(v)) {
+//       if (typeof v.iso === 'string' && !Number.isNaN(Date.parse(v.iso))) return new Date(v.iso).toISOString();
+//       const s = num(v._seconds, v.seconds);
+//       if (s) return new Date(s * 1000).toISOString();
+//     }
+//   }
+//   return new Date().toISOString();
+// }
 
 /** Certains anciens contenus sont en HTML (<div>, <br>) : on garde le texte et les retours à la ligne. */
 function stripHtml(v: unknown) {
@@ -74,6 +75,54 @@ const officialActor = /admin|page|official|officiel/i;
 const categoryLabels: Record<string, string> = { news: 'Actualité', actualite: 'Actualité', announcement: 'Annonce', annonce: 'Annonce', reform: 'Réforme', reforme: 'Réforme', agenda: 'Agenda', event: 'Agenda' };
 
 
+// ---------- Date helpers ----------
+
+/** Returns an ISO string from the first valid candidate, or '' if none is valid.
+ *  Replace your existing toIso with this one (or merge the logic into it). */
+function toIso(...candidates: unknown[]): string {
+  for (const v of candidates) {
+    if (v === undefined || v === null || v === '') continue;
+
+    let ms: number;
+    if (typeof v === 'number') {
+      ms = v < 1e12 ? v * 1000 : v; // seconds -> ms
+    } else if (typeof v === 'string' && /^\d+$/.test(v.trim())) {
+      const n = Number(v);
+      ms = n < 1e12 ? n * 1000 : n; // numeric string
+    } else if (isObj(v) && typeof (v as any).seconds === 'number') {
+      ms = (v as any).seconds * 1000; // Firestore Timestamp { seconds, nanoseconds }
+    } else {
+      ms = Date.parse(String(v));
+    }
+
+    if (!Number.isNaN(ms)) return new Date(ms).toISOString();
+  }
+  return ''; // never new Date(): undated posts must not look brand new
+}
+
+const timeOf = (p: { createdAt?: string }): number => {
+  const t = p.createdAt ? Date.parse(p.createdAt) : NaN;
+  return Number.isNaN(t) ? 0 : t; // missing/invalid dates sink to the bottom
+};
+
+// ---------- Sorting ----------
+
+/** Set to false for a strict chronological feed (pins ignored). */
+const PINNED_FIRST = true;
+
+type Sortable = { createdAt?: string; pinned?: boolean; priorityScore?: number };
+
+/** Newest first. Optionally pinned first. priorityScore only breaks ties. */
+export function sortPosts<T extends Sortable>(posts: T[]): T[] {
+  return [...posts].sort((a, b) => {
+    if (PINNED_FIRST && !!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+    const dt = timeOf(b) - timeOf(a);
+    return dt !== 0 ? dt : (b.priorityScore ?? 0) - (a.priorityScore ?? 0);
+  });
+}
+
+// ---------- Mapper ----------
+
 export function toPost(input: unknown, kind: PostKind): Post | null {
   if (!isObj(input)) return null;
   const legacy = isObj(input.legacy_data) ? input.legacy_data : {};
@@ -84,7 +133,12 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
 
   const a = isObj(x.author) ? x.author : {};
   const u = isObj(x.user) ? x.user : {};
-  const names = [x.authorName, x.posterName, a.displayName, a.name, typeof x.author === 'string' ? x.author : '', [str(x.authorFirstName), str(x.authorLastName)].filter(Boolean).join(' '), u.name];
+  const names = [
+    x.authorName, x.posterName, a.displayName, a.name,
+    typeof x.author === 'string' ? x.author : '',
+    [str(x.authorFirstName), str(x.authorLastName)].filter(Boolean).join(' '),
+    u.name,
+  ];
   const name = names.map((n) => str(n)).find((n) => n && !isGeneric(n)) || 'Membre CélèOne';
   const actorType = str(x.actorType, a.type);
   const official = officialActor.test(actorType);
@@ -94,6 +148,7 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
   const audience = str(x.audience, x.visibility).toLowerCase();
   const category = str(x.category).toLowerCase();
   const likedBy = Array.isArray(x.likedBy) ? x.likedBy : [];
+
   let priorityScore = 0;
   if (x.isPremium === true || x.premium === true || x.isFeatured === true || x.featured === true) priorityScore += 1000;
   if (x.isPinned === true || x.pinned === true) priorityScore += 800;
@@ -101,6 +156,7 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
   if (x.adminPost === true || x.isAdminPost === true || str(x.source).toLowerCase() === 'admin') priorityScore += 600;
   const priority = num(x.priority || x.rankingPriority);
   if (priority > 0) priorityScore += Math.min(500, priority);
+
   // likedBy contient des uid Firebase : on compare avec celui du compte connecté.
   const myUid = appStore.get().account?.uid ?? '';
 
@@ -108,11 +164,18 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
     id: `api-${id}`,
     authorId: `api-${str(a.id, x.actorId, x.authorId) || id}`,
     kind,
-    tag: kind === 'communaute' ? (audience.includes('friend') ? 'Amis' : 'Public') : categoryLabels[category] ?? 'Actualité',
+    tag: kind === 'communaute'
+      ? (audience.includes('friend') ? 'Amis' : 'Public')
+      : categoryLabels[category] ?? 'Actualité',
     title: str(x.title) || undefined,
     body: str(x.text, x.caption, x.text_content, x.body) || stripHtml(x.content),
     // Sort by publication time; edits and event dates must not make an old post look new.
-    createdAt: toIso(x.createdAtMs, x.createdAt, x.created_at, x.publishedAtMs, x.publishedAt, x.published_at, x.updatedAtMs, x.updatedAt, x.updated_at, x.date),
+    createdAt: toIso(
+      x.createdAtMs, x.createdAt, x.created_at,
+      x.publishedAtMs, x.publishedAt, x.published_at,
+      x.updatedAtMs, x.updatedAt, x.updated_at,
+      x.date,
+    ),
     images: media.filter((m) => !m.video).map((m) => m.url),
     videos: media.filter((m) => m.video).map((m) => m.url),
     videoPosters: media.filter((m) => m.video).map((m) => m.poster ?? str(x.thumbnailUrl)),
@@ -129,9 +192,17 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
       name, avatar, verified: official, official: official && !avatar,
       uid: official ? undefined : str(a.id, x.actorId, x.authorId) || undefined,
       // Publication d'une page (ex. « Mimo Events ») : sa page de profil.
-      pageId: /page/i.test(actorType) ? str(x.pageId, x.page_id, a.id, x.actorId) || undefined : undefined,
+      pageId: /page/i.test(actorType)
+        ? str(x.pageId, x.page_id, a.id, x.actorId) || undefined
+        : undefined,
     },
   };
+}
+
+/** Maps a raw API list and returns posts sorted latest first. */
+export function toPosts(list: unknown[], kind: PostKind): Post[] {
+  const posts = list.map((item) => toPost(item, kind)).filter((p): p is Post => p !== null);
+  return sortPosts(posts);
 }
 
 /** Publications de l'API gardées en mémoire (pour la fenêtre de détail). */
