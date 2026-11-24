@@ -952,6 +952,20 @@ export default {
 
     const method = request.method.toUpperCase();
 
+    // Shared content links must always load the web app at their original URL.
+    // Keep this ahead of the generic mobile route handling so an old redirect
+    // fallback cannot send /posts/:id (or equivalent links) to /mobile.
+    const mobileContentPath = /^\/(?:post|posts|social|reels|videos|songs|hymns|themes|weekly-themes|weekly-programs)\/[^/]+\/?$/.test(routePath);
+    if (method === "GET" && mobileContentPath && !localeInfo.locale && !isSocialCrawler(request)) {
+      const mobileUrl = new URL("/mobile.html", url.origin);
+      const mobileRequest = new Request(mobileUrl.toString(), request);
+      const mobileRes = await fetchAsset(mobileRequest, env, mobileUrl);
+      const headers = new Headers(mobileRes.headers);
+      headers.set("Cache-Control", "no-cache");
+      headers.delete("Location");
+      return new Response(mobileRes.body, { status: mobileRes.status >= 300 && mobileRes.status < 400 ? 200 : mobileRes.status, headers });
+    }
+
     if (isStaticAssetPath(routePath) && (localeInfo.locale || routePath.startsWith("/.well-known/"))) {
       const assetUrl = new URL(request.url);
       assetUrl.pathname = routePath;

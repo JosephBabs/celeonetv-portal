@@ -17,7 +17,14 @@ import { absolute } from './streaming';
  * Messagerie réelle désactivée pour l'instant (GET /v1/conversations répond en erreur 500 côté serveur) :
  * l'application affiche la messagerie de démonstration. Passer à true pour la réactiver.
  */
-export const REAL_DISCUSSIONS = false;
+export const REAL_DISCUSSIONS = true;
+
+/**
+ * L'app mobile envoie les messages par son transport socket (POST /v1/socket/token + événements msg:*), pas par REST.
+ * Écrire directement dans chatrooms/{id}/messages depuis le web n'est donc activé que sur demande (VITE_WEB_CHAT_SEND=1)
+ * une fois le format d'écriture confirmé côté serveur.
+ */
+export const WEB_CHAT_SEND = (import.meta.env.VITE_WEB_CHAT_SEND as string | undefined) === '1';
 
 type Raw = Record<string, unknown>;
 const isObj = (v: unknown): v is Raw => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -125,10 +132,10 @@ export function toConversation(input: unknown): RemoteConversation | null {
     isGroup,
     members,
     other,
-    lastText: str(last.text, last.body, last.content, last.message, x.last_message_text, x.lastMessageText, typeof x.last_message === 'string' ? x.last_message : '') || (str(last.type) && !/text/i.test(str(last.type)) ? 'Pièce jointe' : ''),
-    lastAt: dateOf(last.created_at, last.createdAt, x.last_message_at, x.lastMessageAt, x.updated_at, x.updatedAt, x.created_at),
-    lastMine: !!lastSender && isMe({ uid: lastSender, userId: lastSender }),
-    unread: Number(x.unread_count ?? x.unreadCount ?? x.unread ?? 0) || 0,
+    lastText: str(last.text, last.body, last.content, last.message, x.lastMessagePreview, x.last_message_text, x.lastMessageText, typeof x.last_message === 'string' ? x.last_message : '') || (str(last.type) && !/text/i.test(str(last.type)) ? 'Pièce jointe' : ''),
+    lastAt: dateOf(last.created_at, last.createdAt, x.lastMessageAtMs, x.last_message_at, x.lastMessageAt, x.updatedAtMs, x.updated_at, x.updatedAt, x.createdAtMs, x.created_at),
+    lastMine: (() => { const s = lastSender || str(x.lastMessageSenderId, x.lastSenderId); return !!s && isMe({ uid: s, userId: s }); })(),
+    unread: Number(isObj(x.unreadBy) ? x.unreadBy[me().uid] : (x.unread_count ?? x.unreadCount ?? x.unread ?? 0)) || 0,
   };
 }
 
@@ -144,14 +151,14 @@ export function toMessage(input: unknown): RemoteMessage | null {
   const attachments = Array.isArray(x.attachments) ? x.attachments : Array.isArray(x.media) ? x.media : [];
   const image = absolute(str(x.image, x.image_url, x.imageUrl, meta.imageUrl, meta.image, meta.url, ...attachments.map((a) => (isObj(a) && /image/i.test(str(a.type, a.mime)) ? str(a.url) : ''))));
   const reply = isObj(x.reply_to) ? x.reply_to : isObj(x.replyTo) ? x.replyTo : {};
-  const read = x.read === true || !!x.read_at || !!x.readAt || /read|seen|lu/i.test(str(x.status));
+  const read = x.read === true || !!x.read_at || !!x.readAt || /read|seen|lu/i.test(str(x.status)) || (Array.isArray(x.readBy) && x.readBy.some((u) => String(u) !== authorUid));
   return {
     id,
     clientId: str(x.client_id, x.clientId) || undefined,
     authorUid,
     mine: isMe({ uid: authorUid, userId }),
-    text: str(x.text, x.body, x.content, x.message),
-    createdAt: dateOf(x.created_at, x.createdAt, x.sent_at, x.sentAt, x.timestamp) || new Date().toISOString(),
+    text: x.deleted === true || x.deletedForAll === true ? 'Ce message a été supprimé' : str(x.text, x.body, x.content, x.message, x.caption),
+    createdAt: dateOf(x.created_at, x.createdAtMs, x.createdAt, x.sent_at, x.sentAt, x.timestamp) || new Date().toISOString(),
     status: read ? 'read' : 'sent',
     image: image || undefined,
     kind: str(x.type, x.kind) || 'text',
@@ -201,17 +208,43 @@ const docsOf = (res: unknown): Raw[] =>
 
 const PARTICIPANT_FIELDS = ['participants', 'participantIds', 'members', 'memberIds', 'users', 'userIds'];
 let legacyField: string | null = null;
+/** Collection de l'app mobile (Messages/index.tsx) : « chatrooms », filtrée sur members OU participants. */
+const ROOMS = 'chatrooms';
+let msgCollection: 'chatrooms' | 'chats' = 'chatrooms';
 
-/** Discussions de l'app mobile lues dans « chats » : on cherche le champ qui liste les participants. */
+async function roomsBy(collection: string, field: string, uid: string): Promise<Raw[]> {
+  const res = await api.get<unknown>(`/v1/resources/${collection}`, { 'filter[]': JSON.stringify({ field, operator: 'array-contains', value: uid }), per_page: 120 });
+  return docsOf(res);
+}
+
+/** Discussions de l'app mobile : chatrooms où je suis dans members ou participants (même requête que fetchChatRooms de l'app). */
 async function legacyConversations(): Promise<unknown[]> {
   const uid = me().uid;
   if (!uid) throw new Error('uid inconnu');
+  const settled = await Promise.allSettled([roomsBy(ROOMS, 'members', uid), roomsBy(ROOMS, 'participants', uid)]);
+  const ok = settled.filter((r): r is PromiseFulfilledResult<Raw[]> => r.status === 'fulfilled');
+  if (ok.length) {
+    const byId = new Map<string, Raw>();
+    ok.flatMap((r) => r.value).forEach((d) => {
+      const id = str(d.id);
+      if (!id) return;
+      const prev = byId.get(id);
+      byId.set(id, prev ? { ...prev, ...d } : d);
+    });
+    // Membres : union members + participants (comme l'app), sans doublon.
+    const rooms = [...byId.values()].map((d) => ({ ...d, members: [...new Set([...(Array.isArray(d.members) ? d.members : []), ...(Array.isArray(d.participants) ? d.participants : [])].map(String))] }));
+    if (rooms.length) {
+      msgCollection = 'chatrooms';
+      return rooms;
+    }
+  }
+  // Dernier recours : ancienne collection « chats » (modèle compatible du modèle de chat).
   for (const field of legacyField ? [legacyField] : PARTICIPANT_FIELDS) {
     try {
-      const res = await api.get<unknown>('/v1/resources/chats', { 'filter[]': JSON.stringify({ field, operator: 'array-contains', value: uid }), per_page: 60 });
-      const docs = docsOf(res);
+      const docs = await roomsBy('chats', field, uid);
       if (docs.length || legacyField) {
         legacyField = field;
+        msgCollection = 'chats';
         return docs;
       }
     } catch {
@@ -265,8 +298,8 @@ export async function loadMessages(convId: string) {
       convStore.get().source === 'legacy'
         ? docsOf(
             await api
-              .get<unknown>(`/v1/resources/chats/${encodeURIComponent(convId)}/messages`, { per_page: 60, sort: 'createdAt', direction: 'desc' })
-              .catch(() => api.get<unknown>(`/v1/resources/chats/${encodeURIComponent(convId)}/messages`, { per_page: 200 })),
+              .get<unknown>(`/v1/resources/${msgCollection}/${encodeURIComponent(convId)}/messages`, { per_page: 60, sort: msgCollection === 'chatrooms' ? 'createdAtMs' : 'createdAt', direction: 'desc' })
+              .catch(() => api.get<unknown>(`/v1/resources/${msgCollection}/${encodeURIComponent(convId)}/messages`, { per_page: 200 })),
           )
         : await api.get<unknown>(`/v1/conversations/${encodeURIComponent(convId)}/messages`, { limit: 60 });
     const fresh = listOf(res).map(toMessage).filter((m): m is RemoteMessage => !!m).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
@@ -289,6 +322,19 @@ export async function sendMessage(convId: string, text: string, retry?: RemoteMe
   put((items) => (retry ? items.map((m) => (m.id === retry.id ? temp : m)) : [...items, temp]));
   set((s) => ({ list: s.list.map((c) => (c.id === convId ? { ...c, lastText: text, lastAt: temp.createdAt, lastMine: true } : c)).sort((a, b) => b.lastAt.localeCompare(a.lastAt)) }));
   try {
+    if (convStore.get().source === 'legacy' && !WEB_CHAT_SEND) {
+      throw new ApiError(0, 'L’envoi depuis le web n’est pas encore activé : répondez depuis l’application.');
+    }
+    if (convStore.get().source === 'legacy') {
+      const a = appStore.get().account;
+      const now = Date.now();
+      await api.post(`/v1/resources/${msgCollection}/${encodeURIComponent(convId)}/messages`, {
+        senderId: me().uid, senderName: `${a?.firstName ?? ''} ${a?.lastName ?? ''}`.trim(), senderAvatar: a?.avatar ?? '',
+        text, type: 'text', clientId, readBy: [me().uid], deliveredTo: [me().uid], createdAtMs: now, updatedAtMs: now,
+      });
+      put((items) => items.map((m) => (m.id === temp.id ? { ...m, status: 'sent' } : m)));
+      return;
+    }
     const res = await api.post<unknown>(`/v1/conversations/${encodeURIComponent(convId)}/messages`, { client_id: clientId, type: 'text', text });
     const saved = toMessage(isObj(res) && isObj(res.message) ? res.message : res);
     put((items) => items.map((m) => (m.id === temp.id ? { ...(saved ?? temp), mine: true, status: 'sent', clientId } : m)));
@@ -301,6 +347,7 @@ export async function sendMessage(convId: string, text: string, retry?: RemoteMe
 export function markConversationRead(convId: string) {
   const c = convStore.get().list.find((x) => x.id === convId);
   if (c?.unread) set((s) => ({ list: s.list.map((x) => (x.id === convId ? { ...x, unread: 0 } : x)) }));
+  if (convStore.get().source === 'legacy') return; // les accusés de lecture de l'app passent par le socket (msg:receipt)
   void api.post(`/v1/conversations/${encodeURIComponent(convId)}/read`).catch(() => undefined);
 }
 
