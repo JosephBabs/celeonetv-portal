@@ -412,6 +412,47 @@ async function fetchAsset(request: Request, env: WorkerEnv, url: URL) {
   return res;
 }
 
+/**
+ * Serve the mobile web document without turning an asset redirect into an
+ * empty 200 response. Some asset deployments canonicalize HTML file paths;
+ * if the dedicated mobile document is unavailable, the portal index still
+ * bootstraps the same client-side route at the requested URL.
+ */
+async function serveMobilePortal(request: Request, env: WorkerEnv, url: URL) {
+  if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
+    return new Response("Portal is temporarily unavailable", {
+      status: 503,
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  }
+
+  for (const pathname of ["/mobile-portal.html", "/mobile.html", "/index.html", "/"]) {
+    try {
+      const assetUrl = new URL(pathname, url.origin);
+      const assetRequest = new Request(assetUrl, request);
+      const response = await env.ASSETS.fetch(assetRequest);
+      if (!response.ok || !isHtml(response)) continue;
+
+      const html = await response.text();
+      if (!html.trim()) continue;
+
+      const headers = new Headers(response.headers);
+      headers.set("Content-Type", "text/html; charset=utf-8");
+      headers.set("Cache-Control", "no-cache");
+      headers.delete("Content-Length");
+      headers.delete("Location");
+      return new Response(html, { status: 200, headers });
+    } catch {
+      // Try the next known app document if this asset is missing.
+    }
+  }
+
+  return new Response("Portal is temporarily unavailable", {
+    status: 503,
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
 async function fetchWithTimeout(url: string, ms: number, init: RequestInit = {}) {
   const ac = new AbortController();
   const t = setTimeout(() => ac.abort(), ms);
@@ -981,13 +1022,7 @@ export default {
     // fallback cannot send /posts/:id (or equivalent links) to /mobile.
     const mobileContentPath = /^\/(?:post|posts|social|reels|videos|songs|hymns|themes|weekly-themes|weekly-programs)\/[^/]+\/?$/.test(routePath);
     if (method === "GET" && mobileContentPath && !localeInfo.locale && !isSocialCrawler(request)) {
-      const mobileUrl = new URL("/mobile-portal.html", url.origin);
-      const mobileRequest = new Request(mobileUrl.toString(), request);
-      const mobileRes = await fetchAsset(mobileRequest, env, mobileUrl);
-      const headers = new Headers(mobileRes.headers);
-      headers.set("Cache-Control", "no-cache");
-      headers.delete("Location");
-      return new Response(mobileRes.body, { status: mobileRes.status >= 300 && mobileRes.status < 400 ? 200 : mobileRes.status, headers });
+      return serveMobilePortal(request, env, url);
     }
 
     if (isStaticAssetPath(routePath) && (localeInfo.locale || routePath.startsWith("/.well-known/"))) {
@@ -1092,12 +1127,7 @@ export default {
       if (localeInfo.locale) {
         return new Response(null, { status: 302, headers: { Location: `${routePath}${url.search}` } });
       }
-      const mobileUrl = new URL("/mobile-portal.html", url.origin);
-      const mobileRequest = new Request(mobileUrl.toString(), request);
-      const mobileRes = await fetchAsset(mobileRequest, env, mobileUrl);
-      const headers = new Headers(mobileRes.headers);
-      headers.set("Cache-Control", "no-cache");
-      return new Response(mobileRes.body, { status: mobileRes.status, headers });
+      return serveMobilePortal(request, env, url);
     }
 
     if (method === "HEAD") {
