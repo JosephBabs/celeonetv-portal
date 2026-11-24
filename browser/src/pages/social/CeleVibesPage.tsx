@@ -149,7 +149,7 @@ function CommentsPanel({ vibe, onClose }: { vibe: Vibe; onClose: () => void }) {
 }
 
 export function CeleVibesPage() {
-  const { items: vibes, status: vibesStatus, reload: reloadVibes } = usePublicVibes();
+  const { items: vibes, status: vibesStatus, hasMore, reload: reloadVibes, loadMore } = usePublicVibes();
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const scroller = useRef<HTMLDivElement>(null);
@@ -165,9 +165,18 @@ export function CeleVibesPage() {
   // Positionne le défilement sur la vidéo demandée dans l'URL.
   useEffect(() => {
     const id = params.get('v');
-    if (id) document.getElementById(`vibe-${id}`)?.scrollIntoView({ block: 'start' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (id && vibes.some((vibe) => vibe.id === id)) document.getElementById(`vibe-${id}`)?.scrollIntoView({ block: 'start' });
+  }, [params, vibes]);
+
+  useEffect(() => {
+    const root = scroller.current;
+    if (!root || !hasMore) return;
+    const onScroll = () => {
+      if (root.scrollHeight - root.scrollTop - root.clientHeight < 700) void loadMore();
+    };
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => root.removeEventListener('scroll', onScroll);
+  }, [hasMore, loadMore, vibes.length]);
 
   useEffect(() => {
     const root = scroller.current;

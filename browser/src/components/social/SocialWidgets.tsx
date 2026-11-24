@@ -6,7 +6,7 @@ import {
   Radio, Trash2, Users, Video, X,
 } from 'lucide-react';
 import { getMember } from '@/data/members';
-import { lives, mustSee, textBackgrounds } from '@/data/social';
+import { mustSee, textBackgrounds } from '@/data/social';
 import type { Status, StatusItem } from '@/data/types';
 import { accountName, actions, useApp } from '@/store/app';
 import { chat } from '@/store/chat';
@@ -20,6 +20,8 @@ import { CommentInput } from '@/components/feed/PostCard';
 import { cn, compactNumber, timeAgo } from '@/lib/utils';
 import type { ComposerKind } from './Composers';
 import { usePublicVibes } from '@/services/publicVibes';
+import { useActiveLives } from '@/services/socialLive';
+import { useStreaming } from '@/services/streaming';
 import { api } from '@/lib/api';
 
 const bg = (id?: string) => textBackgrounds.find((b) => b.id === id)?.css;
@@ -293,6 +295,13 @@ export function StatusViewer({ statuses, start, onClose }: { statuses: Status[];
 /* ───────────── À ne pas manquer ───────────── */
 
 export function MustSee() {
+  const { videos } = useStreaming();
+  const featuredVideos = videos.filter((video) => !video.live).slice(0, 3);
+  const utilityCards = mustSee.filter((card) => card.id === 'm2' || card.id === 'm4');
+  const cards = [
+    ...featuredVideos.map((video) => ({ id: video.id, type: video.category || 'Vidéo', tone: 'orange' as const, title: video.title, text: `${compactNumber(video.views)} vues`, scene: video.scene, to: `/streaming/live/${encodeURIComponent(video.id)}` })),
+    ...utilityCards,
+  ];
   return (
     <section>
       <div className="mb-2 flex items-center justify-between">
@@ -300,7 +309,7 @@ export function MustSee() {
         <Link to="/streaming" className="text-sm font-semibold text-brand-700 hover:underline">Voir plus</Link>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
-        {mustSee.map((c) => (
+        {cards.map((c) => (
           <Link key={c.id} to={c.to} className="group w-[220px] shrink-0 rounded-2xl border border-line/70 bg-surface p-3 shadow-xs transition hover:-translate-y-0.5 hover:shadow-md">
             <div className="mb-2.5 aspect-[16/10] overflow-hidden rounded-xl bg-violet-50">
               {'scene' in c && c.scene ? (
@@ -316,6 +325,7 @@ export function MustSee() {
             <p className="line-clamp-1 text-[12.5px] text-ink-muted">{c.text}</p>
           </Link>
         ))}
+        {featuredVideos.length === 0 && <Link to="/streaming" className="flex w-[220px] shrink-0 flex-col justify-center rounded-2xl border border-dashed border-line bg-surface p-4 text-sm font-semibold text-ink-muted">Explorer les vidéos, films et cantiques disponibles</Link>}
       </div>
     </section>
   );
@@ -483,6 +493,7 @@ export function LiveStudio({ title, onEnd }: { title: string; onEnd: (stats: { s
 }
 
 export function LiveSection({ onGoLive }: { onGoLive: () => void }) {
+  const { lives, loaded } = useActiveLives();
   return (
     <section className="py-1">
       <div className="mb-3 flex items-start justify-between gap-3">
@@ -497,24 +508,23 @@ export function LiveSection({ onGoLive }: { onGoLive: () => void }) {
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20"><Video size={19} /></span>
           <span className="font-display text-lg font-black">Go Live</span>
         </button>
-        {lives.map((l) => {
-          const m = getMember(l.authorId);
-          return (
-            <Link key={l.id} to="/streaming/direct" className="group relative h-[150px] w-[200px] shrink-0 overflow-hidden rounded-2xl shadow-sm">
-              <Scene variant={l.id === 'l1' ? 'candles' : 'choir'} playing={false} className="transition duration-300 group-hover:scale-105" />
+        {loaded && lives.length === 0 && <p className="flex h-[150px] min-w-[220px] items-center rounded-2xl bg-surface px-4 text-sm text-ink-muted">Aucun direct social en cours.</p>}
+        {!loaded && lives.length === 0 && <p className="flex h-[150px] min-w-[220px] items-center rounded-2xl bg-surface px-4 text-sm text-ink-muted">Recherche des directs en cours…</p>}
+        {lives.map((l) => (
+            <Link key={l.id} to={`/live/${encodeURIComponent(l.id)}`} className="group relative h-[150px] w-[200px] shrink-0 overflow-hidden rounded-2xl bg-[#0B565A] shadow-sm">
+              {l.hostAvatar ? <img src={l.hostAvatar} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : <div className="absolute inset-0 bg-[linear-gradient(160deg,#0B565A,#2FA5A9)]" />}
               <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-              <span className="absolute left-2.5 top-2.5 rounded-md bg-danger px-1.5 py-0.5 text-[10px] font-black text-white">LIVE</span>
-              <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-md bg-black/40 px-1.5 py-0.5 text-[11px] text-white"><Eye size={12} /> {compactNumber(l.viewers)}</span>
+              <span className={`absolute left-2.5 top-2.5 rounded-md px-1.5 py-0.5 text-[10px] font-black text-white ${l.hostPaused ? 'bg-orange-600' : 'bg-danger'}`}>{l.hostPaused ? 'PAUSE' : 'LIVE'}</span>
+              <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-md bg-black/40 px-1.5 py-0.5 text-[11px] text-white"><Eye size={12} /> {compactNumber(l.viewerCount)}</span>
               <span className="absolute inset-x-2.5 bottom-2.5 flex items-center gap-2 text-white">
-                <MemberAvatar member={m} size="xs" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-brand-700 text-xs font-bold">{l.hostAvatar ? <img src={l.hostAvatar} alt="" className="h-full w-full object-cover" /> : l.hostName.slice(0, 1).toUpperCase()}</span>
                 <span className="min-w-0">
-                  <span className="block truncate text-[12.5px] font-bold">{m.name}</span>
+                  <span className="block truncate text-[12.5px] font-bold">{l.hostName}</span>
                   <span className="block truncate text-[11px] text-white/75">{l.title}</span>
                 </span>
               </span>
             </Link>
-          );
-        })}
+        ))}
       </div>
     </section>
   );
@@ -534,7 +544,13 @@ export function VibesStrip({ onCreate }: { onCreate: () => void }) {
         <Link to="/social/cele-vibes" className="text-sm font-semibold text-brand-700 hover:underline">Voir tout</Link>
       </div>
       {vibes.length === 0 ? (
-        <p className="rounded-2xl bg-surface p-6 text-center text-sm text-ink-muted">Aucun Cele Vibe pour le moment — soyez le premier à publier</p>
+        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
+          <button onClick={onCreate} className="flex h-[170px] w-[130px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl bg-[linear-gradient(160deg,#0B565A,#2FA5A9)] p-3 text-center text-white shadow-sm">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/40 bg-white/15"><Plus size={24} /></span>
+            <span className="font-display text-[16px] font-black leading-tight">Publier un Cele Vibe</span>
+          </button>
+          <p className="flex h-[170px] min-w-[220px] items-center rounded-2xl bg-surface px-5 text-center text-sm text-ink-muted">Aucun Cele Vibe public pour le moment.</p>
+        </div>
       ) : (
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
           <button onClick={onCreate} className="flex h-[200px] w-[130px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl bg-[linear-gradient(160deg,#0B565A,#2FA5A9)] p-3 text-center text-white shadow-sm transition hover:shadow-md">

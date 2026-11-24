@@ -11,6 +11,7 @@ import { expandRow, isObj, str, type Raw } from './weeklyTheme';
  */
 export const LIVE_API = ((import.meta.env.VITE_LIVE_API_URL as string | undefined) ?? 'https://live.celeonetv.com').replace(/\/$/, '');
 const POLL_MS = 5000;
+let activeLivesUrl: string | null = null;
 
 export interface LiveGoal { type: 'likes' | 'viewers' | 'gift'; target: number; giftId?: string }
 export interface SocialLive {
@@ -34,6 +35,21 @@ export interface SocialLive {
 }
 
 const n = (v: unknown) => Math.max(0, Number(v) || 0);
+
+async function resolveActiveLivesUrl() {
+  if (activeLivesUrl) return activeLivesUrl;
+  try {
+    const config = await api.get<Raw>('/social/live/config');
+    const explicit = str(config.activeUrl, config.activeLivesUrl, config.active_url, config.active_lives_url);
+    if (explicit) return (activeLivesUrl = explicit);
+    const provision = str(config.provisionUrl, config.provision_url);
+    const derived = provision.replace(/\/provision\/?(?:\?.*)?$/, '/active');
+    if (derived && derived !== provision) return (activeLivesUrl = derived);
+  } catch {
+    // Keep the same stable public discovery fallback as the Android client.
+  }
+  return (activeLivesUrl = `${LIVE_API}/api/social/live/active`);
+}
 
 function toLive(x: Raw): SocialLive | null {
   const id = str(x.id, x.sessionId);
@@ -63,7 +79,8 @@ function toLive(x: Raw): SocialLive | null {
 }
 
 export async function fetchActiveLives(signal?: AbortSignal): Promise<SocialLive[]> {
-  const res = await fetch(`${LIVE_API}/api/social/live/active?_=${Date.now()}`, { headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' }, signal });
+  const baseUrl = await resolveActiveLivesUrl();
+  const res = await fetch(`${baseUrl}${baseUrl.includes('?') ? '&' : '?'}_=${Date.now()}`, { headers: { Accept: 'application/json', 'Cache-Control': 'no-cache', Pragma: 'no-cache' }, signal });
   const json = (await res.json().catch(() => ({}))) as unknown;
   if (!res.ok) throw new Error(`LIVE_DISCOVERY_${res.status}`);
   const payload = isObj(json) && 'data' in json ? json.data : json;
@@ -79,17 +96,20 @@ export async function fetchActiveLives(signal?: AbortSignal): Promise<SocialLive
 export function useActiveLives() {
   const [lives, setLives] = useState<SocialLive[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const inFlight = useRef(false);
   useEffect(() => {
     let off = false;
     const ctrl = new AbortController();
     const tick = async () => {
-      if (document.hidden) return;
+      if (document.hidden || inFlight.current) return;
+      inFlight.current = true;
       try {
         const next = await fetchActiveLives(ctrl.signal);
         if (!off) setLives(next);
       } catch {
         /* on garde la liste précédente */
       } finally {
+        inFlight.current = false;
         if (!off) setLoaded(true);
       }
     };

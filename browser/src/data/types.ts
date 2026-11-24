@@ -59,6 +59,8 @@ export interface Post {
   background?: string;
   audience?: Audience;
   pinned?: boolean;
+  /** Mobile home feed ranking score, used before the publication timestamp. */
+  priorityScore?: number;
   scheduledFor?: string;
   likes: number;
   shares: number;

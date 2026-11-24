@@ -94,6 +94,13 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
   const audience = str(x.audience, x.visibility).toLowerCase();
   const category = str(x.category).toLowerCase();
   const likedBy = Array.isArray(x.likedBy) ? x.likedBy : [];
+  let priorityScore = 0;
+  if (x.isPremium === true || x.premium === true || x.isFeatured === true || x.featured === true) priorityScore += 1000;
+  if (x.isPinned === true || x.pinned === true) priorityScore += 800;
+  if (/admin/i.test(str(x.authorRole, x.role, x.createdByRole))) priorityScore += 600;
+  if (x.adminPost === true || x.isAdminPost === true || str(x.source).toLowerCase() === 'admin') priorityScore += 600;
+  const priority = num(x.priority || x.rankingPriority);
+  if (priority > 0) priorityScore += Math.min(500, priority);
   // likedBy contient des uid Firebase : on compare avec celui du compte connecté.
   const myUid = appStore.get().account?.uid ?? '';
 
@@ -104,7 +111,7 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
     tag: kind === 'communaute' ? (audience.includes('friend') ? 'Amis' : 'Public') : categoryLabels[category] ?? 'Actualité',
     title: str(x.title) || undefined,
     body: str(x.text, x.caption, x.text_content, x.body) || stripHtml(x.content),
-    createdAt: toIso(x.createdAt, x.createdAtMs, x.created_at),
+    createdAt: toIso(x.createdAtMs, x.updatedAtMs, x.publishedAtMs, x.eventDateMs, x.decisionDateMs, x.createdAt, x.updatedAt, x.publishedAt, x.created_at, x.date, x.updatedOn, x.decisionDate, x.eventDate),
     images: media.filter((m) => !m.video).map((m) => m.url),
     videos: media.filter((m) => m.video).map((m) => m.url),
     videoPosters: media.filter((m) => m.video).map((m) => m.poster ?? str(x.thumbnailUrl)),
@@ -115,6 +122,8 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
     commentsCount: num(x.comments_count, x.commentCount, metrics.comments, x.comments),
     likedByMe: !!myUid && likedBy.includes(myUid),
     remote: true,
+    pinned: x.isPinned === true || x.pinned === true,
+    priorityScore,
     author: {
       name, avatar, verified: official, official: official && !avatar,
       uid: official ? undefined : str(a.id, x.actorId, x.authorId) || undefined,
@@ -166,13 +175,15 @@ function syncMyReactions(posts: Post[]) {
 
 async function fetchPage(source: FeedSource, cursor: string | null, signal?: AbortSignal): Promise<Page> {
   if (!appStore.get().account?.remote) {
-    const response = await fetch('/api/public/posts?limit=50', {
+    const response = await fetch(`/api/public/posts?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, {
       headers: { Accept: 'application/json' },
       signal,
     });
     if (!response.ok) throw new Error(`Public posts unavailable (${response.status})`);
-    const items = pickItems(await response.json());
-    return { items, next: null };
+    const payload = await response.json();
+    const page = isObj(payload) && isObj(payload.meta) && isObj(payload.meta.page) ? payload.meta.page : {};
+    const next = typeof page.next_cursor === 'string' ? page.next_cursor : isObj(payload) && typeof payload.nextCursor === 'string' ? payload.nextCursor : null;
+    return { items: pickItems(payload), next: page.has_more === true || (isObj(payload) && payload.hasMore === true) ? next : null };
   }
 
   if (source === 'accueil') {
@@ -206,7 +217,9 @@ export function useRemoteFeed(source: FeedSource, enabled: boolean) {
   const removed = feedEditsStore.use((s) => s.removed);
   const posts = useMemo(() => {
     const head = source === 'social' ? created.filter((id) => !ids.includes(id)) : [];
-    return [...head, ...ids].filter((id) => !removed.includes(id)).map((id) => store[id]).filter((p): p is Post => !!p);
+    const list = [...head, ...ids].filter((id) => !removed.includes(id)).map((id) => store[id]).filter((p): p is Post => !!p);
+    if (source !== 'accueil') return list;
+    return list.sort((a, b) => (b.priorityScore ?? 0) - (a.priorityScore ?? 0) || Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.id.localeCompare(a.id));
   }, [ids, store, created, removed, source]);
   const [loading, setLoading] = useState(enabled);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -214,26 +227,27 @@ export function useRemoteFeed(source: FeedSource, enabled: boolean) {
   const cursor = useRef<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
 
-  const ingest = (items: unknown[], append: boolean) => {
+  const ingest = (items: unknown[], append: boolean, preserveTail = false) => {
     const mapped = items.map((i) => toPost(i, source === 'social' ? 'communaute' : 'actualite')).filter((p): p is Post => !!p);
+    const newPosts = mapped.filter((post) => !remoteFeedStore.get().posts[post.id]);
     remoteFeedStore.set((s) => ({ posts: { ...s.posts, ...Object.fromEntries(mapped.map((p) => [p.id, p])) } }));
-    if (source === 'accueil') syncMyReactions(mapped);
+    if (source === 'accueil' && newPosts.length) syncMyReactions(newPosts);
     setIds((prev) => {
-      const base = append ? prev : [];
-      const seen = new Set(base);
-      return [...base, ...mapped.map((p) => p.id).filter((id) => !seen.has(id))];
+      const incoming = mapped.map((p) => p.id);
+      const candidates = append ? [...prev, ...incoming] : preserveTail ? [...incoming, ...prev] : incoming;
+      return [...new Set(candidates.filter(Boolean))];
     });
   };
 
   const load = useCallback(
-    async (signal?: AbortSignal) => {
-      setLoading(true);
+    async (signal?: AbortSignal, silent = false) => {
+      if (!silent) setLoading(true);
       setError(null);
       try {
         const page = await fetchPage(source, null, signal);
         cursor.current = page.next;
         setHasMore(page.next !== null);
-        ingest(page.items, false);
+        ingest(page.items, false, silent);
       } catch (e) {
         if ((e as Error).name !== 'AbortError') setError((e as Error).message);
       } finally {
@@ -249,6 +263,14 @@ export function useRemoteFeed(source: FeedSource, enabled: boolean) {
     const ctrl = new AbortController();
     void load(ctrl.signal);
     return () => ctrl.abort();
+  }, [enabled, load]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) void load(undefined, true);
+    }, 30_000);
+    return () => window.clearInterval(timer);
   }, [enabled, load]);
 
   const loadMore = useCallback(async () => {

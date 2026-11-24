@@ -48,13 +48,14 @@ export function SocialPage() {
       <StatusStrip onCreate={() => openComposer('statut')} />
       <MustSee />
       <ComposerCard onOpen={(o) => openComposer('publication', o)} onEvent={() => setEventOpen(true)} onLive={() => setGoLive(true)} />
+      <LiveSection onGoLive={() => setGoLive(true)} />
+      <VibesStrip onCreate={() => openComposer('cele-vibe')} />
 
       {remote ? (
         <RemoteFeed
           source="social"
           onOpen={(id) => setParam('publication', id)}
           emptyText="Aucune publication pour le moment"
-          extra={(i) => (i === 0 ? <LiveSection onGoLive={() => setGoLive(true)} /> : i === 1 ? <VibesStrip onCreate={() => openComposer('cele-vibe')} /> : null)}
         />
       ) : feed.length === 0 ? (
         <div className="card rounded-2xl">

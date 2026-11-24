@@ -22,9 +22,9 @@ export const quickAccess: NavItem[] = [
   { id: 'agenda', label: 'Agenda', icon: Calendar, to: '/agenda' },
   { id: 'streaming', label: 'Streaming', icon: CirclePlay, to: '/streaming' },
   { id: 'carte', label: 'Carte des paroisses', icon: Map, to: '/carte-paroisses' },
-  { id: 'discussions', label: 'Discussions', icon: MessageCircle, to: '/discussions' },
+  { id: 'discussions', label: 'Messages', icon: MessageCircle, to: '/discussions' },
+  { id: 'bible', label: 'Bible', icon: BookOpen, to: '/bible' },
   { id: 'market', label: 'Cèlè Market', icon: Store, to: '/market' },
-  { id: 'bible', label: 'Bible complète', icon: BookOpen, to: '/bible' },
 ];
 
 export const menuShortcuts: NavItem[] = [
