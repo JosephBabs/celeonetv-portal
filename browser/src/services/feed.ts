@@ -111,7 +111,8 @@ export function toPost(input: unknown, kind: PostKind): Post | null {
     tag: kind === 'communaute' ? (audience.includes('friend') ? 'Amis' : 'Public') : categoryLabels[category] ?? 'Actualité',
     title: str(x.title) || undefined,
     body: str(x.text, x.caption, x.text_content, x.body) || stripHtml(x.content),
-    createdAt: toIso(x.createdAtMs, x.updatedAtMs, x.publishedAtMs, x.eventDateMs, x.decisionDateMs, x.createdAt, x.updatedAt, x.publishedAt, x.created_at, x.date, x.updatedOn, x.decisionDate, x.eventDate),
+    // Sort by publication time; edits and event dates must not make an old post look new.
+    createdAt: toIso(x.createdAtMs, x.createdAt, x.created_at, x.publishedAtMs, x.publishedAt, x.published_at, x.updatedAtMs, x.updatedAt, x.updated_at, x.date),
     images: media.filter((m) => !m.video).map((m) => m.url),
     videos: media.filter((m) => m.video).map((m) => m.url),
     videoPosters: media.filter((m) => m.video).map((m) => m.poster ?? str(x.thumbnailUrl)),
@@ -175,7 +176,7 @@ function syncMyReactions(posts: Post[]) {
 
 async function fetchPage(source: FeedSource, cursor: string | null, signal?: AbortSignal): Promise<Page> {
   if (!appStore.get().account?.remote) {
-    const response = await fetch(`/api/public/posts?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, {
+    const response = await fetch(`/api/public/posts?limit=50&sort=createdAtMs&direction=desc${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, {
       headers: { Accept: 'application/json' },
       signal,
     });
@@ -188,7 +189,7 @@ async function fetchPage(source: FeedSource, cursor: string | null, signal?: Abo
 
   if (source === 'accueil') {
     // Publications officielles (administration, pages) : /v1/posts, pagination dans meta.page.
-    const res = await api.getRaw<Raw>('/v1/posts', { limit: 12, cursor: cursor ?? undefined }, signal);
+    const res = await api.getRaw<Raw>('/v1/posts', { limit: 12, sort: 'createdAtMs', direction: 'desc', cursor: cursor ?? undefined }, signal);
     const page = isObj(res.meta) && isObj(res.meta.page) ? res.meta.page : {};
     const next = page.has_more === true && typeof page.next_cursor === 'string' ? page.next_cursor : null;
     return { items: pickItems(res.data), next };
